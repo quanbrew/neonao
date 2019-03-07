@@ -1,0 +1,31 @@
+{
+  "name": "neonao",
+  "version": "0.1.0",
+  "description": "A notebook app help you to organize everything.",
+  "license": "GPL-3.0",
+  "private": true,
+  "dependencies": {
+    "draft-js": "^0.10.5",
+    "immutable": "4.0.0-rc.12",
+    "react": "^16.8.4",
+    "react-dom": "^16.8.4",
+    "react-redux": "^6.0.1",
+    "redux": "^4.0.1",
+    "typestyle": "^2.0.1",
+    "uuid": "^3.3.2"
+  },
+  "scripts": {
+    "start": "parcel src/index.html",
+    "build": "NODE_ENV=production parcel build --public-url '.' src/index.html  --experimental-scope-hoisting"
+  },
+  "devDependencies": {
+    "@types/draft-js": "^0.10.29",
+    "@types/node": "^11.10.5",
+    "@types/react": "^16.8.7",
+    "@types/react-dom": "^16.8.2",
+    "@types/react-redux": "^7.0.2",
+    "parcel-bundler": "^1.12.0",
+    "tslint": "^5.13.1",
+    "typescript": "^3.3.3333"
+  }
+}
