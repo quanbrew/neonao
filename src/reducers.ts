@@ -1,29 +1,26 @@
 import { CREATE, Create, FETCH_ALL, ItemAction, Remove, REMOVE, UPDATE } from "./actions";
 import { ID, Item } from "./Item";
+import { Map } from "immutable";
 import Timer = NodeJS.Timer;
-
-
-export interface ItemMap {
-  [id: string]: Item;
-}
 
 
 export interface Tree {
   root: ID | null;
-  map: ItemMap;
+  map: Map<ID, Item>;
 }
 
 
-export const initTree: Tree = { root: null, map: {} };
+export const initTree: Tree = { root: null, map: Map() };
 
 
 export const saveTreeState = (state: Tree) => {
   if (!state.root)
     return;
   localStorage.setItem('root', state.root);
-  for (let key in state.map) {
-    localStorage.setItem(key, JSON.stringify(Item.toJSON(state.map[key])));
-  }
+  state.map.forEach(
+    (item, key) =>
+      localStorage.setItem(key, JSON.stringify(Item.toJSON(item)))
+  );
   console.info('saved');
 };
 
@@ -38,15 +35,15 @@ const getItemByIDFromStorage = (id: ID) => {
 
 
 export const loadTreeState = (): Tree => {
-  let map: ItemMap = {};
+  let map: Map<ID, Item> = Map();
   const rootID = localStorage.getItem('root');
   if (!rootID) {
     const root = Item.create('Hello, this is an empty notebook.');
-    return { root: root.id, map: { [root.id]: root } };
+    return { root: root.id, map: map.set(root.id, root) };
   }
 
   const loadChildren = (item: Item) => {
-    map[item.id] = item;
+    map = map.set(item.id, item);
     item.children.forEach(id => loadChildren(getItemByIDFromStorage(id)));
   };
   const rootItem = getItemByIDFromStorage(rootID);
@@ -56,41 +53,47 @@ export const loadTreeState = (): Tree => {
 };
 
 
-const handleCreate = (state: ItemMap, create: Create): ItemMap => {
-  let next = {};
-  let parentID_ = create.item.parent;
-  if (parentID_) {
-    let parent = { ...state[parentID_] };
+const handleCreate = (map: Map<ID, Item>, create: Create): Map<ID, Item> => {
+  const parentID = create.item.parent;
+  if (parentID) {
+    let parent = map.get(parentID, null);
+    if (parent === null) {
+      throw (new Error("Can't found item " + parentID))
+    }
     const item = create.item;
-    const children = parent.children.push(item.id);
-    next = { ...state, [item.id]: item, [parent.id]: { ...parent, children } };
+    const children = parent.children.unshift(item.id);
+    map = map.set(item.id, item);
+    map = map.set(parentID, { ...parent, children });
   } else {
-    next = { ...state, [create.item.id]: create.item };
+    map = map.set(create.item.id, create.item);
   }
-  return next;
+  return map;
 };
 
 
-const handleRemove = (state: ItemMap, remove: Remove): ItemMap => {
+const handleRemove = (map: Map<ID, Item>, remove: Remove): Map<ID, Item> => {
   const itemID = remove.id;
-  const item = state[itemID];
+  const item = map.get(itemID, null);
+  if (item === null) {
+    return map;
+  }
   let idToRemove: ID[] = [];
-  let addTreeId = (i: Item) => {
+  let addTreeId = (i: Item | null) => {
+    if (i === null) return;
     idToRemove.push(i.id);
-    i.children.map(childId => addTreeId(state[childId]));
+    i.children.forEach(child => addTreeId(map.get(child, null)));
   };
   addTreeId(item);
-  let next = { ...state };
-  for (let key of idToRemove) {
-    delete next[key];
-  }
+  map = map.deleteAll(idToRemove);
   let parentID = item.parent;
   if (parentID) {
-    let parent = next[parentID];
-    const children = parent.children.filter(v => v !== itemID);
-    next[parentID] = { ...parent, children }
+    let parent = map.get(parentID, null);
+    if (parent !== null) {
+      const children = parent.children.filter(v => v !== itemID);
+      map = map.set(parentID, { ...parent, children });
+    }
   }
-  return next;
+  return map;
 };
 
 

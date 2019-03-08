@@ -39,7 +39,7 @@ class ListNode extends React.Component<Props> {
 type StateProps = Pick<Props, 'item'>;
 
 const mapStateToProps = (state: Tree, { id }: Props) => (state: Tree): StateProps => {
-  return { item: state.map[id] };
+  return { item: state.map.get(id) as Item };
 };
 
 
@@ -47,7 +47,7 @@ type DispatchProps = Pick<Props, 'create' | 'remove'>;
 
 const mapDispatchToProps = (dispatch: Dispatch, props: Pick<Props, 'id'>) => {
   const id = props.id;
-  const createItem = () => dispatch(create(Item.create('New', id)));
+  const createItem = () => dispatch(create(Item.create(String(Math.random()), id)));
   const removeItem = () => dispatch(remove(id));
   return (): DispatchProps => ({ create: createItem, remove: removeItem });
 };
