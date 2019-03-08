@@ -7,7 +7,7 @@ install:
   - yarn install
 
 script:
-  - NODE_ENV=production yarn parcel build --public-url '.' src/index.html  --experimental-scope-hoisting
+  - yarn build --public-url 'https://quanbrew.github.io/neonao/'
 
 deploy:
   provider: pages

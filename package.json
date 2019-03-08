@@ -15,8 +15,8 @@
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "start": "parcel src/index.html",
-    "build": "NODE_ENV=production parcel build --public-url '.' src/index.html  --experimental-scope-hoisting"
+    "start": "parcel -p 7483 src/index.html",
+    "build": "NODE_ENV=production parcel build src/index.html --experimental-scope-hoisting --public-url 'http://localhost:7483/'"
   },
   "devDependencies": {
     "@types/draft-js": "^0.10.29",
