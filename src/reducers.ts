@@ -1,5 +1,5 @@
-import { CREATE, Create, FETCH_ALL, ItemAction, REMOVE, UPDATE } from "./actions";
-import { Item } from "./Item";
+import { CREATE, Create, FETCH_ALL, ItemAction, Remove, REMOVE, UPDATE } from "./actions";
+import { ID, Item } from "./Item";
 import ExportedItem = Item.ExportedItem;
 import Timer = NodeJS.Timer;
 
@@ -42,7 +42,7 @@ const initItem = Item.create('Hello');
 const initState = { [initItem.id]: initItem };
 
 
-export const handleCreate = (state: TreeState, create: Create): TreeState => {
+const handleCreate = (state: TreeState, create: Create): TreeState => {
   let next = {};
   let parentID_ = create.item.parent;
   if (parentID_) {
@@ -52,6 +52,29 @@ export const handleCreate = (state: TreeState, create: Create): TreeState => {
     next = { ...state, [item.id]: item, [parent.id]: { ...parent, children } };
   } else {
     next = { ...state, [create.item.id]: create.item };
+  }
+  return next;
+};
+
+
+const handleRemove = (state: TreeState, remove: Remove): TreeState => {
+  const itemID = remove.id;
+  const item = state[itemID];
+  let idToRemove: ID[] = [];
+  let addTreeId = (i: Item) => {
+    idToRemove.push(i.id);
+    i.children.map(childId => addTreeId(state[childId]));
+  };
+  addTreeId(item);
+  let next = { ...state };
+  for (let key of idToRemove) {
+    delete next[key];
+  }
+  let parentID = item.parent;
+  if (parentID) {
+    let parent = next[parentID];
+    const children = parent.children.filter(v => v !== itemID);
+    next[parentID] = { ...parent, children }
   }
   return next;
 };
@@ -70,16 +93,7 @@ export const tree = (state: TreeState = {}, action: ItemAction): TreeState => {
       next = { ...state, [action.item.id]: action.item };
       break;
     case REMOVE:
-      const itemID = action.id;
-      const item = state[itemID];
-      next = { ...state };
-      delete next[itemID];
-      let parentID = item.parent;
-      if (parentID) {
-        let parent = next[parentID];
-        const children = parent.children.filter(v => v !== itemID);
-        next[parentID] = { ...parent, children }
-      }
+      next = handleRemove(state, action);
       break;
     case FETCH_ALL:
       next = loadTreeState();

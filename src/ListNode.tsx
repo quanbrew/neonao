@@ -3,19 +3,24 @@ import { ID, Item } from "./Item";
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { TreeState } from "./reducers";
-import { create } from "./actions";
+import { create, remove } from "./actions";
 
 
 interface Props {
   id: ID;
   item: Item;
-  create: (id: ID) => void;
+  create: () => void;
+  remove: () => void;
 }
 
 
 class ListNode extends React.Component<Props> {
   handleClick = () => {
-    this.props.create(this.props.item.id);
+    this.props.create();
+  };
+
+  handleRemove = () => {
+    this.props.remove();
   };
 
   render() {
@@ -24,7 +29,8 @@ class ListNode extends React.Component<Props> {
     );
 
     return (
-      <li><span onClick={ this.handleClick }>{ this.props.item.source }</span>
+      <li><span onClick={ this.handleClick }>{ this.props.item.source }</span> <span><a
+        onClick={ this.handleRemove }>REMOVE</a></span>
         <ul>{ children }</ul>
       </li>
     );
@@ -39,11 +45,13 @@ const mapStateToProps = (state: TreeState, { id }: Props) => (state: TreeState):
 };
 
 
-type DispatchProps = Pick<Props, 'create'>;
+type DispatchProps = Pick<Props, 'create' | 'remove'>;
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
-  const createItem = (id: ID) => dispatch(create(Item.create('New', id)));
-  return () => ({ create: createItem });
+const mapDispatchToProps = (dispatch: Dispatch, props: Pick<Props, 'id'>) => {
+  const id = props.id;
+  const createItem = () => dispatch(create(Item.create('New', id)));
+  const removeItem = () => dispatch(remove(id));
+  return (): DispatchProps => ({ create: createItem, remove: removeItem });
 };
 
 
