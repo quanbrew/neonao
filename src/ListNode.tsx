@@ -18,10 +18,6 @@ class ListNode extends React.Component<Props> {
     this.props.create(this.props.item.id);
   };
 
-  shouldComponentUpdate(nextProps: Readonly<Props>): boolean {
-    return this.props.item !== nextProps.item;
-  }
-
   render() {
     const children = this.props.item.children.map(
       id => <ConnectedListNode key={ id } id={ id }/>
