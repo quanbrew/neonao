@@ -31,15 +31,15 @@ class ListNode extends React.Component<Props> {
   }
 }
 
-//
-// const mapDispatchToProps = (dispatch: Dispatch): Pick<Props, 'edit'> => {
-//   return ({ edit: next => dispatch(editInformation(next)) });
-// };
 
-const mapStateToProps = (state: TreeState, { id }: Props) => (state: TreeState) => {
+type StateProps = Pick<Props, 'item'>;
+
+const mapStateToProps = (state: TreeState, { id }: Props) => (state: TreeState): StateProps => {
   return { item: state[id] };
 };
 
+
+type DispatchProps = Pick<Props, 'create'>;
 
 const mapDispatchToProps = (dispatch: Dispatch) => {
   const createItem = (id: ID) => dispatch(create(Item.create('New', id)));
@@ -47,5 +47,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 };
 
 
-export const ConnectedListNode = connect(mapStateToProps, mapDispatchToProps)(ListNode);
+export const ConnectedListNode = connect<StateProps, DispatchProps>(
+  mapStateToProps,
+  mapDispatchToProps
+)(ListNode);
 export default ConnectedListNode;
