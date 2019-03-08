@@ -5,26 +5,18 @@ import { style } from "typestyle";
 import { connect, Provider } from 'react-redux';
 import { store } from './store';
 import ListNode from "./ListNode";
-import { Item } from "./Item";
-import { TreeState } from "./reducers";
+import { Tree } from "./reducers";
 import { Dispatch } from "redux";
 import { fetchAll } from "./actions";
 
 
 interface Props {
-  root?: Item;
+  root: string | null;
   init: () => void;
 }
 
 
-const mapStateToProps = (state: TreeState): Pick<Props, 'root'> => {
-  let props: Pick<Props, 'root'> = {};
-  for (let key in state) {
-    if (!state[key].parent)
-      props.root = state[key];
-  }
-  return props;
-};
+const mapStateToProps = ({ root }: Tree): Pick<Props, 'root'> => ({ root });
 
 
 const mapDispatchToProps = (dispatch: Dispatch): Pick<Props, 'init'> => {
@@ -46,7 +38,7 @@ class App extends React.Component<Props> {
     return (
       <div>
         <h1 className={ title }>NeoNao</h1>
-        { this.props.root ? <ListNode id={ this.props.root.id }/> : 'Loading...' }
+        <ul>{ this.props.root ? <ListNode id={ this.props.root }/> : 'Loading...' }</ul>
       </div>
     );
   }

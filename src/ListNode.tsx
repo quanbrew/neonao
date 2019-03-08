@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ID, Item } from "./Item";
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { TreeState } from "./reducers";
+import { Tree } from "./reducers";
 import { create, remove } from "./actions";
 
 
@@ -15,22 +15,16 @@ interface Props {
 
 
 class ListNode extends React.Component<Props> {
-  handleClick = () => {
-    this.props.create();
-  };
-
-  handleRemove = () => {
-    this.props.remove();
-  };
-
   render() {
-    const children = this.props.item.children.map(
+    const { item, remove, create } = this.props;
+
+    const children = item.children.map(
       id => <ConnectedListNode key={ id } id={ id }/>
     );
 
     return (
-      <li><span onClick={ this.handleClick }>{ this.props.item.source }</span> <span><a
-        onClick={ this.handleRemove }>REMOVE</a></span>
+      <li><span onClick={ create }>{ item.source }</span> <span><a
+        onClick={ remove }>REMOVE</a></span>
         <ul>{ children }</ul>
       </li>
     );
@@ -40,8 +34,8 @@ class ListNode extends React.Component<Props> {
 
 type StateProps = Pick<Props, 'item'>;
 
-const mapStateToProps = (state: TreeState, { id }: Props) => (state: TreeState): StateProps => {
-  return { item: state[id] };
+const mapStateToProps = (state: Tree, { id }: Props) => (state: Tree): StateProps => {
+  return { item: state.map[id] };
 };
 
 

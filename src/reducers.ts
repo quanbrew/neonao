@@ -1,48 +1,62 @@
 import { CREATE, Create, FETCH_ALL, ItemAction, Remove, REMOVE, UPDATE } from "./actions";
 import { ID, Item } from "./Item";
-import ExportedItem = Item.ExportedItem;
 import Timer = NodeJS.Timer;
 
 
-export interface TreeState {
+export interface ItemMap {
   [id: string]: Item;
 }
 
 
-export const saveTreeState = (state: TreeState) => {
-  if (Object.entries(state).length === 0)
+export interface Tree {
+  root: ID | null;
+  map: ItemMap;
+}
+
+
+export const initTree: Tree = { root: null, map: {} };
+
+
+export const saveTreeState = (state: Tree) => {
+  if (!state.root)
     return;
-  let exportedObject = [];
-  for (let key in state) {
-    exportedObject.push(Item.toJSON(state[key]));
+  localStorage.setItem('root', state.root);
+  for (let key in state.map) {
+    localStorage.setItem(key, JSON.stringify(Item.toJSON(state.map[key])));
   }
   console.info('saved');
-  localStorage.setItem('tree', JSON.stringify(exportedObject));
 };
 
 
-export const loadTreeState = (): TreeState => {
-  let state = {};
-  const exportedData = localStorage.getItem('tree');
-  if (exportedData) {
-    const loaded: ExportedItem[] = JSON.parse(exportedData);
-    for (let item of loaded) {
-      state[item.id] = Item.fromJSON(item);
-    }
+const getItemByIDFromStorage = (id: ID) => {
+  const encoded = localStorage.getItem(id);
+  if (!encoded) {
+    throw (new Error("Can't found item " + id));
   }
-  if (Object.entries(state).length === 0) {
-    return initState;
+  return Item.fromJSON(JSON.parse(encoded));
+};
+
+
+export const loadTreeState = (): Tree => {
+  let map: ItemMap = {};
+  const rootID = localStorage.getItem('root');
+  if (!rootID) {
+    const root = Item.create('Hello, this is an empty notebook.');
+    return { root: root.id, map: { [root.id]: root } };
   }
+
+  const loadChildren = (item: Item) => {
+    map[item.id] = item;
+    item.children.forEach(id => loadChildren(getItemByIDFromStorage(id)));
+  };
+  const rootItem = getItemByIDFromStorage(rootID);
+  loadChildren(rootItem);
   console.log('loaded');
-  return state;
+  return { root: rootID, map };
 };
 
 
-const initItem = Item.create('Hello');
-const initState = { [initItem.id]: initItem };
-
-
-const handleCreate = (state: TreeState, create: Create): TreeState => {
+const handleCreate = (state: ItemMap, create: Create): ItemMap => {
   let next = {};
   let parentID_ = create.item.parent;
   if (parentID_) {
@@ -57,7 +71,7 @@ const handleCreate = (state: TreeState, create: Create): TreeState => {
 };
 
 
-const handleRemove = (state: TreeState, remove: Remove): TreeState => {
+const handleRemove = (state: ItemMap, remove: Remove): ItemMap => {
   const itemID = remove.id;
   const item = state[itemID];
   let idToRemove: ID[] = [];
@@ -83,17 +97,17 @@ const handleRemove = (state: TreeState, remove: Remove): TreeState => {
 let saveTimer: Timer | null = null;
 
 
-export const tree = (state: TreeState = {}, action: ItemAction): TreeState => {
-  let next: TreeState;
+export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
+  let next: Tree;
   switch (action.type) {
     case CREATE:
-      next = handleCreate(state, action);
+      next = { ...state, map: handleCreate(state.map, action) };
       break;
     case UPDATE:
       next = { ...state, [action.item.id]: action.item };
       break;
     case REMOVE:
-      next = handleRemove(state, action);
+      next = { ...state, map: handleRemove(state.map, action) };
       break;
     case FETCH_ALL:
       next = loadTreeState();

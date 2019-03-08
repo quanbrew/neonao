@@ -1,5 +1,5 @@
 import { applyMiddleware, compose, createStore, Middleware } from 'redux';
-import { tree } from './reducers';
+import { initTree, tree } from './reducers';
 
 
 const logger: Middleware = () => next => action => {
@@ -15,6 +15,6 @@ const composeEnhancers: typeof compose = window.__REDUX_DEVTOOLS_EXTENSION_COMPO
 
 export const store = createStore(
   tree,
-  {},
+  initTree,
   composeEnhancers(applyMiddleware(logger)),
 );
