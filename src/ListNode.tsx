@@ -4,6 +4,8 @@ import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { Tree } from "./reducers";
 import { create, remove } from "./actions";
+import { IconCreate, IconRemove } from "./icons";
+import './ListNode.css';
 
 
 interface Props {
@@ -23,8 +25,10 @@ class ListNode extends React.Component<Props> {
     );
 
     return (
-      <li><span onClick={ create }>{ item.source }</span> <span><a
-        onClick={ remove }>REMOVE</a></span>
+      <li className="ListNode">
+        <span className='content'>{ item.source }</span>
+        <IconCreate className="icon create-item" onClick={ create }/>
+        <IconRemove className="icon remove-item" onClick={ remove }/>
         <ul>{ children }</ul>
       </li>
     );
