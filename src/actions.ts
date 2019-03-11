@@ -1,4 +1,5 @@
 import { ID, Item } from "./Item";
+import { Tree } from "./reducers";
 
 
 export type FETCH_ALL = typeof FETCH_ALL;
@@ -95,8 +96,22 @@ export interface Move {
   order?: number;
 }
 
-const move = ({ id, parent }: Item, to: ID, order?: number): Move => (
+export const move = ({ id, parent }: Item, to: ID, order?: number): Move => (
   { id, to, order, from: parent }
+);
+
+
+export type LOADED_STATE = typeof LOADED_STATE;
+export const LOADED_STATE = 'LOADED_STATE';
+
+export interface LoadedState {
+  type: LOADED_STATE;
+  state: Tree;
+}
+
+
+export const loadedState = (state: Tree): LoadedState => (
+  { type: LOADED_STATE, state }
 );
 
 
@@ -108,3 +123,4 @@ export type ItemAction =
   | Create
   | Update
   | Remove
+  | LoadedState

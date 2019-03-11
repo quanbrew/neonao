@@ -1,55 +1,80 @@
-import { CREATE, Create, FETCH_ALL, ItemAction, Remove, REMOVE, UPDATE } from "./actions";
+import {
+  CREATE,
+  Create,
+  FETCH_ALL,
+  ItemAction,
+  LOADED_STATE,
+  loadedState,
+  LoadedState,
+  Remove,
+  REMOVE,
+  UPDATE
+} from "./actions";
 import { ID, Item } from "./Item";
 import { Map } from "immutable";
+import localForage from "localforage";
 import Timer = NodeJS.Timer;
+import ExportedItem = Item.ExportedItem;
 
 
 export interface Tree {
   root: ID | null;
   map: Map<ID, Item>;
+  loading: boolean;
 }
 
 
-export const initTree: Tree = { root: null, map: Map() };
+export const initTree: Tree = { root: null, map: Map(), loading: true };
 
 
 export const saveTreeState = (state: Tree) => {
   if (!state.root)
     return;
-  localStorage.setItem('root', state.root);
-  state.map.forEach(
-    (item, key) =>
-      localStorage.setItem(key, JSON.stringify(Item.toJSON(item)))
-  );
-  console.info('saved');
+  localForage.setItem('root', state.root).then(() => {
+    state.map.forEach(
+      (item, key) =>
+        localForage.setItem(key, Item.toJSON(item))
+    );
+    console.info('saved');
+  });
 };
 
 
-const getItemByIDFromStorage = (id: ID) => {
-  const encoded = localStorage.getItem(id);
-  if (!encoded) {
-    throw (new Error("Can't found item " + id));
-  }
-  return Item.fromJSON(JSON.parse(encoded));
+const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
+  const raw = await localForage.getItem<ExportedItem>(id);
+  return raw ? Item.fromJSON(raw) : null;
 };
 
 
-export const loadTreeState = (): Tree => {
+const loadChildren = async (item: Item | null): Promise<Map<ID, Item>> => {
   let map: Map<ID, Item> = Map();
-  const rootID = localStorage.getItem('root');
+  if (item) {
+    map = map.set(item.id, item);
+    const childrenMap: Map<ID, Item> [] = await Promise.all(
+      item.children.map(
+        childID =>
+          getItemByIDFromStorage(childID).then(loadChildren)
+      )
+    );
+    map = map.merge(...childrenMap);
+  }
+  return await map;
+};
+
+
+export const loadTreeState = async (): Promise<LoadedState> => {
+  const loading = false;
+  const rootID = await localForage.getItem<ID>('root');
   if (!rootID) {
     const root = Item.create('Hello, this is an empty notebook.');
-    return { root: root.id, map: map.set(root.id, root) };
+    const rootID = root.id;
+    const map: Map<ID, Item> = Map({ [rootID]: root });
+    const state = { root: rootID, map, loading };
+    return await loadedState(state);
   }
-
-  const loadChildren = (item: Item) => {
-    map = map.set(item.id, item);
-    item.children.forEach(id => loadChildren(getItemByIDFromStorage(id)));
-  };
-  const rootItem = getItemByIDFromStorage(rootID);
-  loadChildren(rootItem);
+  const map = await loadChildren(await getItemByIDFromStorage(rootID));
   console.log('loaded');
-  return { root: rootID, map };
+  return await loadedState({ root: rootID, map, loading });
 };
 
 
@@ -113,8 +138,9 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
       next = { ...state, map: handleRemove(state.map, action) };
       break;
     case FETCH_ALL:
-      next = loadTreeState();
-      break;
+      return { ...state, loading: true };
+    case LOADED_STATE:
+      return action.state;
     default:
       next = state;
   }
