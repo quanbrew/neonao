@@ -2,8 +2,9 @@ import * as React from 'react';
 import { ID, Item } from "../Item";
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
+import { Editor, EditorState } from 'draft-js';
 import { Tree } from "../tree";
-import { create, loadItemState, remove } from "../actions";
+import { create, loadItemState, remove, update } from "../actions";
 import './ListNode.css';
 import iconRemove from "./delete.svg";
 import iconCreate from "./plus-square.svg";
@@ -26,11 +27,23 @@ interface Props {
   item: Item;
   create: () => void;
   remove: () => void;
+  update: (item: Item) => void;
   load: (item: Item) => void;
 }
 
 
-class ListNode extends React.Component<Props> {
+interface State {
+  editor: EditorState | null;
+}
+
+
+class ListNode extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { editor: null };
+  }
+
+
   renderChild = (childID: ID) => <ConnectedListNode key={ childID } id={ childID }/>;
 
   dummyChildren = () => {
@@ -51,6 +64,26 @@ class ListNode extends React.Component<Props> {
     }
   };
 
+  submitChange = (editor: EditorState) => {
+    const { item, update } = this.props;
+    const source = editor.getCurrentContent().getPlainText();
+    const next: Item = { ...item, editor, source };
+    update(next);
+  };
+
+  onChange = (editor: EditorState) => {
+    this.submitChange(editor);
+  };
+
+  getEditor = () => {
+    const { item } = this.props;
+    if (item.editor === null) {
+      return Item.initEditorState(item);
+    } else {
+      return item.editor;
+    }
+  };
+
   componentDidMount() {
     const { item, load } = this.props;
     if (!item.loaded) {
@@ -59,13 +92,14 @@ class ListNode extends React.Component<Props> {
   }
 
   render() {
-    const { item, remove, create } = this.props;
+    const { remove, create } = this.props;
+
     return (
       <li className="ListNode">
-        <span className='content'>{ item.source }</span>
+        <Editor editorState={ this.getEditor() } onChange={ this.onChange }/>
         <IconCreate className="icon create-item" onClick={ create }/>
         <IconRemove className="icon remove-item" onClick={ remove }/>
-        <ul>{ this.renderChildren() }</ul>
+        { this.renderChildren() }
       </li>
     );
   }
@@ -80,14 +114,15 @@ const mapStateToProps = (state: Tree, { id }: Props) => (state: Tree): StateProp
 };
 
 
-type DispatchProps = Pick<Props, 'create' | 'remove' | 'load'>;
+type DispatchProps = Pick<Props, 'create' | 'remove' | 'load' | 'update'>;
 
 const mapDispatchToProps = (dispatch: Dispatch, props: Pick<Props, 'id'>) => {
   const id = props.id;
-  const createItem = () => dispatch(create(Item.create(String(Math.random()), id)));
+  const createItem = () => dispatch(create(Item.create("", id)));
   const removeItem = () => dispatch(remove(id));
   const load = (item: Item) => loadItemState(item).then(dispatch);
-  return (): DispatchProps => ({ create: createItem, remove: removeItem, load });
+  const updateItem = (item: Item) => dispatch(update(item));
+  return (): DispatchProps => ({ create: createItem, remove: removeItem, load, update: updateItem });
 };
 
 

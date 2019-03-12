@@ -1,7 +1,7 @@
 .ListNode .icon {
   width: 1em;
   height: 1em;
-  margin: 0 0.1em;
+  margin: 0.2em 0.2em 0.2em 0;
   user-select: none;
   border-radius: 0.2em;
 }
@@ -13,11 +13,5 @@
 
 .ListNode .create-item:hover {
   background-color: #33ffc5;
-}
-
-
-.ListNode .content {
-  padding: 0.25em;
-  margin-right: 0.5em;
 }
 

@@ -82,7 +82,7 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
       next = { ...state, map: handleCreate(state.map, action) };
       break;
     case UPDATE:
-      next = { ...state, [action.item.id]: action.item };
+      next = { ...state, map: state.map.set(action.item.id, action.item) };
       break;
     case REMOVE:
       next = { ...state, map: handleRemove(state.map, action) };

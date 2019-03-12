@@ -1,5 +1,5 @@
 import { fromJS, List } from "immutable";
-import { EditorState } from "draft-js";
+import { ContentState, EditorState } from "draft-js";
 
 const uuid1 = require('uuid/v1');
 
@@ -53,4 +53,9 @@ export namespace Item {
       id, expand, source, parent, children: children.toJS()
     }
   );
+
+  export const initEditorState = (item: Item): EditorState => {
+    const content = ContentState.createFromText(item.source);
+    return EditorState.createWithContent(content)
+  }
 }
