@@ -15,6 +15,7 @@ export interface Item {
   editor: EditorState | null;
   source: string;
   deleted: boolean;
+  loaded: boolean;
 }
 
 export namespace Item {
@@ -24,6 +25,7 @@ export namespace Item {
     editor: null,
     expand: true,
     deleted: false,
+    loaded: true,
     parent,
     source,
   });
@@ -42,6 +44,7 @@ export namespace Item {
       children: fromJS(children),
       editor: null,
       deleted: false,
+      loaded: children.length === 0,
     }
   );
 

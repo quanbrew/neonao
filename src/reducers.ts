@@ -1,27 +1,9 @@
-import {
-  CREATE,
-  Create,
-  FETCH_ALL,
-  ItemAction,
-  LOADED_STATE,
-  loadedState,
-  LoadedState,
-  Remove,
-  REMOVE,
-  UPDATE
-} from "./actions";
+import { CREATE, Create, FETCH_ALL, ItemAction, ItemMap, LOADED_STATE, Remove, REMOVE, UPDATE } from "./actions";
 import { ID, Item } from "./Item";
+import { Tree } from "./tree"
 import { Map } from "immutable";
 import localForage from "localforage";
 import Timer = NodeJS.Timer;
-import ExportedItem = Item.ExportedItem;
-
-
-export interface Tree {
-  root: ID | null;
-  map: Map<ID, Item>;
-  loading: boolean;
-}
 
 
 export const initTree: Tree = { root: null, map: Map(), loading: true };
@@ -40,45 +22,7 @@ export const saveTreeState = (state: Tree) => {
 };
 
 
-const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
-  const raw = await localForage.getItem<ExportedItem>(id);
-  return raw ? Item.fromJSON(raw) : null;
-};
-
-
-const loadChildren = async (item: Item | null): Promise<Map<ID, Item>> => {
-  let map: Map<ID, Item> = Map();
-  if (item) {
-    map = map.set(item.id, item);
-    const childrenMap: Map<ID, Item> [] = await Promise.all(
-      item.children.map(
-        childID =>
-          getItemByIDFromStorage(childID).then(loadChildren)
-      )
-    );
-    map = map.merge(...childrenMap);
-  }
-  return await map;
-};
-
-
-export const loadTreeState = async (): Promise<LoadedState> => {
-  const loading = false;
-  const rootID = await localForage.getItem<ID>('root');
-  if (!rootID) {
-    const root = Item.create('Hello, this is an empty notebook.');
-    const rootID = root.id;
-    const map: Map<ID, Item> = Map({ [rootID]: root });
-    const state = { root: rootID, map, loading };
-    return await loadedState(state);
-  }
-  const map = await loadChildren(await getItemByIDFromStorage(rootID));
-  console.log('loaded');
-  return await loadedState({ root: rootID, map, loading });
-};
-
-
-const handleCreate = (map: Map<ID, Item>, create: Create): Map<ID, Item> => {
+const handleCreate = (map: ItemMap, create: Create): ItemMap => {
   const parentID = create.item.parent;
   if (parentID) {
     let parent = map.get(parentID, null);
@@ -96,7 +40,7 @@ const handleCreate = (map: Map<ID, Item>, create: Create): Map<ID, Item> => {
 };
 
 
-const handleRemove = (map: Map<ID, Item>, remove: Remove): Map<ID, Item> => {
+const handleRemove = (map: ItemMap, remove: Remove): ItemMap => {
   const itemID = remove.id;
   const item = map.get(itemID, null);
   if (item === null) {
@@ -125,6 +69,12 @@ const handleRemove = (map: Map<ID, Item>, remove: Remove): Map<ID, Item> => {
 let saveTimer: Timer | null = null;
 
 
+const mergeState = (old: Tree, next: Partial<Tree>): Tree => {
+  const map = next.map ? next.map.merge(old.map) : old.map;
+  return { ...old, ...next, map };
+};
+
+
 export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
   let next: Tree;
   switch (action.type) {
@@ -140,7 +90,7 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
     case FETCH_ALL:
       return { ...state, loading: true };
     case LOADED_STATE:
-      return action.state;
+      return mergeState(state, action.state);
     default:
       next = state;
   }

@@ -4,9 +4,9 @@ import './index.css';
 import { connect, Provider } from 'react-redux';
 import { store } from './store';
 import ListNode from "./ListNode";
-import { loadTreeState, Tree } from "./reducers";
+import { Tree } from "./reducers";
 import { Dispatch } from "redux";
-import { fetchAll } from "./actions";
+import { fetchAll, loadTreeState } from "./actions";
 
 
 interface Props {
@@ -21,7 +21,7 @@ const mapStateToProps = ({ root }: Tree): Pick<Props, 'root'> => ({ root });
 const mapDispatchToProps = (dispatch: Dispatch): Pick<Props, 'init'> => {
   const init = () => {
     dispatch(fetchAll());
-    loadTreeState().then(dispatch);
+    loadTreeState(2).then(dispatch);
   };
   return { init };
 };
