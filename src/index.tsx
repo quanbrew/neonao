@@ -3,8 +3,8 @@ import * as ReactDOM from 'react-dom';
 import './index.css';
 import { connect, Provider } from 'react-redux';
 import { store } from './store';
-import ListNode from "./ListNode";
-import { Tree } from "./reducers";
+import ListNode from "./ListNode/ListNode";
+import { Tree } from "./tree";
 import { Dispatch } from "redux";
 import { fetchAll, loadTreeState } from "./actions";
 
@@ -21,7 +21,7 @@ const mapStateToProps = ({ root }: Tree): Pick<Props, 'root'> => ({ root });
 const mapDispatchToProps = (dispatch: Dispatch): Pick<Props, 'init'> => {
   const init = () => {
     dispatch(fetchAll());
-    loadTreeState(2).then(dispatch);
+    loadTreeState(3).then(dispatch);
   };
   return { init };
 };

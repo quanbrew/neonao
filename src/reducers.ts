@@ -70,7 +70,7 @@ let saveTimer: Timer | null = null;
 
 
 const mergeState = (old: Tree, next: Partial<Tree>): Tree => {
-  const map = next.map ? next.map.merge(old.map) : old.map;
+  const map = next.map ? old.map.merge(next.map) : old.map;
   return { ...old, ...next, map };
 };
 

@@ -169,9 +169,8 @@ const createEmptyState = (): LoadedState => {
 };
 
 export const loadItemState = async (item: Item, max_level: number = 2): Promise<LoadedState> => {
-  const map = await loadChildren(item, max_level);
-  item.loaded = true;
-  map.set(item.id, item);
+  let map = await loadChildren(item, max_level);
+  map = map.set(item.id, { ...item, loaded: true });
   return await loadedState({ map });
 };
 

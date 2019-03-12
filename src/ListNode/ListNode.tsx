@@ -1,17 +1,29 @@
 import * as React from 'react';
-import { ID, Item } from "./Item";
+import { ID, Item } from "../Item";
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Tree } from "./tree";
-import { create, loadItemState, remove } from "./actions";
-import { IconCreate, IconRemove } from "./icons";
+import { Tree } from "../tree";
+import { create, loadItemState, remove } from "../actions";
 import './ListNode.css';
+import iconRemove from "./delete.svg";
+import iconCreate from "./plus-square.svg";
+
+
+export type ImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
+
+export const IconRemove = (props: ImageProps) => (
+  <img src={ iconRemove } alt="Remove" { ...props } />
+);
+
+export const IconCreate = (props: ImageProps) => (
+  <img src={ iconCreate } alt="Create" { ...props } />
+);
+
 
 
 interface Props {
   id: ID;
   item: Item;
-  loaded: boolean;
   create: () => void;
   remove: () => void;
   load: (item: Item) => void;
@@ -42,8 +54,7 @@ class ListNode extends React.Component<Props> {
   componentDidMount() {
     const { item, load } = this.props;
     if (!item.loaded) {
-      setTimeout(() => load(item), 0);
-      // load(item)
+      load(item)
     }
   }
 
@@ -61,11 +72,11 @@ class ListNode extends React.Component<Props> {
 }
 
 
-type StateProps = Pick<Props, 'item' | 'loaded'>;
+type StateProps = Pick<Props, 'item'>;
 
 const mapStateToProps = (state: Tree, { id }: Props) => (state: Tree): StateProps => {
   const item = state.map.get(id) as Item;
-  return { item, loaded: item.loaded };
+  return { item };
 };
 
 
