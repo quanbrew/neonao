@@ -1,5 +1,5 @@
 import { fromJS, List } from "immutable";
-import { ContentState, EditorState } from "draft-js";
+import { ContentState, convertFromRaw, convertToRaw, EditorState, RawDraftContentState } from "draft-js";
 
 const uuid1 = require('uuid/v1');
 
@@ -12,8 +12,7 @@ export interface Item {
   parent?: ID;
   children: List<ID>;
   expand: boolean;
-  editor: EditorState | null;
-  source: string;
+  editor: EditorState;
   deleted: boolean;
   loaded: boolean;
 }
@@ -22,12 +21,11 @@ export namespace Item {
   export const create = (source: string = '', parent?: ID): Item => ({
     id: uuid1(),
     children: List(),
-    editor: null,
+    editor: EditorState.createWithContent(ContentState.createFromText(source)),
     expand: true,
     deleted: false,
     loaded: true,
     parent,
-    source,
   });
 
   export interface ExportedItem {
@@ -35,27 +33,24 @@ export namespace Item {
     parent?: ID;
     children: Array<ID>;
     expand: boolean;
-    source: string;
+    rawContent: RawDraftContentState;
   }
 
-  export const fromJSON = ({ id, expand, source, children, parent }: ExportedItem): Item => (
+  export const fromJSON = ({ id, expand, rawContent, children, parent }: ExportedItem): Item => (
     {
-      id, expand, source, parent,
+      id, expand, parent,
       children: fromJS(children),
-      editor: null,
+      editor: EditorState.createWithContent(convertFromRaw(rawContent)),
       deleted: false,
       loaded: children.length === 0,
     }
   );
 
-  export const toJSON = ({ id, expand, source, children, parent }: Item): ExportedItem => (
+  export const toJSON = ({ id, expand, editor, children, parent }: Item): ExportedItem => (
     {
-      id, expand, source, parent, children: children.toJS()
+      id, expand, parent,
+      children: children.toJS(),
+      rawContent: convertToRaw(editor.getCurrentContent()),
     }
   );
-
-  export const initEditorState = (item: Item): EditorState => {
-    const content = ContentState.createFromText(item.source);
-    return EditorState.createWithContent(content)
-  }
 }

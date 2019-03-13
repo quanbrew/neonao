@@ -8,6 +8,7 @@ import { create, loadItemState, remove, update } from "../actions";
 import './ListNode.css';
 import iconRemove from "./delete.svg";
 import iconCreate from "./plus-square.svg";
+import Timeout = NodeJS.Timeout;
 
 
 export type ImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
@@ -34,13 +35,14 @@ interface Props {
 
 interface State {
   editor: EditorState | null;
+  submitOn: Timeout | null;
 }
 
 
 class ListNode extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { editor: null };
+    this.state = { editor: null, submitOn: null };
   }
 
 
@@ -64,21 +66,23 @@ class ListNode extends React.Component<Props, State> {
     }
   };
 
-  submitChange = (editor: EditorState) => {
-    const { item, update } = this.props;
-    const source = editor.getCurrentContent().getPlainText();
-    const next: Item = { ...item, editor, source };
-    update(next);
-  };
-
   onChange = (editor: EditorState) => {
-    this.submitChange(editor);
+    if (this.state.submitOn) {
+      clearTimeout(this.state.submitOn);
+    }
+    const submitOn = setTimeout(() => {
+      const { item, update } = this.props;
+      const next: Item = { ...item, editor };
+      this.setState({ editor: null });
+      update(next);
+    }, 500);
+    this.setState({ editor, submitOn });
   };
 
-  getEditor = () => {
+  getEditor = (): EditorState => {
     const { item } = this.props;
-    if (item.editor === null) {
-      return Item.initEditorState(item);
+    if (this.state.editor) {
+      return this.state.editor;
     } else {
       return item.editor;
     }
