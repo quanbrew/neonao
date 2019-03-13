@@ -18,10 +18,14 @@ export interface Item {
 }
 
 export namespace Item {
+  const createEditor = (content: ContentState): EditorState => {
+    return EditorState.createWithContent(content);
+  };
+
   export const create = (source: string = '', parent?: ID): Item => ({
     id: uuid1(),
     children: List(),
-    editor: EditorState.createWithContent(ContentState.createFromText(source)),
+    editor: createEditor(ContentState.createFromText(source)),
     expand: true,
     deleted: false,
     loaded: true,
@@ -40,7 +44,7 @@ export namespace Item {
     {
       id, expand, parent,
       children: fromJS(children),
-      editor: EditorState.createWithContent(convertFromRaw(rawContent)),
+      editor: createEditor(convertFromRaw(rawContent)),
       deleted: false,
       loaded: children.length === 0,
     }

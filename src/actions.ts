@@ -31,9 +31,10 @@ export const UPDATE = 'UPDATE';
 export interface Update {
   type: UPDATE;
   item: Item;
+  record: boolean;
 }
 
-export const update = (item: Item): Update => ({ type: UPDATE, item });
+export const update = (item: Item, record: boolean = false): Update => ({ type: UPDATE, item, record });
 
 
 export type CREATE = typeof CREATE;
@@ -103,6 +104,22 @@ export const move = ({ id, parent }: Item, to: ID, order?: number): Move => (
 );
 
 
+export const UNDO = 'UNDO';
+
+export interface Undo {
+  type: typeof UNDO;
+}
+
+export const undo: Undo = { type: UNDO };
+
+export const REDO = 'REDO';
+
+export interface Redo {
+  type: typeof REDO;
+}
+
+export const redo: Redo = { type: REDO };
+
 export type LOADED_STATE = typeof LOADED_STATE;
 export const LOADED_STATE = 'LOADED_STATE';
 
@@ -115,17 +132,6 @@ export interface LoadedState {
 export const loadedState = (state: Partial<Tree>): LoadedState => (
   { type: LOADED_STATE, state }
 );
-
-
-export type ItemAction =
-  | Fold
-  | Expand
-  | FetchAll
-  | Zoom
-  | Create
-  | Update
-  | Remove
-  | LoadedState
 
 export type ItemMap = Map<ID, Item>;
 
@@ -182,3 +188,16 @@ export const loadTreeState = async (max_level: number = 128): Promise<LoadedStat
   console.log('loaded');
   return await loadedState({ root: rootID, map, loading: false });
 };
+
+
+export type ItemAction =
+  | Fold
+  | Expand
+  | FetchAll
+  | Zoom
+  | Create
+  | Update
+  | Remove
+  | LoadedState
+  | Undo
+  | Redo

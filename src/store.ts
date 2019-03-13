@@ -16,5 +16,5 @@ const composeEnhancers: typeof compose = window.__REDUX_DEVTOOLS_EXTENSION_COMPO
 export const store = createStore(
   tree,
   initTree,
-  composeEnhancers(applyMiddleware(logger)),
+  composeEnhancers(applyMiddleware()),
 );

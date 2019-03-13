@@ -2,13 +2,13 @@ import * as React from 'react';
 import { ID, Item } from "../Item";
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { Editor, EditorState } from 'draft-js';
+import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding, RichUtils } from 'draft-js';
 import { Tree } from "../tree";
-import { create, loadItemState, remove, update } from "../actions";
+import { create, loadItemState, remove, undo, update } from "../actions";
 import './ListNode.css';
 import iconRemove from "./delete.svg";
 import iconCreate from "./plus-square.svg";
-import Timeout = NodeJS.Timeout;
+import { isRedoKey, isUndoKey } from "../keyboard";
 
 
 export type ImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
@@ -28,21 +28,20 @@ interface Props {
   item: Item;
   create: () => void;
   remove: () => void;
-  update: (item: Item) => void;
+  undo: () => void;
+  update: (item: Item, record: boolean) => void;
   load: (item: Item) => void;
 }
 
 
 interface State {
-  editor: EditorState | null;
-  submitOn: Timeout | null;
 }
 
 
 class ListNode extends React.Component<Props, State> {
+
   constructor(props: Props) {
     super(props);
-    this.state = { editor: null, submitOn: null };
   }
 
 
@@ -67,25 +66,34 @@ class ListNode extends React.Component<Props, State> {
   };
 
   onChange = (editor: EditorState) => {
-    if (this.state.submitOn) {
-      clearTimeout(this.state.submitOn);
-    }
-    const submitOn = setTimeout(() => {
-      const { item, update } = this.props;
-      const next: Item = { ...item, editor };
-      this.setState({ editor: null });
-      update(next);
-    }, 500);
-    this.setState({ editor, submitOn });
+    const { item, update } = this.props;
+    const next: Item = { ...item, editor };
+    const record = editor.getUndoStack() !== item.editor.getUndoStack();
+    if (record)
+      console.log(editor.getLastChangeType(), editor.getCurrentContent().getPlainText());
+    update(next, record);
   };
 
-  getEditor = (): EditorState => {
-    const { item } = this.props;
-    if (this.state.editor) {
-      return this.state.editor;
-    } else {
-      return item.editor;
+  onFocus = () => {
+  };
+
+  onBlur = () => {
+  };
+
+  keyBindingFn = (e: React.KeyboardEvent): string | null => {
+    if (isUndoKey(e) || isRedoKey(e)) {
+      return null;
     }
+    return getDefaultKeyBinding(e);
+  };
+
+  handleKeyCommand = (command: string, editorState: EditorState): DraftHandleValue => {
+    const newState = RichUtils.handleKeyCommand(editorState, command);
+    if (newState) {
+      this.onChange(newState);
+      return 'handled';
+    }
+    return 'not-handled';
   };
 
   componentDidMount() {
@@ -100,7 +108,12 @@ class ListNode extends React.Component<Props, State> {
 
     return (
       <li className="ListNode">
-        <Editor editorState={ this.getEditor() } onChange={ this.onChange }/>
+        <Editor editorState={ this.props.item.editor }
+                onChange={ this.onChange }
+                onFocus={ this.onFocus }
+                keyBindingFn={ this.keyBindingFn }
+                handleKeyCommand={ this.handleKeyCommand }
+                onBlur={ this.onBlur }/>
         <IconCreate className="icon create-item" onClick={ create }/>
         <IconRemove className="icon remove-item" onClick={ remove }/>
         { this.renderChildren() }
@@ -118,15 +131,22 @@ const mapStateToProps = (state: Tree, { id }: Props) => (state: Tree): StateProp
 };
 
 
-type DispatchProps = Pick<Props, 'create' | 'remove' | 'load' | 'update'>;
+type DispatchProps = Pick<Props, 'create' | 'remove' | 'load' | 'update' | 'undo'>;
 
 const mapDispatchToProps = (dispatch: Dispatch, props: Pick<Props, 'id'>) => {
   const id = props.id;
   const createItem = () => dispatch(create(Item.create("", id)));
   const removeItem = () => dispatch(remove(id));
   const load = (item: Item) => loadItemState(item).then(dispatch);
-  const updateItem = (item: Item) => dispatch(update(item));
-  return (): DispatchProps => ({ create: createItem, remove: removeItem, load, update: updateItem });
+  const updateItem = (item: Item, record: boolean) => dispatch(update(item, record));
+  const performUndo = () => dispatch(undo);
+  return (): DispatchProps => ({
+    create: createItem,
+    remove: removeItem,
+    load,
+    update: updateItem,
+    undo: performUndo,
+  });
 };
 
 

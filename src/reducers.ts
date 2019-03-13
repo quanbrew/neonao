@@ -1,9 +1,21 @@
-import { CREATE, Create, FETCH_ALL, ItemAction, ItemMap, LOADED_STATE, Remove, REMOVE, UPDATE } from "./actions";
+import {
+  CREATE,
+  Create,
+  FETCH_ALL,
+  ItemAction,
+  ItemMap,
+  LOADED_STATE,
+  REDO,
+  Remove,
+  REMOVE,
+  UNDO,
+  UPDATE
+} from "./actions";
 import { ID, Item } from "./Item";
 import { Tree } from "./tree"
 import { Map } from "immutable";
 import localForage from "localforage";
-import Timer = NodeJS.Timer;
+import Timeout = NodeJS.Timeout;
 
 
 export const initTree: Tree = { root: null, map: Map(), loading: true };
@@ -17,7 +29,7 @@ export const saveTreeState = (state: Tree) => {
       (item, key) =>
         localForage.setItem(key, Item.toJSON(item))
     );
-    console.info('saved');
+    // console.info('saved');
   });
 };
 
@@ -66,7 +78,7 @@ const handleRemove = (map: ItemMap, remove: Remove): ItemMap => {
 };
 
 
-let saveTimer: Timer | null = null;
+let saveTimer: Timeout | null = null;
 
 
 const mergeState = (old: Tree, next: Partial<Tree>): Tree => {
@@ -75,29 +87,57 @@ const mergeState = (old: Tree, next: Partial<Tree>): Tree => {
 };
 
 
+let history: Tree[] = [];
+let future: Tree[] = [];
+
+
 export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
-  let next: Tree;
+  let record = false;
   switch (action.type) {
     case CREATE:
-      next = { ...state, map: handleCreate(state.map, action) };
+      state = { ...state, map: handleCreate(state.map, action) };
+      record = true;
       break;
     case UPDATE:
-      next = { ...state, map: state.map.set(action.item.id, action.item) };
+      state = { ...state, map: state.map.set(action.item.id, action.item) };
+      record = action.record;
       break;
     case REMOVE:
-      next = { ...state, map: handleRemove(state.map, action) };
+      state = { ...state, map: handleRemove(state.map, action) };
+      record = true;
       break;
     case FETCH_ALL:
       return { ...state, loading: true };
     case LOADED_STATE:
       return mergeState(state, action.state);
+    case UNDO:
+      console.log('UNDO: history: ', history.length, 'future: ', future.length);
+      const prev = history.pop();
+      if (prev) {
+        future.push(state);
+        state = prev;
+      }
+      break;
+    case REDO:
+      console.log('REDO: history: ', history.length, 'future: ', future.length);
+      const next = future.pop();
+      if (next) {
+        history.push(state);
+        state = next;
+      }
+      break;
     default:
-      next = state;
+      break;
+  }
+  if (record) {
+    history.push(state);
+    console.log('recorded: history: ', history.length, 'future: ', future.length);
+    future = [];
   }
 
   if (saveTimer) {
     clearTimeout(saveTimer);
   }
-  saveTimer = setTimeout(() => saveTreeState(next), 1000);
-  return next;
+  saveTimer = setTimeout(() => saveTreeState(state), 400);
+  return state;
 };
