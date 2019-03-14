@@ -19,7 +19,8 @@ export interface Item {
 
 export namespace Item {
   const createEditor = (content: ContentState): EditorState => {
-    return EditorState.createWithContent(content);
+    const editor = EditorState.createWithContent(content);
+    return EditorState.set(editor, {});
   };
 
   export const create = (source: string = '', parent?: ID): Item => ({

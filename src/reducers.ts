@@ -1,6 +1,8 @@
 import {
   CREATE,
   Create,
+  EDIT,
+  Edit,
   FETCH_ALL,
   ItemAction,
   ItemMap,
@@ -87,57 +89,97 @@ const mergeState = (old: Tree, next: Partial<Tree>): Tree => {
 };
 
 
+const applyEdit = (oldState: Tree, action: Edit): { state: Tree, record: boolean } => {
+  let record = false;
+  const { id, editor } = action;
+  const oldItem = oldState.map.get(id, null);
+  if (oldItem === null || oldItem.editor === editor) return { state: oldState, record };
+  const oldEditor = oldItem.editor;
+  // const oldContent = oldEditor.getCurrentContent();
+  // const content = editor.getCurrentContent();
+  record = oldEditor.getUndoStack() !== editor.getUndoStack();
+  const item = { ...oldItem, editor };
+  const map = oldState.map.set(id, item);
+  const state = { ...oldState, map };
+  return { state, record };
+};
+
+
 let history: Tree[] = [];
 let future: Tree[] = [];
 
 
 export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
+  console.group('Tree Reducer', action);
   let record = false;
+  let save = true;
+  let next: typeof state = state;
   switch (action.type) {
     case CREATE:
-      state = { ...state, map: handleCreate(state.map, action) };
+      next = { ...state, map: handleCreate(state.map, action) };
       record = true;
       break;
     case UPDATE:
-      state = { ...state, map: state.map.set(action.item.id, action.item) };
-      record = action.record;
+      next = { ...state, map: state.map.set(action.item.id, action.item) };
+      // record = action.record;
+      break;
+    case EDIT:
+      const result = applyEdit(state, action);
+      record = result.record;
+      next = result.state;
       break;
     case REMOVE:
-      state = { ...state, map: handleRemove(state.map, action) };
+      next = { ...state, map: handleRemove(state.map, action) };
       record = true;
       break;
     case FETCH_ALL:
-      return { ...state, loading: true };
+      next = { ...state, loading: true };
+      save = false;
+      break;
     case LOADED_STATE:
-      return mergeState(state, action.state);
+      next = mergeState(state, action.state);
+      save = false;
+      break;
     case UNDO:
-      console.log('UNDO: history: ', history.length, 'future: ', future.length);
+      console.group('UNDO');
+      console.debug('BEFORE: history: ', history.length, 'future: ', future.length);
       const prev = history.pop();
       if (prev) {
         future.push(state);
-        state = prev;
+        next = prev;
       }
+      console.debug(' AFTER: history: ', history.length, 'future: ', future.length);
+      console.groupEnd();
       break;
     case REDO:
-      console.log('REDO: history: ', history.length, 'future: ', future.length);
-      const next = future.pop();
-      if (next) {
+      console.group('REDO');
+      console.debug('BEFORE: history: ', history.length, 'future: ', future.length);
+      const futureState = future.pop();
+      if (futureState) {
         history.push(state);
-        state = next;
+        next = futureState;
       }
+      console.debug(' AFTER: history: ', history.length, 'future: ', future.length);
+      console.groupEnd();
       break;
     default:
       break;
   }
   if (record) {
+    console.group('RECORD');
+    console.debug('BEFORE: history: ', history.length, 'future: ', future.length);
+    console.debug(action.type, action);
     history.push(state);
-    console.log('recorded: history: ', history.length, 'future: ', future.length);
     future = [];
+    console.debug(' AFTER: history: ', history.length, 'future: ', future.length);
+    console.groupEnd();
   }
-
-  if (saveTimer) {
-    clearTimeout(saveTimer);
+  if (save) {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+    }
+    saveTimer = setTimeout(() => saveTreeState(state), 400);
   }
-  saveTimer = setTimeout(() => saveTreeState(state), 400);
-  return state;
+  console.groupEnd();
+  return next;
 };

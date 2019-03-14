@@ -2,6 +2,7 @@ import { ID, Item } from "./Item";
 import { Tree } from "./tree"
 import { Map } from "immutable";
 import localForage from "localforage";
+import { EditorState } from "draft-js";
 
 
 export type FETCH_ALL = typeof FETCH_ALL;
@@ -35,6 +36,20 @@ export interface Update {
 }
 
 export const update = (item: Item, record: boolean = false): Update => ({ type: UPDATE, item, record });
+
+
+export type EDIT = typeof EDIT;
+export const EDIT = 'EDIT';
+
+export interface Edit {
+  type: EDIT;
+  id: ID;
+  editor: EditorState;
+}
+
+export const edit = (id: ID, editor: EditorState): Edit => (
+  { type: EDIT, id, editor }
+);
 
 
 export type CREATE = typeof CREATE;
@@ -197,6 +212,7 @@ export type ItemAction =
   | Zoom
   | Create
   | Update
+  | Edit
   | Remove
   | LoadedState
   | Undo

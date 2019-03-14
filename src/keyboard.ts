@@ -108,8 +108,8 @@ export type KeyEvent = KeyboardEvent | React.KeyboardEvent;
 
 
 export const isUndoKey = (e: KeyEvent) =>
-  e.keyCode === keyboard.KEY_Z && e.ctrlKey && !e.shiftKey;
+  e.keyCode === keyboard.KEY_Z && e.metaKey && !e.shiftKey;
 
 export const isRedoKey = (e: KeyEvent) =>
-  e.keyCode === keyboard.KEY_Z && e.ctrlKey && e.shiftKey;
+  e.keyCode === keyboard.KEY_Z && e.metaKey && e.shiftKey;
 

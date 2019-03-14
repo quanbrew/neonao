@@ -4,7 +4,7 @@ import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding, RichUtils } from 'draft-js';
 import { Tree } from "../tree";
-import { create, loadItemState, remove, undo, update } from "../actions";
+import { create, edit, loadItemState, remove, undo, update } from "../actions";
 import './ListNode.css';
 import iconRemove from "./delete.svg";
 import iconCreate from "./plus-square.svg";
@@ -30,6 +30,7 @@ interface Props {
   remove: () => void;
   undo: () => void;
   update: (item: Item, record: boolean) => void;
+  edit: (id: ID, editor: EditorState) => void;
   load: (item: Item) => void;
 }
 
@@ -66,12 +67,8 @@ class ListNode extends React.Component<Props, State> {
   };
 
   onChange = (editor: EditorState) => {
-    const { item, update } = this.props;
-    const next: Item = { ...item, editor };
-    const record = editor.getUndoStack() !== item.editor.getUndoStack();
-    if (record)
-      console.log(editor.getLastChangeType(), editor.getCurrentContent().getPlainText());
-    update(next, record);
+    const { item, edit } = this.props;
+    edit(item.id, editor);
   };
 
   onFocus = () => {
@@ -82,12 +79,16 @@ class ListNode extends React.Component<Props, State> {
 
   keyBindingFn = (e: React.KeyboardEvent): string | null => {
     if (isUndoKey(e) || isRedoKey(e)) {
+      e.preventDefault();
       return null;
     }
     return getDefaultKeyBinding(e);
   };
 
   handleKeyCommand = (command: string, editorState: EditorState): DraftHandleValue => {
+    if (command === 'ignore') {
+      return 'handled';
+    }
     const newState = RichUtils.handleKeyCommand(editorState, command);
     if (newState) {
       this.onChange(newState);
@@ -131,14 +132,23 @@ const mapStateToProps = (state: Tree, { id }: Props) => (state: Tree): StateProp
 };
 
 
-type DispatchProps = Pick<Props, 'create' | 'remove' | 'load' | 'update' | 'undo'>;
+type DispatchProps = Pick<Props,
+  | 'create'
+  | 'remove'
+  | 'load'
+  | 'update'
+  | 'undo'
+  | 'edit'>;
 
 const mapDispatchToProps = (dispatch: Dispatch, props: Pick<Props, 'id'>) => {
   const id = props.id;
   const createItem = () => dispatch(create(Item.create("", id)));
   const removeItem = () => dispatch(remove(id));
-  const load = (item: Item) => loadItemState(item).then(dispatch);
-  const updateItem = (item: Item, record: boolean) => dispatch(update(item, record));
+  const load: Props['load'] = item => loadItemState(item).then(dispatch);
+  const performEdit: Props['edit'] = (id, editor) => {
+    dispatch(edit(id, editor))
+  };
+  const updateItem: Props['update'] = (item, record) => dispatch(update(item, record));
   const performUndo = () => dispatch(undo);
   return (): DispatchProps => ({
     create: createItem,
@@ -146,6 +156,7 @@ const mapDispatchToProps = (dispatch: Dispatch, props: Pick<Props, 'id'>) => {
     load,
     update: updateItem,
     undo: performUndo,
+    edit: performEdit,
   });
 };
 

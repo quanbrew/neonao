@@ -64,19 +64,20 @@ document.onkeydown = e => {
   const redoButton = document.getElementById('redo') as HTMLButtonElement;
 
   const click = (button: HTMLButtonElement) => {
-    const clickEvent = new MouseEvent('click', {
-      view: window,
-      bubbles: true,
-      cancelable: true,
-      clientX: 20,
-    });
-
-    button.focus();
-    setTimeout(() => {
-      button.focus();
-      button.dispatchEvent(clickEvent);
-      button.blur();
-    }, 10);
+    button.click();
+    // const clickEvent = new MouseEvent('click', {
+    //   view: window,
+    //   bubbles: true,
+    //   cancelable: true,
+    //   clientX: 20,
+    // });
+    //
+    // button.focus();
+    // setTimeout(() => {
+    //   button.focus();
+    //   button.dispatchEvent(clickEvent);
+    //   button.blur();
+    // }, 10);
   };
 
   if (isUndoKey(e)) {

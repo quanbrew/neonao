@@ -2,6 +2,7 @@ import { applyMiddleware, compose, createStore, Middleware } from 'redux';
 import { initTree, tree } from './reducers';
 
 
+// @ts-ignore
 const logger: Middleware = () => next => action => {
   console.group(action.type);
   console.info(action);
