@@ -6,21 +6,9 @@ import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding, RichUtils 
 import { Tree } from "../tree";
 import { create, edit, loadItemState, remove, undo, update } from "../actions";
 import './ListNode.css';
-import iconRemove from "./delete.svg";
-import iconCreate from "./plus-square.svg";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlusSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { isRedoKey, isUndoKey } from "../keyboard";
-
-
-export type ImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
-
-export const IconRemove = (props: ImageProps) => (
-  <img src={ iconRemove } alt="Remove" { ...props } />
-);
-
-export const IconCreate = (props: ImageProps) => (
-  <img src={ iconCreate } alt="Create" { ...props } />
-);
-
 
 
 interface Props {
@@ -115,8 +103,8 @@ class ListNode extends React.Component<Props, State> {
                 keyBindingFn={ this.keyBindingFn }
                 handleKeyCommand={ this.handleKeyCommand }
                 onBlur={ this.onBlur }/>
-        <IconCreate className="icon create-item" onClick={ create }/>
-        <IconRemove className="icon remove-item" onClick={ remove }/>
+        <a className="icon create-item" onClick={ create }><FontAwesomeIcon icon={ faPlusSquare }/></a>
+        <a className="icon remove-item" onClick={ remove }><FontAwesomeIcon icon={ faTrash }/></a>
         { this.renderChildren() }
       </li>
     );

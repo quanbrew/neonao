@@ -8,6 +8,8 @@ import { Tree } from "./tree";
 import { Dispatch } from "redux";
 import { fetchAll, loadTreeState, redo, undo } from "./actions";
 import { isRedoKey, isUndoKey } from "./keyboard";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRedo, faUndo } from '@fortawesome/free-solid-svg-icons';
 
 
 interface Props {
@@ -42,8 +44,8 @@ class App extends React.Component<Props> {
     return (
       <div>
         <header><a className='app-name' href='/'>NeoNao</a></header>
-        <button onClick={ this.props.undo } id="undo">UNDO</button>
-        <button onClick={ this.props.redo } id="redo">REDO</button>
+        <button onClick={ this.props.undo } id="undo"><FontAwesomeIcon icon={ faUndo }/></button>
+        <button onClick={ this.props.redo } id="redo"><FontAwesomeIcon icon={ faRedo }/></button>
         <ul>{ this.props.root ? <ListNode id={ this.props.root }/> : 'Loading...' }</ul>
       </div>
     );
