@@ -65,19 +65,6 @@ document.onkeydown = e => {
 
   const click = (button: HTMLButtonElement) => {
     button.click();
-    // const clickEvent = new MouseEvent('click', {
-    //   view: window,
-    //   bubbles: true,
-    //   cancelable: true,
-    //   clientX: 20,
-    // });
-    //
-    // button.focus();
-    // setTimeout(() => {
-    //   button.focus();
-    //   button.dispatchEvent(clickEvent);
-    //   button.blur();
-    // }, 10);
   };
 
   if (isUndoKey(e)) {
