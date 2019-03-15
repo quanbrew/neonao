@@ -4,10 +4,17 @@ import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding, RichUtils } from 'draft-js';
 import { loadItemState, Tree } from "../tree";
-import { create, edit, remove, undo, update } from "../actions";
+import { create, edit, moveIntoPrev, moveUnder, relativeMove, remove, undo, update } from "../actions";
 import './ListNode.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlusSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
+import {
+  faChevronDown,
+  faChevronLeft,
+  faChevronRight,
+  faChevronUp,
+  faPlusSquare,
+  faTrash
+} from '@fortawesome/free-solid-svg-icons';
 import { isRedoKey, isUndoKey } from "../keyboard";
 
 // import 'draft-js/dist/Draft.css';
@@ -18,6 +25,10 @@ interface Props {
   item: Item;
   create: () => void;
   remove: () => void;
+  up: (item: Item) => void;
+  down: (item: Item) => void;
+  left: (item: Item) => void;
+  right: (item: Item) => void;
   undo: () => void;
   update: (item: Item, record: boolean) => void;
   edit: (id: ID, editor: EditorState) => void;
@@ -94,8 +105,37 @@ class ListNode extends React.Component<Props, State> {
     }
   }
 
-  render() {
+  up = () => this.props.up(this.props.item);
+  down = () => this.props.down(this.props.item);
+  left = () => this.props.left(this.props.item);
+  right = () => this.props.right(this.props.item);
+
+  toolbar() {
     const { remove, create } = this.props;
+
+    if (this.props.item.parent) {
+      return (
+        <div className='toolbar'>
+          <a className="icon create-item" onClick={ create }><FontAwesomeIcon icon={ faPlusSquare }/></a>
+          <a className="icon remove-item" onClick={ remove }><FontAwesomeIcon icon={ faTrash }/></a>
+          <a className="icon move-item" onClick={ this.up }><FontAwesomeIcon icon={ faChevronUp }/></a>
+          <a className="icon move-item" onClick={ this.down }><FontAwesomeIcon icon={ faChevronDown }/></a>
+          <a className="icon move-item" onClick={ this.left }><FontAwesomeIcon icon={ faChevronLeft }/></a>
+          <a className="icon move-item" onClick={ this.right }><FontAwesomeIcon icon={ faChevronRight }/></a>
+        </div>
+      )
+    } else {
+      return (
+        <div className="toolbar">
+          <a className="icon create-item" onClick={ create }>
+            <FontAwesomeIcon icon={ faPlusSquare }/>
+          </a>
+        </div>
+      )
+    }
+  }
+
+  render() {
 
     return (
       <li className="ListNode">
@@ -105,8 +145,7 @@ class ListNode extends React.Component<Props, State> {
                 keyBindingFn={ this.keyBindingFn }
                 handleKeyCommand={ this.handleKeyCommand }
                 onBlur={ this.onBlur }/>
-        <a className="icon create-item" onClick={ create }><FontAwesomeIcon icon={ faPlusSquare }/></a>
-        <a className="icon remove-item" onClick={ remove }><FontAwesomeIcon icon={ faTrash }/></a>
+        { this.toolbar() }
         { this.renderChildren() }
       </li>
     );
@@ -128,7 +167,11 @@ type DispatchProps = Pick<Props,
   | 'load'
   | 'update'
   | 'undo'
-  | 'edit'>;
+  | 'edit'
+  | 'left'
+  | 'right'
+  | 'up'
+  | 'down'>;
 
 const mapDispatchToProps = (dispatch: Dispatch, props: Pick<Props, 'id'>) => {
   const id = props.id;
@@ -140,10 +183,22 @@ const mapDispatchToProps = (dispatch: Dispatch, props: Pick<Props, 'id'>) => {
   };
   const updateItem: Props['update'] = (item, record) => dispatch(update(item, record));
   const performUndo = () => dispatch(undo);
+  const up: Props['up'] = item => {
+    if (item.parent) dispatch(relativeMove(item.id, item.parent, -1));
+  };
+  const down: Props['down'] = item => {
+    if (item.parent) dispatch(relativeMove(item.id, item.parent, 1));
+  };
+  const left: Props['left'] = item => {
+    if (item.parent) dispatch(moveUnder(item.id, item.parent, item.parent));
+  };
+  const right: Props['right'] = item => {
+    if (item.parent) dispatch(moveIntoPrev(item.id, item.parent));
+  };
   return (): DispatchProps => ({
     create: createItem,
     remove: removeItem,
-    load,
+    load, up, down, left, right,
     update: updateItem,
     undo: performUndo,
     edit: performEdit,

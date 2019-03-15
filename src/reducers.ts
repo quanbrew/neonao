@@ -1,7 +1,19 @@
-import { Create, Edit, ItemAction, Remove } from "./actions";
+import { Create, Edit, ItemAction, moveInto, MoveInto, MoveIntoPrev, MoveUnder, Remove } from "./actions";
 import { ID, Item } from "./Item";
 import { initTree, ItemMap, saveTreeState, Tree } from "./tree"
-import { CREATE, EDIT, FETCH_ALL, LOADED_STATE, REDO, REMOVE, UNDO, UPDATE } from "./constants";
+import {
+  CREATE,
+  EDIT,
+  FETCH_ALL,
+  LOADED_STATE,
+  MOVE_INTO,
+  MOVE_INTO_PREV,
+  MOVE_UNDER,
+  REDO,
+  REMOVE,
+  UNDO,
+  UPDATE
+} from "./constants";
 import Timeout = NodeJS.Timeout;
 
 
@@ -46,6 +58,80 @@ const handleRemove = (map: ItemMap, remove: Remove): ItemMap => {
     }
   }
   return map;
+};
+
+
+const resetItemParent = (map: ItemMap, id: ID, parent: ID): ItemMap => {
+  const item = map.get(id, null);
+  if (item === null) throw Error();
+  return map.set(id, { ...item, parent });
+};
+
+
+const handleMove = (state: Tree, action: MoveInto): Tree => {
+  let map = state.map;
+  const parent = map.get(action.parent) as Item;
+  const oldPosition = parent.children.findIndex(id => id === action.id);
+  if (oldPosition === -1) throw Error();
+  let targetIndex: number;
+  // handle append
+  if (action.order === 'append') {
+    let children = parent.children.remove(oldPosition);
+    map = map.set(parent.id, { ...parent, children });
+    let nextParent = map.get(action.nextParent, null);
+    if (nextParent === null) throw Error();
+    children = nextParent.children.push(action.id);
+    map = map.set(nextParent.id, { ...nextParent, children });
+    map = resetItemParent(map, action.id, nextParent.id);
+    return { ...state, map };
+  }
+  // compute index with relative order
+  else if (action.relative) {
+    targetIndex = action.order + oldPosition;
+  } else {
+    targetIndex = action.order;
+  }
+  if (targetIndex < 0) return state;
+  // set placeholder
+  let children = parent.children.remove(oldPosition);
+  map = map.set(parent.id, { ...parent, children });
+  // insert
+  const nextParent = map.get(action.nextParent, null);
+  if (nextParent === null) throw Error();
+  children = nextParent.children.insert(targetIndex, action.id);
+  map = map.set(nextParent.id, { ...nextParent, children });
+  // reset parent
+  map = resetItemParent(map, action.id, nextParent.id);
+  return { ...state, map };
+};
+
+
+const handleMoveUnder = (state: Tree, action: MoveUnder): Tree => {
+  const over = state.map.get(action.over, null);
+  if (over === null) throw Error();
+  if (!over.parent) {
+    return state;
+  }
+  const overParent = state.map.get(over.parent, null);
+  if (overParent === null) throw Error();
+  const overPosition = overParent.children.findIndex(id => id === over.id);
+  if (overPosition === -1) throw Error();
+  const moveIntoAction = moveInto(action.id, action.parent, over.parent, overPosition + 1);
+  return handleMove(state, moveIntoAction);
+};
+
+
+const handleMoveIntoPrev = (state: Tree, action: MoveIntoPrev): Tree => {
+  const parent = state.map.get(action.parent, null);
+  if (parent === null) throw Error();
+  const index = parent.children.findIndex(id => id === action.id);
+  if (index < 1) {
+    return state
+  }
+  const nextParent = parent.children.get(index - 1, null);
+  if (nextParent === null) throw Error();
+  const move = moveInto(action.id, action.parent, nextParent, 'append');
+  return handleMove(state, move);
 };
 
 
@@ -130,10 +216,22 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
       console.debug(' AFTER: history: ', history.length, 'future: ', future.length);
       console.groupEnd();
       break;
+    case MOVE_INTO:
+      next = handleMove(state, action);
+      record = true;
+      break;
+    case MOVE_UNDER:
+      next = handleMoveUnder(state, action);
+      record = true;
+      break;
+    case MOVE_INTO_PREV:
+      next = handleMoveIntoPrev(state, action);
+      record = true;
+      break;
     default:
       break;
   }
-  if (record) {
+  if (record && state !== next) {
     console.group('RECORD');
     console.debug('BEFORE: history: ', history.length, 'future: ', future.length);
     console.debug(action.type, action);

@@ -8,12 +8,14 @@ import {
   FETCH_ALL,
   FOLD,
   LOADED_STATE,
-  MOVE,
+  MOVE_INTO,
+  MOVE_INTO_PREV,
+  MOVE_UNDER,
   REDO,
   REMOVE,
   UNDO,
   UPDATE,
-  ZOOM
+  ZOOM,
 } from "./constants";
 
 
@@ -29,6 +31,9 @@ export type ItemAction =
   | LoadedState
   | Undo
   | Redo
+  | MoveInto
+  | MoveUnder
+  | MoveIntoPrev
 
 
 export interface FetchAll {
@@ -106,16 +111,49 @@ export interface Fold {
 export const fold = (id: ID): Fold => ({ type: FOLD, id });
 
 
-export interface Move {
-  type: typeof MOVE;
+export interface MoveInto {
+  type: typeof MOVE_INTO;
   id: ID;
-  from?: ID;
-  to: ID;
-  order?: number;
+  parent: ID;
+  nextParent: ID;
+  order: number | 'append';
+  relative: boolean;
 }
 
-export const move = ({ id, parent }: Item, to: ID, order?: number): Move => (
-  { type: MOVE, id, to, order, from: parent }
+
+export type Order = number | 'append';
+export const moveInto = (id: ID, parent: ID, nextParent: ID, order: Order, relative?: boolean): MoveInto => (
+  { type: MOVE_INTO, id, parent, order, nextParent, relative: relative === true }
+);
+
+
+export const relativeMove = (id: ID, parent: ID, order: number | 'append'): MoveInto => (
+  { type: MOVE_INTO, id, parent, order, nextParent: parent, relative: true }
+);
+
+
+export interface MoveUnder {
+  type: typeof MOVE_UNDER;
+  id: ID;
+  parent: ID;
+  over: ID;
+}
+
+
+export const moveUnder = (id: ID, parent: ID, over: ID): MoveUnder => (
+  { type: MOVE_UNDER, id, over, parent }
+);
+
+
+export interface MoveIntoPrev {
+  type: typeof MOVE_INTO_PREV;
+  id: ID;
+  parent: ID;
+}
+
+
+export const moveIntoPrev = (id: ID, parent: ID): MoveIntoPrev => (
+  { type: MOVE_INTO_PREV, id, parent }
 );
 
 
