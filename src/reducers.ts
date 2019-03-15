@@ -1,39 +1,8 @@
-import {
-  CREATE,
-  Create,
-  EDIT,
-  Edit,
-  FETCH_ALL,
-  ItemAction,
-  ItemMap,
-  LOADED_STATE,
-  REDO,
-  Remove,
-  REMOVE,
-  UNDO,
-  UPDATE
-} from "./actions";
+import { Create, Edit, ItemAction, Remove } from "./actions";
 import { ID, Item } from "./Item";
-import { Tree } from "./tree"
-import { Map } from "immutable";
-import localForage from "localforage";
+import { initTree, ItemMap, saveTreeState, Tree } from "./tree"
+import { CREATE, EDIT, FETCH_ALL, LOADED_STATE, REDO, REMOVE, UNDO, UPDATE } from "./constants";
 import Timeout = NodeJS.Timeout;
-
-
-export const initTree: Tree = { root: null, map: Map(), loading: true };
-
-
-export const saveTreeState = (state: Tree) => {
-  if (!state.root)
-    return;
-  localForage.setItem('root', state.root).then(() => {
-    state.map.forEach(
-      (item, key) =>
-        localForage.setItem(key, Item.toJSON(item))
-    );
-    // console.info('saved');
-  });
-};
 
 
 const handleCreate = (map: ItemMap, create: Create): ItemMap => {
@@ -95,8 +64,7 @@ const applyEdit = (oldState: Tree, action: Edit): { state: Tree, record: boolean
   const oldItem = oldState.map.get(id, null);
   if (oldItem === null || oldItem.editor === editor) return { state: oldState, record };
   const oldEditor = oldItem.editor;
-  // const oldContent = oldEditor.getCurrentContent();
-  // const content = editor.getCurrentContent();
+  // TODO: Disable undo and implement record judgement.
   record = oldEditor.getUndoStack() !== editor.getUndoStack();
   const item = { ...oldItem, editor };
   const map = oldState.map.set(id, item);
@@ -121,7 +89,7 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
       break;
     case UPDATE:
       next = { ...state, map: state.map.set(action.item.id, action.item) };
-      // record = action.record;
+      record = action.record;
       break;
     case EDIT:
       const result = applyEdit(state, action);
@@ -176,9 +144,9 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
   }
   if (save) {
     if (saveTimer) {
-      clearTimeout(saveTimer);
+      clearTimeout(saveTimer)
     }
-    saveTimer = setTimeout(() => saveTreeState(state), 400);
+    saveTimer = setTimeout(() => saveTreeState(next), 200);
   }
   console.groupEnd();
   return next;

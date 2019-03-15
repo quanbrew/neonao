@@ -1,15 +1,7 @@
-import { applyMiddleware, compose, createStore, Middleware } from 'redux';
-import { initTree, tree } from './reducers';
+import { applyMiddleware, compose, createStore } from 'redux';
+import { tree } from './reducers';
+import { initTree } from "./tree";
 
-
-// @ts-ignore
-const logger: Middleware = () => next => action => {
-  console.group(action.type);
-  console.info(action);
-  let result = next(action);
-  console.groupEnd();
-  return result
-};
 
 // @ts-ignore
 const composeEnhancers: typeof compose = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;

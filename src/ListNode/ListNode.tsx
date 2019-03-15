@@ -3,12 +3,14 @@ import { ID, Item } from "../Item";
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding, RichUtils } from 'draft-js';
-import { Tree } from "../tree";
-import { create, edit, loadItemState, remove, undo, update } from "../actions";
+import { loadItemState, Tree } from "../tree";
+import { create, edit, remove, undo, update } from "../actions";
 import './ListNode.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { isRedoKey, isUndoKey } from "../keyboard";
+
+// import 'draft-js/dist/Draft.css';
 
 
 interface Props {
