@@ -2,6 +2,8 @@
 export const EDIT_NODE = 'EDIT_NODE';
 export const SELECT_NODE = 'SELECT_NODE';
 export const DETAIL_MODE = 'DETAIL_MODE';
+export const DRAG_MODE = 'DRAG_MODE';
+export const NORMAL_MODE = 'NORMAL_MODE';
 
 // Actions
 export const FETCH_ALL = 'FETCH_ALL';
@@ -13,8 +15,13 @@ export const ZOOM = 'ZOOM';
 export const EXPAND = 'EXPAND';
 export const FOLD = 'FOLD';
 export const MOVE_INTO = 'MOVE_INTO';
-export const MOVE_UNDER = 'MOVE_UNDER';
-export const MOVE_INTO_PREV = 'MOVE_INTO_PREV';
+export const MOVE_NEAR = 'MOVE_NEAR';
+export const ADD_INDENT = 'ADD_INDENT';
 export const UNDO = 'UNDO';
 export const REDO = 'REDO';
 export const LOADED_STATE = 'LOADED_STATE';
+export const SWITCH_MODE = 'SWITCH_MODE';
+export const APPLY_DROP = 'APPLY_DROP';
+
+// Item Types
+export const ITEM = 'ITEM';

@@ -2,7 +2,7 @@ import { Map } from "immutable";
 import { ID, Item } from "./Item";
 import localForage from "localforage";
 import { loadedState, LoadedState } from "./actions";
-import { DETAIL_MODE, EDIT_NODE, SELECT_NODE } from "./constants";
+import { DETAIL_MODE, DRAG_MODE, EDIT_NODE, NORMAL_MODE, SELECT_NODE } from "./constants";
 
 export type ItemMap = Map<ID, Item>;
 
@@ -10,7 +10,7 @@ export interface Tree {
   root: ID | null;
   map: ItemMap;
   loading: boolean;
-  mode: Mode,
+  mode: Mode;
 }
 
 
@@ -18,7 +18,32 @@ export type Mode =
   | EditNode
   | SelectNode
   | DetailMode
-  | null
+  | DragMode
+  | NormalMode
+
+export interface NormalMode {
+  type: typeof NORMAL_MODE;
+}
+
+
+export const normalMode = (): NormalMode => ({ type: NORMAL_MODE });
+
+
+export interface WillMoveAt {
+  target: ID;
+  position: 'above' | 'below';
+}
+
+export const willMoveAt = (target: ID, position: WillMoveAt['position']): WillMoveAt => (
+  { target, position }
+);
+
+export interface DragMode {
+  type: typeof DRAG_MODE;
+  willMoveAt?: WillMoveAt;
+}
+
+export const dragMode = (willMoveAt?: WillMoveAt): DragMode => ({ type: DRAG_MODE, willMoveAt });
 
 export interface EditNode {
   type: typeof EDIT_NODE;
@@ -38,7 +63,7 @@ export interface DetailMode {
 }
 
 
-export const initTree: Tree = { root: null, map: Map(), loading: true, mode: null };
+export const initTree: Tree = { root: null, map: Map(), loading: true, mode: normalMode() };
 
 
 export const saveTreeState = (state: Tree) => {

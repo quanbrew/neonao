@@ -1,3 +1,13 @@
+.ListNode {
+  position: relative;
+  margin: 0.2em 0;
+}
+
+.ListNode .children {
+  margin-left: 2em;
+}
+
+
 .ListNode .icon {
   width: 1em;
   height: 1em;
@@ -19,3 +29,30 @@
   background-color: antiquewhite;
 }
 
+.dragging {
+  opacity: 0.4;
+}
+
+
+.bullet {
+  position: absolute;
+  left: -1.5rem;
+  display: block;
+  width: 1em;
+  height: 100%;
+  cursor: move;
+  background-color: #c58438;
+  color: transparent;
+}
+
+.hover {
+  border-bottom: 0.2em dashed #c58438;
+  position: absolute;
+  width: 100%;
+  z-index: 100;
+}
+
+
+.is-over {
+  background-color: #fbf0ff;
+}

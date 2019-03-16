@@ -1,16 +1,30 @@
-import { Create, Edit, ItemAction, moveInto, MoveInto, MoveIntoPrev, MoveUnder, Remove } from "./actions";
-import { ID, Item } from "./Item";
-import { initTree, ItemMap, saveTreeState, Tree } from "./tree"
 import {
+  AddIndent,
+  ApplyDrop,
+  Create,
+  Edit,
+  ItemAction,
+  MoveInto,
+  moveInto,
+  MoveNear,
+  moveNear,
+  Remove
+} from "./actions";
+import { ID, Item } from "./Item";
+import { initTree, ItemMap, normalMode, saveTreeState, Tree } from "./tree"
+import {
+  ADD_INDENT,
+  APPLY_DROP,
   CREATE,
+  DRAG_MODE,
   EDIT,
   FETCH_ALL,
   LOADED_STATE,
   MOVE_INTO,
-  MOVE_INTO_PREV,
-  MOVE_UNDER,
+  MOVE_NEAR,
   REDO,
   REMOVE,
+  SWITCH_MODE,
   UNDO,
   UPDATE
 } from "./constants";
@@ -106,22 +120,20 @@ const handleMove = (state: Tree, action: MoveInto): Tree => {
 };
 
 
-const handleMoveUnder = (state: Tree, action: MoveUnder): Tree => {
-  const over = state.map.get(action.over, null);
-  if (over === null) throw Error();
-  if (!over.parent) {
-    return state;
-  }
-  const overParent = state.map.get(over.parent, null);
-  if (overParent === null) throw Error();
-  const overPosition = overParent.children.findIndex(id => id === over.id);
-  if (overPosition === -1) throw Error();
-  const moveIntoAction = moveInto(action.id, action.parent, over.parent, overPosition + 1);
+const handleMoveNear = (state: Tree, action: MoveNear): Tree => {
+  const sibling = state.map.get(action.sibling, null);
+  if (sibling === null) throw Error();
+  if (!sibling.parent) return state;
+  const parent = state.map.get(sibling.parent, null);
+  if (parent === null) throw Error();
+  const position = parent.children.findIndex(id => id === sibling.id);
+  if (position === -1) throw Error();
+  const moveIntoAction = moveInto(action.id, action.parent, sibling.parent, position + action.offset);
   return handleMove(state, moveIntoAction);
 };
 
 
-const handleMoveIntoPrev = (state: Tree, action: MoveIntoPrev): Tree => {
+const handleAddIndent = (state: Tree, action: AddIndent): Tree => {
   const parent = state.map.get(action.parent, null);
   if (parent === null) throw Error();
   const index = parent.children.findIndex(id => id === action.id);
@@ -156,6 +168,19 @@ const applyEdit = (oldState: Tree, action: Edit): { state: Tree, record: boolean
   const map = oldState.map.set(id, item);
   const state = { ...oldState, map };
   return { state, record };
+};
+
+
+const handleApplyDrop = (state: Tree, action: ApplyDrop): Tree => {
+  if (state.mode.type !== DRAG_MODE || !state.mode.willMoveAt) return state;
+  const { id, parent } = action;
+  const { position, target } = state.mode.willMoveAt;
+  if (id === target) return state;
+  let offset = 0;
+  if (position === 'above') offset = 0;
+  if (position === 'below') offset = 1;
+  const moveNearAction = moveNear(id, parent, target, offset);
+  return handleMoveNear(state, moveNearAction);
 };
 
 
@@ -220,13 +245,21 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
       next = handleMove(state, action);
       record = true;
       break;
-    case MOVE_UNDER:
-      next = handleMoveUnder(state, action);
+    case MOVE_NEAR:
+      next = handleMoveNear(state, action);
       record = true;
       break;
-    case MOVE_INTO_PREV:
-      next = handleMoveIntoPrev(state, action);
+    case ADD_INDENT:
+      next = handleAddIndent(state, action);
       record = true;
+      break;
+    case SWITCH_MODE:
+      next = { ...state, mode: action.mode };
+      break;
+    case APPLY_DROP:
+      record = true;
+      next = handleApplyDrop(state, action);
+      state.mode = normalMode();
       break;
     default:
       break;

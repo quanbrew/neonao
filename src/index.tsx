@@ -1,5 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { DragDropContext } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
 import './index.css';
 import { connect, Provider } from 'react-redux';
 import { store } from './store';
@@ -46,13 +48,13 @@ class App extends React.Component<Props> {
         <header><a className='app-name' href='/'>NeoNao</a></header>
         <button onClick={ this.props.undo } id="undo"><FontAwesomeIcon icon={ faUndo }/></button>
         <button onClick={ this.props.redo } id="redo"><FontAwesomeIcon icon={ faRedo }/></button>
-        <ul>{ this.props.root ? <ListNode id={ this.props.root }/> : 'Loading...' }</ul>
+        <div className="root-item">{ this.props.root ? <ListNode id={ this.props.root }/> : 'Loading...' }</div>
       </div>
     );
   }
 }
 
-const ConnectedApp = connect(mapStateToProps, mapDispatchToProps)(App);
+const ConnectedApp = connect(mapStateToProps, mapDispatchToProps)(DragDropContext(HTML5Backend)(App));
 
 
 ReactDOM.render(

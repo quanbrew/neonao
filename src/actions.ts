@@ -1,7 +1,9 @@
 import { ID, Item } from "./Item";
-import { Tree } from "./tree"
+import { Mode, Tree } from "./tree"
 import { EditorState } from "draft-js";
 import {
+  ADD_INDENT,
+  APPLY_DROP,
   CREATE,
   EDIT,
   EXPAND,
@@ -9,10 +11,10 @@ import {
   FOLD,
   LOADED_STATE,
   MOVE_INTO,
-  MOVE_INTO_PREV,
-  MOVE_UNDER,
+  MOVE_NEAR,
   REDO,
   REMOVE,
+  SWITCH_MODE,
   UNDO,
   UPDATE,
   ZOOM,
@@ -32,8 +34,10 @@ export type ItemAction =
   | Undo
   | Redo
   | MoveInto
-  | MoveUnder
-  | MoveIntoPrev
+  | MoveNear
+  | AddIndent
+  | SwitchMode
+  | ApplyDrop
 
 
 export interface FetchAll {
@@ -132,28 +136,30 @@ export const relativeMove = (id: ID, parent: ID, order: number | 'append'): Move
 );
 
 
-export interface MoveUnder {
-  type: typeof MOVE_UNDER;
+export interface MoveNear {
+  type: typeof MOVE_NEAR;
   id: ID;
   parent: ID;
-  over: ID;
+  sibling: ID;
+  offset: number;
 }
 
 
-export const moveUnder = (id: ID, parent: ID, over: ID): MoveUnder => (
-  { type: MOVE_UNDER, id, over, parent }
+export const moveNear = (id: ID, parent: ID, sibling: ID, offset: number): MoveNear => (
+  { type: MOVE_NEAR, id, sibling, parent, offset }
 );
 
 
-export interface MoveIntoPrev {
-  type: typeof MOVE_INTO_PREV;
+// as child, append to previous item.
+export interface AddIndent {
+  type: typeof ADD_INDENT;
   id: ID;
   parent: ID;
 }
 
 
-export const moveIntoPrev = (id: ID, parent: ID): MoveIntoPrev => (
-  { type: MOVE_INTO_PREV, id, parent }
+export const addIndent = (id: ID, parent: ID): AddIndent => (
+  { type: ADD_INDENT, id, parent }
 );
 
 
@@ -178,4 +184,20 @@ export interface LoadedState {
 export const loadedState = (state: Partial<Tree>): LoadedState => (
   { type: LOADED_STATE, state }
 );
+
+export interface SwitchMode {
+  type: typeof SWITCH_MODE;
+  mode: Mode;
+}
+
+export const switchMode = (mode: Mode): SwitchMode => ({ type: SWITCH_MODE, mode });
+
+
+export interface ApplyDrop {
+  type: typeof APPLY_DROP;
+  id: ID;
+  parent: ID;
+}
+
+export const applyDrop = (id: ID, parent: ID): ApplyDrop => ({ type: APPLY_DROP, id, parent });
 
