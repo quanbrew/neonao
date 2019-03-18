@@ -5,24 +5,23 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import './index.css';
 import { connect, Provider } from 'react-redux';
 import { store } from './store';
-import ListNode from "./ListNode/ListNode";
-import { loadTreeState, Tree } from "./tree";
+import { loadTreeState } from "./tree";
 import { Dispatch } from "redux";
 import { fetchAll, redo, undo } from "./actions";
 import { isRedoKey, isUndoKey } from "./keyboard";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRedo, faUndo } from '@fortawesome/free-solid-svg-icons';
+import Root from "./list/Root";
 
 
 interface Props {
-  root: string | null;
   init: () => void;
   undo: () => void;
   redo: () => void;
 }
 
 
-const mapStateToProps = ({ root }: Tree): Pick<Props, 'root'> => ({ root });
+const mapStateToProps = (): {} => ({});
 
 
 const mapDispatchToProps = (dispatch: Dispatch): Pick<Props, 'init' | 'undo' | 'redo'> => {
@@ -48,7 +47,7 @@ class App extends React.Component<Props> {
         <header><a className='app-name' href='/'>NeoNao</a></header>
         <button onClick={ this.props.undo } id="undo"><FontAwesomeIcon icon={ faUndo }/></button>
         <button onClick={ this.props.redo } id="redo"><FontAwesomeIcon icon={ faRedo }/></button>
-        <div className="root-item">{ this.props.root ? <ListNode id={ this.props.root }/> : 'Loading...' }</div>
+        <Root/>
       </div>
     );
   }

@@ -41,6 +41,7 @@ import {
 import { isRedoKey, isUndoKey } from "../keyboard";
 import { DRAG_MODE, ITEM } from "../constants";
 import { findDOMNode } from "react-dom";
+import { Children } from "./Children";
 
 // import 'draft-js/dist/Draft.css';
 
@@ -157,30 +158,6 @@ export class RawListNode extends React.Component<RawListNodeProps, State> {
     this.state = { hoverPosition: null };
   }
 
-  renderChild = (childID: ID) => (
-    <ListNode key={ childID } id={ childID }
-              parentDragging={ this.props.isDragging || this.props.parentDragging }/>
-  );
-
-  dummyChildren = () => {
-    const length = this.props.item.children.size;
-    let dummyList = [];
-    for (let i = 0; i < length; i++) {
-      dummyList.push(<li key={ i }>Loading...</li>);
-    }
-    return dummyList;
-  };
-
-  renderChildren = () => {
-    const { item } = this.props;
-    if (item.children.size === 0) return null;
-    return (
-      <div className="children">
-        { item.loaded ? item.children.map(this.renderChild) : this.dummyChildren() }
-      </div>
-    );
-  };
-
   onChange = (editor: EditorState) => {
     const { item, edit } = this.props;
     edit(item.id, editor);
@@ -214,9 +191,7 @@ export class RawListNode extends React.Component<RawListNodeProps, State> {
 
   componentDidMount() {
     const { item, load } = this.props;
-    if (!item.loaded) {
-      load(item)
-    }
+    if (!item.loaded) load(item);
   }
 
   up = () => this.props.up(this.props.item);
@@ -254,7 +229,7 @@ export class RawListNode extends React.Component<RawListNodeProps, State> {
 
   render() {
     let classNames = ['ListNode'];
-    const { isDragging, isOver, parentDragging, connectDragSource, movePosition, connectDropTarget } = this.props;
+    const { isDragging, isOver, parentDragging, connectDragSource, movePosition, connectDropTarget, item } = this.props;
     if (isDragging) {
       classNames.push('dragging');
     }
@@ -272,7 +247,7 @@ export class RawListNode extends React.Component<RawListNodeProps, State> {
                 handleKeyCommand={ this.handleKeyCommand }
                 onBlur={ this.onBlur }/>
         { this.toolbar() }
-        { this.renderChildren() }
+        <Children items={ item.children } loaded={ item.loaded } parentDragging={ isDragging || parentDragging }/>
         { below }
       </div>
     );
