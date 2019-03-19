@@ -17,7 +17,7 @@ const Root = ({ root }: Props) => {
   } else {
     return (
       <div className='root-item'>
-        <div className='items'><Children items={ root.children } loaded={ root.loaded } parentDragging={ false }/></div>
+        <div className='items'><Children items={ root.children } loaded={ root.loaded }/></div>
       </div>
     );
   }

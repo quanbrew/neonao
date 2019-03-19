@@ -11,7 +11,7 @@ import {
   Remove
 } from "./actions";
 import { ID, Item } from "./Item";
-import { initTree, ItemMap, normalMode, saveTreeState, Tree } from "./tree"
+import { initTree, isChildrenOf, ItemMap, normalMode, saveTreeState, Tree } from "./tree"
 import {
   ADD_INDENT,
   APPLY_DROP,
@@ -176,6 +176,7 @@ const handleApplyDrop = (state: Tree, action: ApplyDrop): Tree => {
   const { id, parent } = action;
   const { position, target } = state.mode.willMoveAt;
   if (id === target) return state;
+  if (isChildrenOf(state.map, target, id)) return state;
   let offset = 0;
   if (position === 'above') offset = 0;
   if (position === 'below') offset = 1;

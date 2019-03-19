@@ -33,6 +33,10 @@
   opacity: 0.4;
 }
 
+.dragging .hover {
+  display: none;
+}
+
 
 .bullet {
   position: absolute;

@@ -62,7 +62,6 @@ export interface Props {
   moveAbove: (item: Item, under: ID) => void;
   dispatch: (action: ItemAction) => void;
   movePosition: 'above' | 'below' | null;
-  parentDragging?: boolean;
 }
 
 
@@ -101,7 +100,7 @@ const nodeSource: DragSourceSpec<Props, Item> = {
 
 const nodeTarget: DropTargetSpec<Props> = {
   hover: (props, monitor, component: RawListNode | null) => {
-    if (!component || !props.item.parent || props.parentDragging) return;
+    if (!component || !props.item.parent) return;
     if (!monitor.isOver({ shallow: true })) return;
 
     const draggingItem: Item = monitor.getItem();
@@ -229,15 +228,18 @@ export class RawListNode extends React.Component<RawListNodeProps, State> {
 
   render() {
     let classNames = ['ListNode'];
-    const { isDragging, isOver, parentDragging, connectDragSource, movePosition, connectDropTarget, item } = this.props;
+    const { isDragging, isOver, connectDragSource, movePosition, connectDropTarget, item } = this.props;
+    const bullet = connectDragSource(<div className='bullet'>•</div>);
+
     if (isDragging) {
       classNames.push('dragging');
     }
-    if (isOver && !parentDragging && !isDragging) classNames.push('is-over');
+    if (isOver && !isDragging) classNames.push('is-over');
     const above = movePosition === 'above' ? <div className='hover'/> : null;
     const below = movePosition === 'below' ? <div className='hover'/> : null;
     return connectDropTarget(
       <div className={ classNames.join(' ') } ref={ this.nodeRef }>
+        { bullet }
         { above }
         { connectDragSource(<div className='bullet'>•</div>) }
         <Editor editorState={ this.props.item.editor }
@@ -247,7 +249,7 @@ export class RawListNode extends React.Component<RawListNodeProps, State> {
                 handleKeyCommand={ this.handleKeyCommand }
                 onBlur={ this.onBlur }/>
         { this.toolbar() }
-        <Children items={ item.children } loaded={ item.loaded } parentDragging={ isDragging || parentDragging }/>
+        <Children items={ item.children } loaded={ item.loaded }/>
         { below }
       </div>
     );

@@ -131,3 +131,13 @@ export const loadTreeState = async (max_level: number = 128): Promise<LoadedStat
   console.log('loaded');
   return await loadedState({ root: rootID, map, loading: false });
 };
+
+
+export const isChildrenOf = (map: ItemMap, child: ID, parent: ID): boolean => {
+  if (child === parent) return false;
+  let now = map.get(child, null);
+  while (now && now.id !== parent && now.parent) {
+    now = map.get(now.parent, null);
+  }
+  return now ? now.id === parent : false;
+};
