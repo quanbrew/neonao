@@ -33,7 +33,7 @@
   opacity: 0.4;
 }
 
-.dragging .hover {
+.dragging .DropLine {
   display: none;
 }
 
@@ -49,14 +49,11 @@
   color: transparent;
 }
 
-.hover {
-  border-bottom: 0.2em dashed #c58438;
-  position: absolute;
-  width: 100%;
-  z-index: 100;
-}
-
 
 .is-over {
   background-color: #fbf0ff;
+}
+
+.dragging .is-over {
+  background-color: initial;
 }

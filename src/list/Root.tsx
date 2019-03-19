@@ -17,7 +17,7 @@ const Loading = () => (
   <div className='page-loading'><p>Loading</p></div>
 );
 
-class Root extends React.Component<Props> {
+class Root extends React.PureComponent<Props> {
   componentDidMount(): void {
     this.props.init();
   }
