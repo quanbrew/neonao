@@ -1,30 +1,61 @@
 import * as React from 'react';
-import { Tree } from "../tree";
+import { loadTreeState, Tree } from "../tree";
 import { connect } from "react-redux";
-import { Item } from "../Item";
+import { ID, Item } from "../Item";
 import { Children } from "./Children";
+import { Dispatch } from "redux";
+import { create, fetchAll } from "../actions";
 
 interface Props {
   root: Item | null;
+  init: () => void;
+  createEmpty: (parent: ID) => void;
 }
 
 
-const Root = ({ root }: Props) => {
-  if (root === null) {
+const Loading = () => (
+  <div className='page-loading'><p>Loading</p></div>
+);
+
+class Root extends React.Component<Props> {
+  componentDidMount(): void {
+    this.props.init();
+  }
+
+  componentDidUpdate(): void {
+    const { root, createEmpty } = this.props;
+    if (root && root.children.size === 0) {
+      createEmpty(root.id)
+    }
+  }
+
+  render(): React.ReactNode {
+    const { root } = this.props;
+
+    if (root === null) return <Loading/>;
     return (
-      <div className='page-loading'><p>Loading</p></div>
-    )
-  } else {
-    return (
-      <div className='root-item'>
-        <div className='items'><Children items={ root.children } loaded={ root.loaded }/></div>
-      </div>
+      <Children items={ root.children } loaded={ root.loaded }/>
     );
   }
-};
+}
 
-const mapStateToProps = ({ root, map }: Tree): Pick<Props, 'root'> => (
+
+type TStateProps = Pick<Props, 'root'>;
+
+const mapStateToProps = ({ root, map }: Tree): TStateProps => (
   { root: root ? map.get(root, null) : null }
 );
 
-export default connect<Props>(mapStateToProps)(Root);
+type TDispatchProps = Pick<Props, 'init' | 'createEmpty'>;
+
+const mapDispatchToProps = (dispatch: Dispatch): TDispatchProps => {
+  const init = () => {
+    dispatch(fetchAll());
+    loadTreeState(3).then(dispatch);
+  };
+  const createEmpty = (parent: ID) => dispatch(create(Item.create("", parent)));
+  return { init, createEmpty };
+};
+
+
+export default connect<TStateProps, TDispatchProps>(mapStateToProps, mapDispatchToProps)(Root);

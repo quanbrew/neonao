@@ -5,9 +5,8 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import './index.css';
 import { connect, Provider } from 'react-redux';
 import { store } from './store';
-import { loadTreeState } from "./tree";
 import { Dispatch } from "redux";
-import { fetchAll, redo, undo } from "./actions";
+import { redo, undo } from "./actions";
 import { isRedoKey, isUndoKey } from "./keyboard";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRedo, faUndo } from '@fortawesome/free-solid-svg-icons';
@@ -15,7 +14,6 @@ import Root from "./list/Root";
 
 
 interface Props {
-  init: () => void;
   undo: () => void;
   redo: () => void;
 }
@@ -24,30 +22,21 @@ interface Props {
 const mapStateToProps = (): {} => ({});
 
 
-const mapDispatchToProps = (dispatch: Dispatch): Pick<Props, 'init' | 'undo' | 'redo'> => {
-  const init = () => {
-    dispatch(fetchAll());
-    loadTreeState(3).then(dispatch);
-  };
+const mapDispatchToProps = (dispatch: Dispatch): Pick<Props, 'undo' | 'redo'> => {
   const performUndo = () => dispatch(undo);
   const performRedo = () => dispatch(redo);
-  return { init, undo: performUndo, redo: performRedo };
+  return { undo: performUndo, redo: performRedo };
 };
 
 
 class App extends React.Component<Props> {
-  componentDidMount() {
-    this.props.init();
-  }
-
-
   render() {
     return (
       <div>
         <header><a className='app-name' href='/'>NeoNao</a></header>
         <button onClick={ this.props.undo } id="undo"><FontAwesomeIcon icon={ faUndo }/></button>
         <button onClick={ this.props.redo } id="redo"><FontAwesomeIcon icon={ faRedo }/></button>
-        <Root/>
+        <div className='list'><Root/></div>
       </div>
     );
   }
