@@ -34,7 +34,7 @@ class Root extends React.PureComponent<Props> {
 
     if (root === null) return <Loading/>;
     return (
-      <Children items={ root.children } loaded={ root.loaded }/>
+      <Children items={ root.children } loaded={ root.loaded } expand/>
     );
   }
 }

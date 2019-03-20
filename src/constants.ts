@@ -14,6 +14,7 @@ export const CREATE = 'CREATE';
 export const ZOOM = 'ZOOM';
 export const EXPAND = 'EXPAND';
 export const FOLD = 'FOLD';
+export const TOGGLE = 'TOGGLE';
 export const MOVE_INTO = 'MOVE_INTO';
 export const MOVE_NEAR = 'MOVE_NEAR';
 export const ADD_INDENT = 'ADD_INDENT';

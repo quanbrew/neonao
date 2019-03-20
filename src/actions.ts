@@ -15,6 +15,7 @@ import {
   REDO,
   REMOVE,
   SWITCH_MODE,
+  TOGGLE,
   UNDO,
   UPDATE,
   ZOOM,
@@ -30,6 +31,7 @@ export type ItemAction =
   | Update
   | Edit
   | Remove
+  | Toggle
   | LoadedState
   | Undo
   | Redo
@@ -113,6 +115,15 @@ export interface Fold {
 
 
 export const fold = (id: ID): Fold => ({ type: FOLD, id });
+
+
+export interface Toggle {
+  type: typeof TOGGLE;
+  id: ID;
+}
+
+
+export const toggle = (id: ID): Toggle => ({ type: TOGGLE, id });
 
 
 export interface MoveInto {

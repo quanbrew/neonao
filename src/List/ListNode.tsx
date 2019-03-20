@@ -25,6 +25,7 @@ import {
   relativeMove,
   remove,
   switchMode,
+  toggle,
 } from "../actions";
 import './ListNode.css';
 import { DRAG_MODE, ITEM } from "../constants";
@@ -174,7 +175,13 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
     if (item.children.size === 0) dispatch(remove(id))
   };
 
+  toggle = () => {
+    const { id, dispatch, item } = this.props;
+    if (item.children.size > 0) dispatch(toggle(id));
+  };
+
   render() {
+    // console.debug(`RENDER ${this.props.id}`);
     let classNames = ['ListNode'];
     const {
       isDragging, isOver, connectDragSource, movePosition, connectDropTarget, item,
@@ -196,9 +203,9 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
         { above }
         { connectDragSource(<div className='bullet'>•</div>) }
         <ItemEditor onChange={ this.onChange } editor={ this.props.item.editor }
-                    up={ this.up } down={ this.down } left={ this.left }
+                    up={ this.up } down={ this.down } left={ this.left } toggle={ this.toggle }
                     right={ this.right } create={ this.create } remove={ this.remove }/>
-        <Children items={ item.children } loaded={ item.loaded }/>
+        <Children items={ item.children } loaded={ item.loaded } expand={ this.props.item.expand }/>
         { below }
       </div>
     );

@@ -3,12 +3,15 @@ import {
   ApplyDrop,
   Create,
   Edit,
+  Expand,
+  Fold,
   ItemAction,
   MoveInto,
   moveInto,
   MoveNear,
   moveNear,
-  Remove
+  Remove,
+  Toggle
 } from "./actions";
 import { ID, Item } from "./Item";
 import { initTree, isChildrenOf, ItemMap, normalMode, saveTreeState, Tree } from "./tree"
@@ -18,20 +21,30 @@ import {
   CREATE,
   DRAG_MODE,
   EDIT,
+  EXPAND,
   FETCH_ALL,
+  FOLD,
   LOADED_STATE,
   MOVE_INTO,
   MOVE_NEAR,
   REDO,
   REMOVE,
   SWITCH_MODE,
+  TOGGLE,
   UNDO,
   UPDATE
 } from "./constants";
 import Timeout = NodeJS.Timeout;
 
 
-const handleCreate = (map: ItemMap, create: Create): ItemMap => {
+let history: Tree[] = [];
+let future: Tree[] = [];
+// record node tree travel order
+let nodeOrder: ID[] = [];
+
+
+const handleCreate = (state: Tree, create: Create): Tree => {
+  let map = state.map;
   const parentID = create.item.parent;
   if (parentID) {
     let parent = map.get(parentID, null);
@@ -45,16 +58,15 @@ const handleCreate = (map: ItemMap, create: Create): ItemMap => {
   } else {
     map = map.set(create.item.id, create.item);
   }
-  return map;
+  return { ...state, map };
 };
 
 
-const handleRemove = (map: ItemMap, remove: Remove): ItemMap => {
+const handleRemove = (state: Tree, remove: Remove): Tree => {
+  let map = state.map;
   const itemID = remove.id;
   const item = map.get(itemID, null);
-  if (item === null) {
-    return map;
-  }
+  if (item === null) return state;
   let idToRemove: ID[] = [];
   let addTreeId = (i: Item | null) => {
     if (i === null) return;
@@ -71,7 +83,7 @@ const handleRemove = (map: ItemMap, remove: Remove): ItemMap => {
       map = map.set(parentID, { ...parent, children });
     }
   }
-  return map;
+  return { ...state, map };
 };
 
 
@@ -188,8 +200,34 @@ const handleApplyDrop = (state: Tree, action: ApplyDrop): Tree => {
 };
 
 
-let history: Tree[] = [];
-let future: Tree[] = [];
+const recordOrder = (itemMap: ItemMap, id: ID) => {
+  const item = itemMap.get(id, null);
+  if (item === null) return;
+  nodeOrder.push(id);
+  if (item.expand) {
+    item.children.forEach(id => recordOrder(itemMap, id));
+  }
+};
+
+
+const handleToggle = (state: Tree, action: Toggle | Expand | Fold): Tree => {
+  const item = state.map.get(action.id, null);
+  if (item === null) return state;
+  let expand = item.expand;
+  switch (action.type) {
+    case 'TOGGLE':
+      expand = !expand;
+      break;
+    case 'EXPAND':
+      expand = true;
+      break;
+    case 'FOLD':
+      expand = false;
+      break;
+  }
+  const map = state.map.set(item.id, { ...item, expand });
+  return { ...state, map };
+};
 
 
 export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
@@ -198,7 +236,7 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
   let next: typeof state = state;
   switch (action.type) {
     case CREATE:
-      next = { ...state, map: handleCreate(state.map, action) };
+      next = handleCreate(state, action);
       record = true;
       break;
     case UPDATE:
@@ -211,7 +249,7 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
       next = result.state;
       break;
     case REMOVE:
-      next = { ...state, map: handleRemove(state.map, action) };
+      next = handleRemove(state, action);
       record = true;
       break;
     case FETCH_ALL:
@@ -236,6 +274,18 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
         next = futureState;
       }
       break;
+    case TOGGLE:
+      next = handleToggle(state, action);
+      record = false;
+      break;
+    case FOLD:
+      next = handleToggle(state, action);
+      record = false;
+      break;
+    case EXPAND:
+      next = handleToggle(state, action);
+      record = false;
+      break;
     case MOVE_INTO:
       next = handleMove(state, action);
       record = true;
@@ -259,13 +309,17 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
     default:
       break;
   }
-  if (record && state !== next) {
+  const isStateChanged = state !== next;
+  if (isStateChanged) {
+    nodeOrder = [];
+    if (next.root)
+      recordOrder(next.map, next.root);
+  }
+  if (record && isStateChanged) {
     history.push(state);
     future = [];
     if (save) {
-      if (saveTimer) {
-        clearTimeout(saveTimer)
-      }
+      if (saveTimer) clearTimeout(saveTimer);
       saveTimer = setTimeout(() => saveTreeState(next), 200);
     }
   }

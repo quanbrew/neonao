@@ -113,3 +113,5 @@ export const isUndoKey = (e: KeyEvent) =>
 export const isRedoKey = (e: KeyEvent) =>
   e.keyCode === keyboard.KEY_Z && e.metaKey && e.shiftKey;
 
+export const isToggleKey = (e: KeyEvent) =>
+  e.keyCode === keyboard.PERIOD && e.metaKey;

@@ -6,6 +6,7 @@ import { List } from "immutable";
 interface Props {
   items: List<ID>;
   loaded: boolean;
+  expand: boolean;
 }
 
 
@@ -21,13 +22,13 @@ const dummy = (length: number) => {
 export class Children extends React.Component<Props> {
 
   shouldComponentUpdate(nextProps: Readonly<Props>): boolean {
-    const { items, loaded } = this.props;
-    return loaded !== nextProps.loaded || !items.equals(nextProps.items);
+    const { items, loaded, expand } = this.props;
+    return loaded !== nextProps.loaded || expand !== nextProps.expand || !items.equals(nextProps.items);
   }
 
   render() {
-    const { items, loaded } = this.props;
-    if (items.size === 0) return null;
+    const { items, loaded, expand } = this.props;
+    if (items.size === 0 || !expand) return null;
     const children = items.map(id => <ListNode key={ id } id={ id }/>);
     return (
       <div className="children">

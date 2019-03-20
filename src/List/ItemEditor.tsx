@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding, RichUtils } from "draft-js";
-import { isRedoKey, isUndoKey } from "../keyboard";
+import { isRedoKey, isToggleKey, isUndoKey } from "../keyboard";
 
 // import 'draft-js/dist/Draft.css';
 
@@ -13,6 +13,7 @@ interface Props {
   right: () => void;
   create: () => void;
   remove: () => void;
+  toggle: () => void;
 }
 
 type KeyboardEvent = React.KeyboardEvent<{}>;
@@ -23,6 +24,8 @@ export class ItemEditor extends React.PureComponent<Props> {
     if (isUndoKey(e) || isRedoKey(e)) {
       e.preventDefault();
       return null;
+    } else if (isToggleKey(e)) {
+      return 'toggle';
     }
     return getDefaultKeyBinding(e);
   };
@@ -35,6 +38,9 @@ export class ItemEditor extends React.PureComponent<Props> {
           return 'handled';
         }
         break;
+      case 'toggle':
+        this.props.toggle();
+        return 'handled';
       default:
         const newState = RichUtils.handleKeyCommand(editorState, command);
         if (newState) {
