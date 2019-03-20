@@ -193,7 +193,6 @@ let future: Tree[] = [];
 
 
 export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
-  console.group('Tree Reducer', action);
   let record = false;
   let save = true;
   let next: typeof state = state;
@@ -224,26 +223,18 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
       save = false;
       break;
     case UNDO:
-      console.group('UNDO');
-      console.debug('BEFORE: history: ', history.length, 'future: ', future.length);
       const prev = history.pop();
       if (prev) {
         future.push(state);
         next = prev;
       }
-      console.debug(' AFTER: history: ', history.length, 'future: ', future.length);
-      console.groupEnd();
       break;
     case REDO:
-      console.group('REDO');
-      console.debug('BEFORE: history: ', history.length, 'future: ', future.length);
       const futureState = future.pop();
       if (futureState) {
         history.push(state);
         next = futureState;
       }
-      console.debug(' AFTER: history: ', history.length, 'future: ', future.length);
-      console.groupEnd();
       break;
     case MOVE_INTO:
       next = handleMove(state, action);
@@ -269,13 +260,8 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
       break;
   }
   if (record && state !== next) {
-    console.group('RECORD');
-    console.debug('BEFORE: history: ', history.length, 'future: ', future.length);
-    console.debug(action.type, action);
     history.push(state);
     future = [];
-    console.debug(' AFTER: history: ', history.length, 'future: ', future.length);
-    console.groupEnd();
   }
   if (save) {
     if (saveTimer) {
@@ -283,6 +269,5 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
     }
     saveTimer = setTimeout(() => saveTreeState(next), 200);
   }
-  console.groupEnd();
   return next;
 };
