@@ -262,12 +262,12 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
   if (record && state !== next) {
     history.push(state);
     future = [];
-  }
-  if (save) {
-    if (saveTimer) {
-      clearTimeout(saveTimer)
+    if (save) {
+      if (saveTimer) {
+        clearTimeout(saveTimer)
+      }
+      saveTimer = setTimeout(() => saveTreeState(next), 200);
     }
-    saveTimer = setTimeout(() => saveTreeState(next), 200);
   }
   return next;
 };
