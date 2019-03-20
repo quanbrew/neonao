@@ -172,14 +172,17 @@ const applyEdit = (oldState: Tree, action: Edit): { state: Tree, record: boolean
 
 
 const handleApplyDrop = (state: Tree, action: ApplyDrop): Tree => {
-  if (state.mode.type !== DRAG_MODE || !state.mode.willMoveAt) return state;
+  if (state.mode.type !== DRAG_MODE || !state.mode.dropAt) return state;
   const { id, parent } = action;
-  const { position, target } = state.mode.willMoveAt;
+  const { position, target } = state.mode.dropAt;
   if (id === target) return state;
   if (isChildrenOf(state.map, target, id)) return state;
   let offset = 0;
-  if (position === 'above') offset = 0;
-  if (position === 'below') offset = 1;
+  if (position === 'inner') {
+    const moveIntoAction = moveInto(id, parent, target, 'append');
+    return handleMove(state, moveIntoAction);
+  } else if (position === 'above') offset = 0;
+  else if (position === 'below') offset = 1;
   const moveNearAction = moveNear(id, parent, target, offset);
   return handleMoveNear(state, moveNearAction);
 };

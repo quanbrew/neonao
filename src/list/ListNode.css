@@ -1,6 +1,7 @@
 .ListNode {
   position: relative;
   margin: 0.2em 0 0.2em 2em;
+  padding: 0.2em;
 }
 
 .ListNode .children {
@@ -52,6 +53,11 @@
 
 .is-over {
   background-color: #fbf0ff;
+}
+
+.drop-inner {
+  border: 0.2em dashed #c58438;
+  padding: 0;
 }
 
 .dragging .is-over {

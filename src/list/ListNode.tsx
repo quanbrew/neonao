@@ -14,7 +14,7 @@ import {
   DropTargetSpec
 } from "react-dnd";
 import { EditorState } from 'draft-js';
-import { dragMode, loadItemState, normalMode, Tree, willMoveAt } from "../tree";
+import { dragMode, dropAt, DropPosition, loadItemState, normalMode, Tree } from "../tree";
 import {
   addIndent,
   applyDrop,
@@ -39,7 +39,7 @@ export interface Props {
   id: ID;
   item: Item;
   dispatch: (action: ItemAction) => void;
-  movePosition: 'above' | 'below' | null;
+  movePosition: DropPosition | null;
 }
 
 
@@ -87,7 +87,8 @@ const nodeTarget: DropTargetSpec<Props> = {
     const hoverBoundingRect = (findDOMNode(component) as Element).getBoundingClientRect();
 
     // Get vertical middle
-    const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+    const hoverHeight = hoverBoundingRect.bottom - hoverBoundingRect.top;
+    const hoverMiddleY = hoverHeight / 2;
 
     // Determine mouse position
     const clientOffset = monitor.getClientOffset();
@@ -96,10 +97,15 @@ const nodeTarget: DropTargetSpec<Props> = {
 
     // Get pixels to the top
     const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-    const position = hoverClientY > hoverMiddleY ? 'below' : 'above';
+    let position: DropPosition = 'inner';
+    const margin = props.item.children.size === 0 ? 12 : 0;
+    if (hoverClientY > hoverMiddleY + margin) {
+      position = 'below';
+    } else if (hoverClientY < hoverMiddleY - margin) {
+      position = 'above';
+    }
     if (position === props.movePosition) return;
-    console.log(position, props.movePosition);
-    const mode = dragMode(willMoveAt(props.item.id, position));
+    const mode = dragMode(dropAt(props.item.id, position));
     props.dispatch(switchMode(mode));
   },
 };
@@ -125,7 +131,7 @@ const targetCollect: DropTargetCollector<TargetProps> = (connect, monitor) => {
 
 type RawListNodeProps = Props & SourceProps & TargetProps;
 
-export class RawListNode extends React.Component<RawListNodeProps, State> {
+export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
   constructor(props: RawListNodeProps) {
     super(props);
     this.state = {};
@@ -177,6 +183,9 @@ export class RawListNode extends React.Component<RawListNodeProps, State> {
       classNames.push('dragging');
     }
     if (isOver && !isDragging) classNames.push('is-over');
+    if (movePosition === 'inner') {
+      classNames.push('drop-inner');
+    }
     const above = movePosition === 'above' ? <DropLine/> : null;
     const below = movePosition === 'below' ? <DropLine/> : null;
     return connectDropTarget(
@@ -200,8 +209,8 @@ type StateProps = Pick<Props, 'item' | 'movePosition'>;
 const mapStateToProps = (state: Tree, { id }: Props) => (state: Tree): StateProps => {
   const item = state.map.get(id) as Item;
   let movePosition: Props['movePosition'] = null;
-  if (state.mode.type === DRAG_MODE && state.mode.willMoveAt && state.mode.willMoveAt.target === id)
-    movePosition = state.mode.willMoveAt.position;
+  if (state.mode.type === DRAG_MODE && state.mode.dropAt && state.mode.dropAt.target === id)
+    movePosition = state.mode.dropAt.position;
   return { item, movePosition };
 };
 

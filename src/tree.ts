@@ -29,21 +29,23 @@ export interface NormalMode {
 export const normalMode = (): NormalMode => ({ type: NORMAL_MODE });
 
 
-export interface WillMoveAt {
+export type DropPosition = 'above' | 'below' | 'inner';
+
+export interface DropAt {
   target: ID;
-  position: 'above' | 'below';
+  position: DropPosition;
 }
 
-export const willMoveAt = (target: ID, position: WillMoveAt['position']): WillMoveAt => (
+export const dropAt = (target: ID, position: DropPosition): DropAt => (
   { target, position }
 );
 
 export interface DragMode {
   type: typeof DRAG_MODE;
-  willMoveAt?: WillMoveAt;
+  dropAt?: DropAt;
 }
 
-export const dragMode = (willMoveAt?: WillMoveAt): DragMode => ({ type: DRAG_MODE, willMoveAt });
+export const dragMode = (dropAt?: DropAt): DragMode => ({ type: DRAG_MODE, dropAt });
 
 export interface EditNode {
   type: typeof EDIT_NODE;
