@@ -30,7 +30,6 @@ import './ListNode.css';
 import { DRAG_MODE, ITEM } from "../constants";
 import { findDOMNode } from "react-dom";
 import { Children } from "./Children";
-import { Toolbar } from "./Toolbar";
 import { DropLine } from "./DropLine";
 import { ItemEditor } from "./ItemEditor";
 
@@ -170,7 +169,10 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
     if (item.parent) dispatch(addIndent(item.id, item.parent));
   };
   create = () => this.props.dispatch(create(Item.create('', this.props.id)));
-  remove = () => this.props.dispatch(remove(this.props.id));
+  remove = () => {
+    const { id, dispatch, item } = this.props;
+    if (item.children.size === 0) dispatch(remove(id))
+  };
 
   render() {
     let classNames = ['ListNode'];
@@ -193,9 +195,9 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
         { bullet }
         { above }
         { connectDragSource(<div className='bullet'>•</div>) }
-        <ItemEditor onChange={ this.onChange } editor={ this.props.item.editor }/>
-        <Toolbar up={ this.up } down={ this.down } left={ this.left }
-                 right={ this.right } create={ this.create } remove={ this.remove }/>
+        <ItemEditor onChange={ this.onChange } editor={ this.props.item.editor }
+                    up={ this.up } down={ this.down } left={ this.left }
+                    right={ this.right } create={ this.create } remove={ this.remove }/>
         <Children items={ item.children } loaded={ item.loaded }/>
         { below }
       </div>
