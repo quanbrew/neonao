@@ -10,7 +10,7 @@ import { redo, undo } from "./actions";
 import { isRedoKey, isUndoKey } from "./keyboard";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRedo, faUndo } from '@fortawesome/free-solid-svg-icons';
-import Root from "./list/Root";
+import { List } from "./List/List";
 
 
 interface Props {
@@ -36,7 +36,7 @@ class App extends React.Component<Props> {
         <header><a className='app-name' href='/'>NeoNao</a></header>
         <button onClick={ this.props.undo } id="undo"><FontAwesomeIcon icon={ faUndo }/></button>
         <button onClick={ this.props.redo } id="redo"><FontAwesomeIcon icon={ faRedo }/></button>
-        <div className='list'><Root/></div>
+        <List/>
       </div>
     );
   }
