@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding, RichUtils } from "draft-js";
+import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding } from "draft-js";
 import { isRedoKey, isToggleKey, isUndoKey } from "../keyboard";
 
 // import 'draft-js/dist/Draft.css';
@@ -7,6 +7,7 @@ import { isRedoKey, isToggleKey, isUndoKey } from "../keyboard";
 interface Props {
   onChange: (next: EditorState) => void;
   editor: EditorState;
+  editing: boolean;
   up: () => void;
   down: () => void;
   left: () => void;
@@ -41,12 +42,6 @@ export class ItemEditor extends React.PureComponent<Props> {
       case 'toggle':
         this.props.toggle();
         return 'handled';
-      default:
-        const newState = RichUtils.handleKeyCommand(editorState, command);
-        if (newState) {
-          this.props.onChange(newState);
-          return 'handled';
-        }
     }
     return 'not-handled';
   };
@@ -78,9 +73,10 @@ export class ItemEditor extends React.PureComponent<Props> {
   };
 
   render() {
-    const { editor, onChange } = this.props;
+    const { editor, onChange, editing } = this.props;
     return (
-      <Editor editorState={ editor }
+      <Editor readOnly={ !editing }
+              editorState={ editor }
               onChange={ onChange }
               onFocus={ this.onFocus }
               onBlur={ this.onBlur }

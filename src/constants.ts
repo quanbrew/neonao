@@ -1,6 +1,6 @@
 // Tree Mode
-export const EDIT_NODE = 'EDIT_NODE';
-export const SELECT_NODE = 'SELECT_NODE';
+export const EDIT_MODE = 'EDIT_MODE';
+export const SELECT_MODE = 'SELECT_MODE';
 export const DETAIL_MODE = 'DETAIL_MODE';
 export const DRAG_MODE = 'DRAG_MODE';
 export const NORMAL_MODE = 'NORMAL_MODE';

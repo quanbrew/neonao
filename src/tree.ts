@@ -2,7 +2,8 @@ import { Map } from "immutable";
 import { ID, Item } from "./Item";
 import localForage from "localforage";
 import { loadedState, LoadedState } from "./actions";
-import { DETAIL_MODE, DRAG_MODE, EDIT_NODE, NORMAL_MODE, SELECT_NODE } from "./constants";
+import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from "./constants";
+import { SelectionState } from "draft-js";
 
 export type ItemMap = Map<ID, Item>;
 
@@ -15,8 +16,8 @@ export interface Tree {
 
 
 export type Mode =
-  | EditNode
-  | SelectNode
+  | EditMode
+  | SelectMode
   | DetailMode
   | DragMode
   | NormalMode
@@ -47,14 +48,20 @@ export interface DragMode {
 
 export const dragMode = (dropAt?: DropAt): DragMode => ({ type: DRAG_MODE, dropAt });
 
-export interface EditNode {
-  type: typeof EDIT_NODE;
+export interface EditMode {
+  type: typeof EDIT_MODE;
   id: ID;
+  selection?: SelectionState;
 }
 
 
-export interface SelectNode {
-  type: typeof SELECT_NODE;
+export const editMode = (id: ID, selection?: SelectionState): EditMode => (
+  { type: EDIT_MODE, id, selection }
+);
+
+
+export interface SelectMode {
+  type: typeof SELECT_MODE;
   selected: ID[];
   cut: boolean;
 }
