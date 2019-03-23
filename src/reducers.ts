@@ -34,8 +34,8 @@ import {
   UNDO,
   UPDATE
 } from "./constants";
-import Timeout = NodeJS.Timeout;
 
+type Timeout = number;
 
 let history: Tree[] = [];
 let future: Tree[] = [];
@@ -320,7 +320,7 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
     future = [];
     if (save) {
       if (saveTimer) clearTimeout(saveTimer);
-      saveTimer = setTimeout(() => saveTreeState(next), 200);
+      saveTimer = window.setTimeout(() => saveTreeState(next), 200);
     }
   }
   return next;

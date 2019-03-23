@@ -4,6 +4,7 @@
   "description": "A notebook app help you to organize everything.",
   "license": "GPL-3.0",
   "private": true,
+  "sideEffects": false,
   "dependencies": {
     "draft-js": "^0.10.5",
     "immutable": "4.0.0-rc.12",
@@ -17,8 +18,8 @@
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "start": "parcel -p 7483 src/index.html",
-    "build": "NODE_ENV=production parcel build src/index.html --experimental-scope-hoisting --public-url 'http://localhost:7483/'"
+    "start": "webpack-dev-server --open --config config/webpack.dev.js",
+    "build": "webpack --config config/webpack.prod.js --env.production --env.NODE_ENV=production"
   },
   "devDependencies": {
     "@types/draft-js": "^0.10.29",
@@ -26,8 +27,23 @@
     "@types/react": "^16.8.8",
     "@types/react-dom": "^16.8.3",
     "@types/react-redux": "^7.0.5",
-    "parcel-bundler": "^1.12.3",
+    "bundle-loader": "^0.5.6",
+    "clean-webpack-plugin": "^2.0.1",
+    "css-loader": "^2.1.1",
+    "file-loader": "^3.0.1",
+    "html-webpack-plugin": "^3.2.0",
+    "source-map-loader": "^0.2.4",
+    "style-loader": "^0.23.1",
+    "ts-loader": "^5.3.3",
     "tslint": "^5.14.0",
-    "typescript": "^3.3.4000"
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-react": "^3.6.0",
+    "typescript": "^3.3.4000",
+    "uglifyjs-webpack-plugin": "^2.1.2",
+    "webpack": "^4.29.6",
+    "webpack-bundle-analyzer": "^3.1.0",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.2.1",
+    "webpack-merge": "^4.2.1"
   }
 }
