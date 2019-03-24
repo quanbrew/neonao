@@ -1,6 +1,5 @@
 import { Map } from "immutable";
 import { ID, Item } from "./Item";
-import localForage from "localforage";
 import { loadedState, LoadedState } from "./actions";
 import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from "./constants";
 import { SelectionState } from "draft-js";
@@ -75,19 +74,18 @@ export interface DetailMode {
 export const initTree: Tree = { root: null, map: Map(), loading: true, mode: normalMode() };
 
 
-export const saveTreeState = (state: Tree) => {
+export const saveTreeState = async (state: Tree) => {
+  const localForage = await import("localforage");
   if (!state.root)
     return;
-  localForage.setItem('root', state.root).then(() => {
-    state.map.forEach(
-      (item, key) =>
-        localForage.setItem(key, Item.toJSON(item))
-    );
-    console.debug('saved');
-  });
+  await localForage.setItem('root', state.root);
+  state.map.forEach((item, key) =>
+    localForage.setItem(key, Item.toJSON(item)));
+  console.debug('saved');
 };
 
 const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
+  const localForage = await import("localforage");
   const raw = await localForage.getItem<Item.ExportedItem>(id);
   if (raw) {
     let item = Item.fromJSON(raw);
@@ -133,6 +131,7 @@ export const loadItemState = async (item: Item, max_level: number = 2): Promise<
 };
 
 export const loadTreeState = async (max_level: number = 128): Promise<LoadedState> => {
+  const localForage = await import("localforage");
   const rootID = await localForage.getItem<ID>('root');
   if (!rootID) return await createEmptyState();
   const root = await getItemByIDFromStorage(rootID);
