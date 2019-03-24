@@ -4,7 +4,6 @@
   "description": "A notebook app help you to organize everything.",
   "license": "GPL-3.0",
   "private": true,
-  "sideEffects": false,
   "dependencies": {
     "draft-js": "^0.10.5",
     "immutable": "4.0.0-rc.12",
