@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import { ID, Item } from "../Item";
-import { Dispatch } from 'redux';
-import { connect } from 'react-redux';
+import {ID, Item} from "../Item";
+import {Dispatch} from 'redux';
+import {connect} from 'react-redux';
 import {
   ConnectDragSource,
   ConnectDropTarget,
@@ -13,8 +13,8 @@ import {
   DropTargetCollector,
   DropTargetSpec
 } from "react-dnd";
-import { EditorState } from 'draft-js';
-import { dragMode, dropAt, DropPosition, EditMode, editMode, loadItemState, normalMode, Tree } from "../tree";
+import {EditorState} from 'draft-js';
+import {dragMode, dropAt, DropPosition, EditMode, editMode, loadItemState, normalMode, Tree} from "../tree";
 import {
   addIndent,
   applyDrop,
@@ -28,11 +28,11 @@ import {
   toggle,
 } from "../actions";
 import './ListNode.css';
-import { DRAG_MODE, EDIT_MODE, ITEM } from "../constants";
-import { findDOMNode } from "react-dom";
-import { Children } from "./Children";
-import { DropLine } from "./DropLine";
-import { ItemEditor } from "./ItemEditor";
+import {DRAG_MODE, EDIT_MODE, ITEM} from "../constants";
+import {findDOMNode} from "react-dom";
+import {Children} from "./Children";
+import {DropLine} from "./DropLine";
+import {ItemEditor} from "./ItemEditor";
 
 
 export interface Props {
@@ -112,7 +112,7 @@ const nodeTarget: DropTargetSpec<Props> = {
 };
 
 
-const sourceCollect: DragSourceCollector<SourceProps> = (connect, monitor) => {
+const sourceCollect: DragSourceCollector<SourceProps, Props> = (connect, monitor) => {
   return {
     connectDragSource: connect.dragSource(),
     isDragging: monitor.isDragging()
@@ -120,7 +120,7 @@ const sourceCollect: DragSourceCollector<SourceProps> = (connect, monitor) => {
 };
 
 
-const targetCollect: DropTargetCollector<TargetProps> = (connect, monitor) => {
+const targetCollect: DropTargetCollector<TargetProps, Props> = (connect, monitor) => {
   const isOver = monitor.isOver({ shallow: true });
   return {
     connectDropTarget: connect.dropTarget(),
