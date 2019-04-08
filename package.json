@@ -6,7 +6,7 @@
   "private": true,
   "dependencies": {
     "draft-js": "^0.10.5",
-    "immutable": "4.0.0-rc.12",
+    "immutable": "~3.7.4",
     "localforage": "^1.7.3",
     "react": "^16.8.5",
     "react-dnd": "^7.4.5",

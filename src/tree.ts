@@ -1,8 +1,8 @@
-import { Map } from "immutable";
-import { ID, Item } from "./Item";
-import { loadedState, LoadedState } from "./actions";
-import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from "./constants";
-import { SelectionState } from "draft-js";
+import {Map} from "immutable";
+import {ID, Item} from "./Item";
+import {loadedState, LoadedState} from "./actions";
+import {DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE} from "./constants";
+import {SelectionState} from "draft-js";
 
 export type ItemMap = Map<ID, Item>;
 
@@ -79,7 +79,7 @@ export const saveTreeState = async (state: Tree) => {
   if (!state.root)
     return;
   await localForage.setItem('root', state.root);
-  state.map.forEach((item, key) =>
+  state.map.forEach((item: Item, key: ID) =>
     localForage.setItem(key, Item.toJSON(item)));
   console.debug('saved');
 };
@@ -106,7 +106,7 @@ const loadChildren = async (item: Item | null, max_level: number): Promise<ItemM
   if (item) {
     map = map.set(item.id, item);
     if (max_level > 0) {
-      const childrenMaps = await Promise.all(item.children.map(mapper));
+      const childrenMaps = await Promise.all(item.children.toArray().map(mapper));
       return await map.merge(...childrenMaps);
     } else if (item.children.size > 0) {
       item.loaded = false;
@@ -143,9 +143,9 @@ export const loadTreeState = async (max_level: number = 128): Promise<LoadedStat
 
 export const isChildrenOf = (map: ItemMap, child: ID, parent: ID): boolean => {
   if (child === parent) return false;
-  let now = map.get(child, null);
+  let now = map.get(child) || null;
   while (now && now.id !== parent && now.parent) {
-    now = map.get(now.parent, null);
+    now = map.get(now.parent) || null;
   }
   return now ? now.id === parent : false;
 };

@@ -13,8 +13,9 @@ import {
   Remove,
   Toggle
 } from "./actions";
-import { ID, Item } from "./Item";
-import { initTree, isChildrenOf, ItemMap, normalMode, saveTreeState, Tree } from "./tree"
+import {ID, Item} from "./Item";
+import {List} from "immutable";
+import {initTree, isChildrenOf, ItemMap, normalMode, saveTreeState, Tree} from "./tree"
 import {
   ADD_INDENT,
   APPLY_DROP,
@@ -47,7 +48,7 @@ const handleCreate = (state: Tree, create: Create): Tree => {
   let map = state.map;
   const parentID = create.item.parent;
   if (parentID) {
-    let parent = map.get(parentID, null);
+    let parent = map.get(parentID) || null;
     if (parent === null) {
       throw (new Error("Can't found item " + parentID))
     }
@@ -65,21 +66,24 @@ const handleCreate = (state: Tree, create: Create): Tree => {
 const handleRemove = (state: Tree, remove: Remove): Tree => {
   let map = state.map;
   const itemID = remove.id;
-  const item = map.get(itemID, null);
+  const item = map.get(itemID) || null;
   if (item === null) return state;
   let idToRemove: ID[] = [];
   let addTreeId = (i: Item | null) => {
     if (i === null) return;
     idToRemove.push(i.id);
-    i.children.forEach(child => addTreeId(map.get(child, null)));
+    i.children.forEach((child: ID) => addTreeId(map.get(child) || null));
   };
   addTreeId(item);
-  map = map.deleteAll(idToRemove);
+  for (let id of idToRemove) {
+    map = map.remove(id);
+  }
   let parentID = item.parent;
   if (parentID) {
-    let parent = map.get(parentID, null);
+    let parent = map.get(parentID) || null;
     if (parent !== null) {
-      const children = parent.children.filter(v => v !== itemID);
+
+      const children = List<ID>(parent.children.filter(v => v !== itemID));
       map = map.set(parentID, { ...parent, children });
     }
   }
@@ -88,7 +92,7 @@ const handleRemove = (state: Tree, remove: Remove): Tree => {
 
 
 const resetItemParent = (map: ItemMap, id: ID, parent: ID): ItemMap => {
-  const item = map.get(id, null);
+  const item = map.get(id) || null;
   if (item === null) throw Error();
   return map.set(id, { ...item, parent });
 };
@@ -104,7 +108,7 @@ const handleMove = (state: Tree, action: MoveInto): Tree => {
   if (action.order === 'append') {
     let children = parent.children.remove(oldPosition);
     map = map.set(parent.id, { ...parent, children });
-    let nextParent = map.get(action.nextParent, null);
+    let nextParent = map.get(action.nextParent) || null;
     if (nextParent === null) throw Error();
     children = nextParent.children.push(action.id);
     map = map.set(nextParent.id, { ...nextParent, children });
@@ -122,7 +126,7 @@ const handleMove = (state: Tree, action: MoveInto): Tree => {
   let children = parent.children.remove(oldPosition);
   map = map.set(parent.id, { ...parent, children });
   // insert
-  const nextParent = map.get(action.nextParent, null);
+  const nextParent = map.get(action.nextParent) || null;
   if (nextParent === null) throw Error();
   children = nextParent.children.insert(targetIndex, action.id);
   map = map.set(nextParent.id, { ...nextParent, children });
@@ -133,10 +137,10 @@ const handleMove = (state: Tree, action: MoveInto): Tree => {
 
 
 const handleMoveNear = (state: Tree, action: MoveNear): Tree => {
-  const sibling = state.map.get(action.sibling, null);
+  const sibling = state.map.get(action.sibling) || null;
   if (sibling === null) throw Error();
   if (!sibling.parent) return state;
-  const parent = state.map.get(sibling.parent, null);
+  const parent = state.map.get(sibling.parent) || null;
   if (parent === null) throw Error();
   const position = parent.children.findIndex(id => id === sibling.id);
   if (position === -1) throw Error();
@@ -146,13 +150,13 @@ const handleMoveNear = (state: Tree, action: MoveNear): Tree => {
 
 
 const handleAddIndent = (state: Tree, action: AddIndent): Tree => {
-  const parent = state.map.get(action.parent, null);
+  const parent = state.map.get(action.parent) || null;
   if (parent === null) throw Error();
   const index = parent.children.findIndex(id => id === action.id);
   if (index < 1) {
     return state
   }
-  const nextParent = parent.children.get(index - 1, null);
+  const nextParent = parent.children.get(index - 1) || null;
   if (nextParent === null) throw Error();
   const move = moveInto(action.id, action.parent, nextParent, 'append');
   return handleMove(state, move);
@@ -171,7 +175,7 @@ const mergeState = (old: Tree, next: Partial<Tree>): Tree => {
 const applyEdit = (oldState: Tree, action: Edit): { state: Tree, record: boolean } => {
   let record = false;
   const { id, editor } = action;
-  const oldItem = oldState.map.get(id, null);
+  const oldItem = oldState.map.get(id) || null;
   if (oldItem === null || oldItem.editor === editor) return { state: oldState, record };
   const oldEditor = oldItem.editor;
   // TODO: Disable undo and implement record judgement.
@@ -201,17 +205,17 @@ const handleApplyDrop = (state: Tree, action: ApplyDrop): Tree => {
 
 
 const recordOrder = (itemMap: ItemMap, id: ID) => {
-  const item = itemMap.get(id, null);
+  const item = itemMap.get(id) || null;
   if (item === null) return;
   nodeOrder.push(id);
   if (item.expand) {
-    item.children.forEach(id => recordOrder(itemMap, id));
+    item.children.forEach((id: ID) => recordOrder(itemMap, id));
   }
 };
 
 
 const handleToggle = (state: Tree, action: Toggle | Expand | Fold): Tree => {
-  const item = state.map.get(action.id, null);
+  const item = state.map.get(action.id) || null;
   if (item === null) return state;
   let expand = item.expand;
   switch (action.type) {
