@@ -47,9 +47,13 @@ module.exports = {
     // https://webpack.js.org/plugins/split-chunks-plugin/
     splitChunks: {
       chunks: 'all',
-      minSize: 30000,
-      maxSize: 100000,
+      // minSize: 30000,
+      // maxSize: 100000,
     },
     runtimeChunk: "single",
+  },
+  externals: {
+    // "react": "React",
+    // "react-dom": "ReactDOM"
   }
 };
