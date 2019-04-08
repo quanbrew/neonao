@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-
 export const keyboard = {
   BACKSPACE: 8,
   TAB: 9,
@@ -100,18 +99,13 @@ export const keyboard = {
   OPEN_BRACKET: 219,
   BACK_SLASH: 220,
   CLOSE_BRACKET: 221,
-  SINGLE_QUOTE: 222
+  SINGLE_QUOTE: 222,
 };
-
 
 export type KeyEvent = KeyboardEvent | React.KeyboardEvent;
 
+export const isUndoKey = (e: KeyEvent) => e.keyCode === keyboard.KEY_Z && e.metaKey && !e.shiftKey;
 
-export const isUndoKey = (e: KeyEvent) =>
-  e.keyCode === keyboard.KEY_Z && e.metaKey && !e.shiftKey;
+export const isRedoKey = (e: KeyEvent) => e.keyCode === keyboard.KEY_Z && e.metaKey && e.shiftKey;
 
-export const isRedoKey = (e: KeyEvent) =>
-  e.keyCode === keyboard.KEY_Z && e.metaKey && e.shiftKey;
-
-export const isToggleKey = (e: KeyEvent) =>
-  e.keyCode === keyboard.PERIOD && e.metaKey;
+export const isToggleKey = (e: KeyEvent) => e.keyCode === keyboard.PERIOD && e.metaKey;

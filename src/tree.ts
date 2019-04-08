@@ -1,8 +1,8 @@
-import {Map} from "immutable";
-import {ID, Item} from "./Item";
-import {loadedState, LoadedState} from "./actions";
-import {DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE} from "./constants";
-import {SelectionState} from "draft-js";
+import { Map } from 'immutable';
+import { ID, Item } from './Item';
+import { loadedState, LoadedState } from './actions';
+import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
+import { SelectionState } from 'draft-js';
 
 export type ItemMap = Map<ID, Item>;
 
@@ -13,21 +13,13 @@ export interface Tree {
   mode: Mode;
 }
 
-
-export type Mode =
-  | EditMode
-  | SelectMode
-  | DetailMode
-  | DragMode
-  | NormalMode
+export type Mode = EditMode | SelectMode | DetailMode | DragMode | NormalMode;
 
 export interface NormalMode {
   type: typeof NORMAL_MODE;
 }
 
-
 export const normalMode = (): NormalMode => ({ type: NORMAL_MODE });
-
 
 export type DropPosition = 'above' | 'below' | 'inner';
 
@@ -36,16 +28,20 @@ export interface DropAt {
   position: DropPosition;
 }
 
-export const dropAt = (target: ID, position: DropPosition): DropAt => (
-  { target, position }
-);
+export const dropAt = (target: ID, position: DropPosition): DropAt => ({
+  target,
+  position,
+});
 
 export interface DragMode {
   type: typeof DRAG_MODE;
   dropAt?: DropAt;
 }
 
-export const dragMode = (dropAt?: DropAt): DragMode => ({ type: DRAG_MODE, dropAt });
+export const dragMode = (dropAt?: DropAt): DragMode => ({
+  type: DRAG_MODE,
+  dropAt,
+});
 
 export interface EditMode {
   type: typeof EDIT_MODE;
@@ -53,11 +49,11 @@ export interface EditMode {
   selection?: SelectionState;
 }
 
-
-export const editMode = (id: ID, selection?: SelectionState): EditMode => (
-  { type: EDIT_MODE, id, selection }
-);
-
+export const editMode = (id: ID, selection?: SelectionState): EditMode => ({
+  type: EDIT_MODE,
+  id,
+  selection,
+});
 
 export interface SelectMode {
   type: typeof SELECT_MODE;
@@ -70,22 +66,23 @@ export interface DetailMode {
   id: ID;
 }
 
-
-export const initTree: Tree = { root: null, map: Map(), loading: true, mode: normalMode() };
-
+export const initTree: Tree = {
+  root: null,
+  map: Map(),
+  loading: true,
+  mode: normalMode(),
+};
 
 export const saveTreeState = async (state: Tree) => {
-  const localForage = await import("localforage");
-  if (!state.root)
-    return;
+  const localForage = await import('localforage');
+  if (!state.root) return;
   await localForage.setItem('root', state.root);
-  state.map.forEach((item: Item, key: ID) =>
-    localForage.setItem(key, Item.toJSON(item)));
+  state.map.forEach((item: Item, key: ID) => localForage.setItem(key, Item.toJSON(item)));
   console.debug('saved');
 };
 
 const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
-  const localForage = await import("localforage");
+  const localForage = await import('localforage');
   const raw = await localForage.getItem<Item.ExportedItem>(id);
   if (raw) {
     let item = Item.fromJSON(raw);
@@ -131,7 +128,7 @@ export const loadItemState = async (item: Item, max_level: number = 2): Promise<
 };
 
 export const loadTreeState = async (max_level: number = 128): Promise<LoadedState> => {
-  const localForage = await import("localforage");
+  const localForage = await import('localforage');
   const rootID = await localForage.getItem<ID>('root');
   if (!rootID) return await createEmptyState();
   const root = await getItemByIDFromStorage(rootID);
@@ -139,7 +136,6 @@ export const loadTreeState = async (max_level: number = 128): Promise<LoadedStat
   console.log('loaded');
   return await loadedState({ root: rootID, map, loading: false });
 };
-
 
 export const isChildrenOf = (map: ItemMap, child: ID, parent: ID): boolean => {
   if (child === parent) return false;

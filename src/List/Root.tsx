@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {loadTreeState, Tree} from "../tree";
-import {connect} from "react-redux";
-import {ID, Item} from "../Item";
-import {Children} from "./Children";
-import {Dispatch} from "redux";
-import {create, fetchAll} from "../actions";
+import { loadTreeState, Tree } from "../tree";
+import { connect } from "react-redux";
+import { ID, Item } from "../Item";
+import { Children } from "./Children";
+import { Dispatch } from "redux";
+import { create, fetchAll } from "../actions";
 
 interface Props {
   root: Item | null;
@@ -43,7 +43,7 @@ class Root extends React.PureComponent<Props> {
 type TStateProps = Pick<Props, 'root'>;
 
 const mapStateToProps = ({ root, map }: Tree): TStateProps => (
-  {root: root ? map.get(root) || null : null}
+  { root: root ? map.get(root) || null : null }
 );
 
 type TDispatchProps = Pick<Props, 'init' | 'createEmpty'>;

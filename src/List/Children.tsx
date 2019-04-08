@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {ID} from "../Item";
+import { ID } from "../Item";
 import ListNode from "./ListNode";
-import {List} from "immutable";
+import { List } from "immutable";
 
 interface Props {
   items: List<ID>;
@@ -29,7 +29,7 @@ export class Children extends React.Component<Props> {
   render() {
     const { items, loaded, expand } = this.props;
     if (items.size === 0 || !expand) return null;
-    const children = items.map((id: string) => <ListNode key={id} id={id}/>);
+    const children = items.map((id: string) => <ListNode key={ id } id={ id }/>);
     return (
       <div className="children">
         { loaded ? children : dummy(items.size) }
