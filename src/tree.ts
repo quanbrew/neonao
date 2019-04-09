@@ -5,13 +5,9 @@ import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './c
 import { RawDraftContentState, SelectionState } from 'draft-js';
 
 import(/* webpackChunkName: "editor" */
-/* webpackPrefetch: true */
-/* webpackPreload: true */
 './editor');
 
 import(/* webpackChunkName: "localforage" */
-/* webpackPrefetch: true */
-/* webpackPreload: true */
 'localforage');
 
 export type ItemMap = Map<ID, Item>;
