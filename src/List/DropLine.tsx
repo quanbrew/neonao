@@ -1,6 +1,4 @@
 import * as React from 'react';
-import './DropLine.css';
+import './DropLine.scss';
 
-export const DropLine = () => (
-  <div className='DropLine'/>
-);
+export const DropLine = () => <div className="DropLine" />;

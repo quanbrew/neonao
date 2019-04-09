@@ -1,11 +1,12 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import './index.css';
+import './index.scss';
 import { connect, Provider } from 'react-redux';
 import { store } from './store';
 import { Dispatch } from 'redux';
 import { redo, undo } from './actions';
 import { isRedoKey, isUndoKey } from './keyboard';
+import 'normalize.css';
 
 import(/* webpackChunkName: "react_dnd" */
 'react-dnd');

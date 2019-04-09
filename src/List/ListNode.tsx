@@ -27,7 +27,7 @@ import {
   switchMode,
   toggle,
 } from '../actions';
-import './ListNode.css';
+import './ListNode.scss';
 import { DRAG_MODE, EDIT_MODE, ITEM } from '../constants';
 import { findDOMNode } from 'react-dom';
 import { Children } from './Children';

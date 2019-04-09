@@ -1,0 +1,51 @@
+.ListNode {
+  position: relative;
+  margin: 0.2em 0 0.2em 2em;
+  padding: 0.2em;
+  .children {
+    margin-left: 2em;
+  }
+  .icon {
+    width: 1em;
+    height: 1em;
+    margin: 0.2em 0.2em 0.2em 0;
+    user-select: none;
+    border-radius: 0.2em;
+  }
+
+  .bullet {
+    position: absolute;
+    left: -1.5rem;
+    display: block;
+    width: 1em;
+    height: 100%;
+    cursor: move;
+    background-color: #c58438;
+    color: transparent;
+  }
+
+  .drop-inner {
+    border: 0.2em dashed #c58438;
+    padding: 0;
+  }
+}
+
+.node-dragging {
+  opacity: 0.4;
+  .DropLine {
+    display: none;
+  }
+
+  .is-over {
+    background-color: initial;
+  }
+}
+
+.is-over {
+  background-color: #fbf0ff;
+}
+
+.parent-dragging {
+  background-color: #c58438;
+  border: #33ffc5 1px solid;
+}
