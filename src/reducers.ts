@@ -307,10 +307,10 @@ export const tree = (state: Tree = initTree, action: ItemAction): Tree => {
   if (record && isStateChanged) {
     history.push(state);
     future = [];
-    if (save) {
-      if (saveTimer) clearTimeout(saveTimer);
-      saveTimer = window.setTimeout(() => saveTreeState(next), 200);
-    }
+  }
+  if (save) {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(() => saveTreeState(next), 200);
   }
   return next;
 };

@@ -5,7 +5,7 @@ export const createEditor = (content: ContentState): EditorState => {
   return EditorState.set(editor, {});
 };
 
-export const createEditorWithText = (text: string): EditorState => {
+export const createEditorWithText = (text: string = ''): EditorState => {
   const content = ContentState.createFromText(text);
   return createEditor(content);
 };

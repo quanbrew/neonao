@@ -8,7 +8,6 @@
   margin-left: 2em;
 }
 
-
 .ListNode .icon {
   width: 1em;
   height: 1em;
@@ -21,7 +20,6 @@
   background-color: #ffc5c5;
 }
 
-
 .ListNode .create-item:hover {
   background-color: #33ffc5;
 }
@@ -30,14 +28,13 @@
   background-color: antiquewhite;
 }
 
-.dragging {
+.node-dragging {
   opacity: 0.4;
 }
 
-.dragging .DropLine {
+.node-dragging .DropLine {
   display: none;
 }
-
 
 .bullet {
   position: absolute;
@@ -50,7 +47,6 @@
   color: transparent;
 }
 
-
 .is-over {
   background-color: #fbf0ff;
 }
@@ -60,6 +56,11 @@
   padding: 0;
 }
 
-.dragging .is-over {
+.node-dragging .is-over {
   background-color: initial;
+}
+
+.parent-dragging {
+  background-color: #c58438;
+  border: #33ffc5 1px solid;
 }

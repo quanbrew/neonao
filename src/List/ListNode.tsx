@@ -35,12 +35,15 @@ import { DropLine } from './DropLine';
 import { ItemEditor } from './ItemEditor';
 import { emptyEditor } from '../editor';
 
+const DRAGGING_CLASS = 'node-dragging';
+
 export interface Props {
   id: ID;
   item: Item;
   dispatch: (action: ItemAction) => void;
-  movePosition: DropPosition | null;
+  dropPosition: DropPosition | null;
   editing: null | EditMode;
+  parentDragging: boolean;
 }
 
 interface State {}
@@ -71,15 +74,25 @@ const nodeSource: DragSourceSpec<Props, Item> = {
 };
 
 const nodeTarget: DropTargetSpec<Props> = {
+  canDrop: (props, monitor) => {
+    const draggingItem: Item = monitor.getItem();
+    // not drop to dropping node self and nodes which parent is being dragged
+    return draggingItem.id !== props.id && !props.parentDragging;
+  },
   hover: (props, monitor, component: RawListNode | null) => {
     if (!component || !props.item.parent) return;
+    // If not hovering me, do nothing
     if (!monitor.isOver({ shallow: true })) return;
+
+    if (props.parentDragging) return;
 
     const draggingItem: Item = monitor.getItem();
     if (draggingItem.id === props.item.id) return;
 
     // Determine rectangle on screen
-    const hoverBoundingRect = (findDOMNode(component) as Element).getBoundingClientRect();
+    const domNode = findDOMNode(component) as Element;
+
+    const hoverBoundingRect = domNode.getBoundingClientRect();
 
     // Get vertical middle
     const hoverHeight = hoverBoundingRect.bottom - hoverBoundingRect.top;
@@ -99,7 +112,7 @@ const nodeTarget: DropTargetSpec<Props> = {
     } else if (hoverClientY < hoverMiddleY - margin) {
       position = 'above';
     }
-    if (position === props.movePosition) return;
+    if (position === props.dropPosition) return;
     const mode = dragMode(dropAt(props.item.id, position));
     props.dispatch(switchMode(mode));
   },
@@ -177,20 +190,32 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
   };
 
   render() {
-    // console.debug(`RENDER ${this.props.id}`);
     let classNames = ['ListNode'];
-    const { isDragging, isOver, connectDragSource, movePosition, connectDropTarget, item, editing } = this.props;
+    const {
+      isDragging,
+      isOver,
+      connectDragSource,
+      dropPosition,
+      parentDragging,
+      connectDropTarget,
+      item,
+      editing,
+    } = this.props;
     const bullet = connectDragSource(<div className="bullet">•</div>);
+    const dragging = isDragging || parentDragging;
 
     if (isDragging) {
-      classNames.push('dragging');
+      classNames.push(DRAGGING_CLASS);
     }
-    if (isOver && !isDragging) classNames.push('is-over');
-    if (movePosition === 'inner') {
+    if (parentDragging) {
+      classNames.push('parent-dragging');
+    }
+    if (isOver && !dragging) classNames.push('is-over');
+    if (dropPosition === 'inner') {
       classNames.push('drop-inner');
     }
-    const above = movePosition === 'above' ? <DropLine /> : null;
-    const below = movePosition === 'below' ? <DropLine /> : null;
+    const above = dropPosition === 'above' ? <DropLine /> : null;
+    const below = dropPosition === 'below' ? <DropLine /> : null;
     return connectDropTarget(
       <div className={classNames.join(' ')}>
         {bullet}
@@ -210,25 +235,30 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
             remove={this.remove}
           />
         </div>
-        <Children items={item.children} loaded={item.loaded} expand={this.props.item.expand} />
+        <Children
+          items={item.children}
+          loaded={item.loaded}
+          expand={this.props.item.expand}
+          parentDragging={dragging}
+        />
         {below}
       </div>
     );
   }
 }
 
-type StateProps = Pick<Props, 'item' | 'movePosition' | 'editing'>;
+type StateProps = Pick<Props, 'item' | 'dropPosition' | 'editing'>;
 
 const mapStateToProps = (initState: Tree, { id }: Props) => ({ map, mode }: Tree): StateProps => {
   const item = map.get(id) as Item;
-  let movePosition: Props['movePosition'] = null;
+  let dropPosition: Props['dropPosition'] = null;
   let editing = null;
   if (mode.type === DRAG_MODE && mode.dropAt && mode.dropAt.target === id) {
-    movePosition = mode.dropAt.position;
+    dropPosition = mode.dropAt.position;
   } else if (mode.type === EDIT_MODE && mode.id === id) {
     editing = mode;
   }
-  return { item, movePosition, editing };
+  return { item, dropPosition, editing };
 };
 
 type DispatchProps = Pick<Props, 'dispatch'>;

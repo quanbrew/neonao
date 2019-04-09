@@ -35,7 +35,7 @@ class Root extends React.PureComponent<Props> {
     const { root } = this.props;
 
     if (root === null) return <Loading />;
-    return <Children items={root.children} loaded={root.loaded} expand />;
+    return <Children items={root.children} loaded={root.loaded} expand parentDragging={false} />;
   }
 }
 
