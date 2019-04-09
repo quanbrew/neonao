@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding } from 'draft-js';
-import { isRedoKey, isToggleKey, isUndoKey } from '../keyboard';
+import { isRedoKey, isToggleKey, isUndoKey, keyboard } from '../keyboard';
 
 // import 'draft-js/dist/Draft.css';
 
@@ -26,6 +26,16 @@ export class ItemEditor extends React.PureComponent<Props> {
       return null;
     } else if (isToggleKey(e)) {
       return 'toggle';
+    } else if (e.keyCode === keyboard.TAB) {
+      e.preventDefault();
+      if (e.shiftKey) return 'left';
+      else return 'right';
+    } else if (e.keyCode === keyboard.UP_ARROW) {
+      if (e.shiftKey) return 'swap-up';
+      return 'move-up';
+    } else if (e.keyCode === keyboard.DOWN_ARROW) {
+      if (e.shiftKey) return 'swap-down';
+      return 'move-down';
     }
     return getDefaultKeyBinding(e);
   };
@@ -46,26 +56,24 @@ export class ItemEditor extends React.PureComponent<Props> {
       case 'toggle':
         this.props.toggle();
         return 'handled';
+      case 'left':
+        this.props.left();
+        return 'handled';
+      case 'right':
+        this.props.left();
+        return 'handled';
+      case 'swap-up':
+        this.props.up();
+        return 'handled';
+      case 'swap-down':
+        this.props.down();
+        return 'handled';
     }
     return 'not-handled';
   };
   onFocus = () => {};
 
   onBlur = () => {};
-
-  onTab = (e: KeyboardEvent) => {
-    e.preventDefault();
-    if (e.shiftKey) this.props.left();
-    else this.props.right();
-  };
-
-  onUpArrow = (e: KeyboardEvent) => {
-    if (e.metaKey) this.props.up();
-  };
-  onDownArrow = (e: KeyboardEvent) => {
-    if (e.metaKey) this.props.down();
-  };
-  onEscape = () => {};
 
   handleReturn = (e: KeyboardEvent): DraftHandleValue => {
     e.preventDefault();
@@ -86,10 +94,6 @@ export class ItemEditor extends React.PureComponent<Props> {
         stripPastedStyles
         spellCheck={false}
         handleReturn={this.handleReturn}
-        onUpArrow={this.onUpArrow}
-        onDownArrow={this.onDownArrow}
-        onEscape={this.onEscape}
-        onTab={this.onTab}
       />
     );
   }
