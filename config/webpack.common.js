@@ -45,12 +45,12 @@ module.exports = {
 
   optimization: {
     // https://webpack.js.org/plugins/split-chunks-plugin/
-    splitChunks: {
-      chunks: 'all',
-      // minSize: 30000,
-      // maxSize: 100000,
-    },
-    runtimeChunk: 'single',
+    // splitChunks: {
+    //   chunks: 'all',
+    //   minSize: 30000,
+    //   maxSize: 100000,
+    // },
+    // runtimeChunk: 'single',
   },
   externals: {
     // "react": "React",

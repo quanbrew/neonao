@@ -7,7 +7,20 @@ import { Dispatch } from 'redux';
 import { redo, undo } from './actions';
 import { isRedoKey, isUndoKey } from './keyboard';
 
-const List = React.lazy(() => import('./List/List'));
+import(/* webpackChunkName: "react_dnd" */
+/* webpackPrefetch: true */
+/* webpackPreload: true */
+'react-dnd');
+import(/* webpackChunkName: "dnd_backend" */
+/* webpackPrefetch: true */
+/* webpackPreload: true */
+'react-dnd-html5-backend');
+const List = React.lazy(() =>
+  import(/* webpackChunkName: "list_component" */
+  /* webpackPrefetch: true */
+  /* webpackPreload: true */
+  './List/List')
+);
 
 interface Props {
   undo: () => void;

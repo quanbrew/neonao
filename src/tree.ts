@@ -4,6 +4,16 @@ import { loadedState, LoadedState } from './actions';
 import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
 import { RawDraftContentState, SelectionState } from 'draft-js';
 
+import(/* webpackChunkName: "editor" */
+/* webpackPrefetch: true */
+/* webpackPreload: true */
+'./editor');
+
+import(/* webpackChunkName: "localforage" */
+/* webpackPrefetch: true */
+/* webpackPreload: true */
+'localforage');
+
 export type ItemMap = Map<ID, Item>;
 
 export interface Tree {
@@ -74,10 +84,10 @@ export const initTree: Tree = {
 };
 
 export const saveTreeState = async (state: Tree) => {
+  const { editorToRow } = await import('./editor');
   const localForage = await import('localforage');
   if (!state.root) return;
   await localForage.setItem('root', state.root);
-  const { editorToRow } = await import('./editor');
   const toJSON = ({ id, expand, editor, children, parent }: Item): ExportedItem => ({
     id,
     expand,
@@ -91,8 +101,8 @@ export const saveTreeState = async (state: Tree) => {
 
 const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
   const localForage = await import('localforage');
-  const raw = await localForage.getItem<ExportedItem>(id);
   const { editorFromRaw } = await import('./editor');
+  const raw = await localForage.getItem<ExportedItem>(id);
   const fromJSON = ({ id, expand, rawContent, children, parent }: ExportedItem): Item => ({
     id,
     expand,
