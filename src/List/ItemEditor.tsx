@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding } from "draft-js";
-import { isRedoKey, isToggleKey, isUndoKey } from "../keyboard";
+import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding } from 'draft-js';
+import { isRedoKey, isToggleKey, isUndoKey } from '../keyboard';
 
 // import 'draft-js/dist/Draft.css';
 
@@ -19,7 +19,6 @@ interface Props {
 
 type KeyboardEvent = React.KeyboardEvent<{}>;
 
-
 export class ItemEditor extends React.PureComponent<Props> {
   keyBindingFn = (e: React.KeyboardEvent): string | null => {
     if (isUndoKey(e) || isRedoKey(e)) {
@@ -34,7 +33,12 @@ export class ItemEditor extends React.PureComponent<Props> {
   handleKeyCommand = (command: string, editorState: EditorState): DraftHandleValue => {
     switch (command) {
       case 'backspace':
-        if (editorState.getCurrentContent().getPlainText().trim() === '') {
+        if (
+          editorState
+            .getCurrentContent()
+            .getPlainText()
+            .trim() === ''
+        ) {
           this.props.remove();
           return 'handled';
         }
@@ -45,11 +49,9 @@ export class ItemEditor extends React.PureComponent<Props> {
     }
     return 'not-handled';
   };
-  onFocus = () => {
-  };
+  onFocus = () => {};
 
-  onBlur = () => {
-  };
+  onBlur = () => {};
 
   onTab = (e: KeyboardEvent) => {
     e.preventDefault();
@@ -63,8 +65,7 @@ export class ItemEditor extends React.PureComponent<Props> {
   onDownArrow = (e: KeyboardEvent) => {
     if (e.metaKey) this.props.down();
   };
-  onEscape = () => {
-  };
+  onEscape = () => {};
 
   handleReturn = (e: KeyboardEvent): DraftHandleValue => {
     e.preventDefault();
@@ -73,22 +74,22 @@ export class ItemEditor extends React.PureComponent<Props> {
   };
 
   render() {
-    const { editor, onChange, editing } = this.props;
+    const { editor, onChange } = this.props;
     return (
-      <Editor readOnly={ !editing }
-              editorState={ editor }
-              onChange={ onChange }
-              onFocus={ this.onFocus }
-              onBlur={ this.onBlur }
-              keyBindingFn={ this.keyBindingFn }
-              handleKeyCommand={ this.handleKeyCommand }
-              stripPastedStyles
-              spellCheck={ false }
-              handleReturn={ this.handleReturn }
-              onUpArrow={ this.onUpArrow }
-              onDownArrow={ this.onDownArrow }
-              onEscape={ this.onEscape }
-              onTab={ this.onTab }
+      <Editor
+        editorState={editor}
+        onChange={onChange}
+        onFocus={this.onFocus}
+        onBlur={this.onBlur}
+        keyBindingFn={this.keyBindingFn}
+        handleKeyCommand={this.handleKeyCommand}
+        stripPastedStyles
+        spellCheck={false}
+        handleReturn={this.handleReturn}
+        onUpArrow={this.onUpArrow}
+        onDownArrow={this.onDownArrow}
+        onEscape={this.onEscape}
+        onTab={this.onTab}
       />
     );
   }
