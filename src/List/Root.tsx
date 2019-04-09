@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { loadTreeState, Tree } from "../tree";
-import { connect } from "react-redux";
-import { ID, Item } from "../Item";
-import { Children } from "./Children";
-import { Dispatch } from "redux";
-import { create, fetchAll } from "../actions";
+import { loadTreeState, Tree } from '../tree';
+import { connect } from 'react-redux';
+import { ID, Item } from '../Item';
+import { Children } from './Children';
+import { Dispatch } from 'redux';
+import { create, fetchAll } from '../actions';
+import { emptyEditor } from '../editor';
 
 interface Props {
   root: Item | null;
@@ -12,9 +13,10 @@ interface Props {
   createEmpty: (parent: ID) => void;
 }
 
-
 const Loading = () => (
-  <div className='page-loading'><p>Loading</p></div>
+  <div className="page-loading">
+    <p>Loading</p>
+  </div>
 );
 
 class Root extends React.PureComponent<Props> {
@@ -25,26 +27,21 @@ class Root extends React.PureComponent<Props> {
   componentDidUpdate(): void {
     const { root, createEmpty } = this.props;
     if (root && root.children.size === 0) {
-      createEmpty(root.id)
+      createEmpty(root.id);
     }
   }
 
   render(): React.ReactNode {
     const { root } = this.props;
 
-    if (root === null) return <Loading/>;
-    return (
-      <Children items={ root.children } loaded={ root.loaded } expand/>
-    );
+    if (root === null) return <Loading />;
+    return <Children items={root.children} loaded={root.loaded} expand />;
   }
 }
 
-
 type TStateProps = Pick<Props, 'root'>;
 
-const mapStateToProps = ({ root, map }: Tree): TStateProps => (
-  { root: root ? map.get(root) || null : null }
-);
+const mapStateToProps = ({ root, map }: Tree): TStateProps => ({ root: root ? map.get(root) || null : null });
 
 type TDispatchProps = Pick<Props, 'init' | 'createEmpty'>;
 
@@ -53,9 +50,11 @@ const mapDispatchToProps = (dispatch: Dispatch): TDispatchProps => {
     dispatch(fetchAll());
     loadTreeState(3).then(dispatch);
   };
-  const createEmpty = (parent: ID) => dispatch(create(Item.create("", parent)));
+  const createEmpty = (parent: ID) => dispatch(create(Item.create(emptyEditor, parent)));
   return { init, createEmpty };
 };
 
-
-export default connect<TStateProps, TDispatchProps>(mapStateToProps, mapDispatchToProps)(Root);
+export default connect<TStateProps, TDispatchProps>(
+  mapStateToProps,
+  mapDispatchToProps
+)(Root);

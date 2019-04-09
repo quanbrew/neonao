@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { ID, Item } from "../Item";
+import { ID, Item } from '../Item';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
 import {
@@ -11,10 +11,10 @@ import {
   DragSourceSpec,
   DropTarget,
   DropTargetCollector,
-  DropTargetSpec
-} from "react-dnd";
+  DropTargetSpec,
+} from 'react-dnd';
 import { EditorState } from 'draft-js';
-import { dragMode, dropAt, DropPosition, EditMode, editMode, loadItemState, normalMode, Tree } from "../tree";
+import { dragMode, dropAt, DropPosition, EditMode, editMode, loadItemState, normalMode, Tree } from '../tree';
 import {
   addIndent,
   applyDrop,
@@ -26,14 +26,14 @@ import {
   remove,
   switchMode,
   toggle,
-} from "../actions";
+} from '../actions';
 import './ListNode.css';
-import { DRAG_MODE, EDIT_MODE, ITEM } from "../constants";
-import { findDOMNode } from "react-dom";
-import { Children } from "./Children";
-import { DropLine } from "./DropLine";
-import { ItemEditor } from "./ItemEditor";
-
+import { DRAG_MODE, EDIT_MODE, ITEM } from '../constants';
+import { findDOMNode } from 'react-dom';
+import { Children } from './Children';
+import { DropLine } from './DropLine';
+import { ItemEditor } from './ItemEditor';
+import { emptyEditor } from '../editor';
 
 export interface Props {
   id: ID;
@@ -43,23 +43,18 @@ export interface Props {
   editing: null | EditMode;
 }
 
-
-interface State {
-}
-
+interface State {}
 
 interface SourceProps {
   isDragging: boolean;
   connectDragSource: ConnectDragSource;
 }
 
-
 interface TargetProps {
   connectDropTarget: ConnectDropTarget;
   canDrop: boolean;
   isOver: boolean;
 }
-
 
 const nodeSource: DragSourceSpec<Props, Item> = {
   beginDrag: ({ item, dispatch }) => {
@@ -74,7 +69,6 @@ const nodeSource: DragSourceSpec<Props, Item> = {
     props.dispatch(switchMode(normalMode()));
   },
 };
-
 
 const nodeTarget: DropTargetSpec<Props> = {
   hover: (props, monitor, component: RawListNode | null) => {
@@ -111,14 +105,12 @@ const nodeTarget: DropTargetSpec<Props> = {
   },
 };
 
-
 const sourceCollect: DragSourceCollector<SourceProps, Props> = (connect, monitor) => {
   return {
     connectDragSource: connect.dragSource(),
-    isDragging: monitor.isDragging()
+    isDragging: monitor.isDragging(),
   };
 };
-
 
 const targetCollect: DropTargetCollector<TargetProps, Props> = (connect, monitor) => {
   const isOver = monitor.isOver({ shallow: true });
@@ -128,7 +120,6 @@ const targetCollect: DropTargetCollector<TargetProps, Props> = (connect, monitor
     canDrop: monitor.canDrop(),
   };
 };
-
 
 type RawListNodeProps = Props & SourceProps & TargetProps;
 
@@ -140,8 +131,7 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
 
   load = () => {
     const { item, dispatch } = this.props;
-    if (!item.loaded)
-      loadItemState(item).then(dispatch);
+    if (!item.loaded) loadItemState(item).then(dispatch);
   };
 
   onChange = (editor: EditorState) => {
@@ -170,31 +160,27 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
     const { dispatch, item } = this.props;
     if (item.parent) dispatch(addIndent(item.id, item.parent));
   };
-  create = () => this.props.dispatch(create(Item.create('', this.props.id)));
+  create = () => this.props.dispatch(create(Item.create(emptyEditor, this.props.id)));
   remove = () => {
     const { id, dispatch, item } = this.props;
-    if (item.children.size === 0) dispatch(remove(id))
+    if (item.children.size === 0) dispatch(remove(id));
   };
-
   toggle = () => {
     const { id, dispatch, item } = this.props;
     if (item.children.size > 0) dispatch(toggle(id));
   };
-
   startEdit = () => {
     const { id, dispatch, editing } = this.props;
     if (!editing) {
-      dispatch(switchMode(editMode(id)))
+      dispatch(switchMode(editMode(id)));
     }
   };
 
   render() {
     // console.debug(`RENDER ${this.props.id}`);
     let classNames = ['ListNode'];
-    const {
-      isDragging, isOver, connectDragSource, movePosition, connectDropTarget, item, editing
-    } = this.props;
-    const bullet = connectDragSource(<div className='bullet'>•</div>);
+    const { isDragging, isOver, connectDragSource, movePosition, connectDropTarget, item, editing } = this.props;
+    const bullet = connectDragSource(<div className="bullet">•</div>);
 
     if (isDragging) {
       classNames.push('dragging');
@@ -203,25 +189,33 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
     if (movePosition === 'inner') {
       classNames.push('drop-inner');
     }
-    const above = movePosition === 'above' ? <DropLine/> : null;
-    const below = movePosition === 'below' ? <DropLine/> : null;
+    const above = movePosition === 'above' ? <DropLine /> : null;
+    const below = movePosition === 'below' ? <DropLine /> : null;
     return connectDropTarget(
-      <div className={ classNames.join(' ') }>
-        { bullet }
-        { above }
-        { connectDragSource(<div className='bullet'>•</div>) }
-        <div onClick={ this.startEdit }>
-          <ItemEditor onChange={ this.onChange } editor={ item.editor } editing={ editing !== null }
-                      up={ this.up } down={ this.down } left={ this.left } toggle={ this.toggle }
-                      right={ this.right } create={ this.create } remove={ this.remove }/>
+      <div className={classNames.join(' ')}>
+        {bullet}
+        {above}
+        {connectDragSource(<div className="bullet">•</div>)}
+        <div onClick={this.startEdit}>
+          <ItemEditor
+            onChange={this.onChange}
+            editor={item.editor}
+            editing={editing !== null}
+            up={this.up}
+            down={this.down}
+            left={this.left}
+            toggle={this.toggle}
+            right={this.right}
+            create={this.create}
+            remove={this.remove}
+          />
         </div>
-        <Children items={ item.children } loaded={ item.loaded } expand={ this.props.item.expand }/>
-        { below }
+        <Children items={item.children} loaded={item.loaded} expand={this.props.item.expand} />
+        {below}
       </div>
     );
   }
 }
-
 
 type StateProps = Pick<Props, 'item' | 'movePosition' | 'editing'>;
 
@@ -237,12 +231,14 @@ const mapStateToProps = (initState: Tree, { id }: Props) => ({ map, mode }: Tree
   return { item, movePosition, editing };
 };
 
-
 type DispatchProps = Pick<Props, 'dispatch'>;
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({ dispatch });
 
 const DragSourceListNode = DragSource<Props, SourceProps>(ITEM, nodeSource, sourceCollect)(RawListNode);
 const DropTargetListNode = DropTarget<Props, TargetProps>(ITEM, nodeTarget, targetCollect)(DragSourceListNode);
-const ListNode = connect<StateProps, DispatchProps>(mapStateToProps, mapDispatchToProps)(DropTargetListNode);
+const ListNode = connect<StateProps, DispatchProps>(
+  mapStateToProps,
+  mapDispatchToProps
+)(DropTargetListNode);
 export default ListNode;

@@ -1,8 +1,8 @@
-import { Map } from 'immutable';
+import { fromJS, Map } from 'immutable';
 import { ID, Item } from './Item';
 import { loadedState, LoadedState } from './actions';
 import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
-import { SelectionState } from 'draft-js';
+import { RawDraftContentState, SelectionState } from 'draft-js';
 
 export type ItemMap = Map<ID, Item>;
 
@@ -77,15 +77,33 @@ export const saveTreeState = async (state: Tree) => {
   const localForage = await import('localforage');
   if (!state.root) return;
   await localForage.setItem('root', state.root);
-  state.map.forEach((item: Item, key: ID) => localForage.setItem(key, Item.toJSON(item)));
+  const { editorToRow } = await import('./editor');
+  const toJSON = ({ id, expand, editor, children, parent }: Item): ExportedItem => ({
+    id,
+    expand,
+    parent,
+    children: children.toJS(),
+    rawContent: editorToRow(editor),
+  });
+  state.map.forEach((item: Item, key: ID) => localForage.setItem(key, toJSON(item)));
   console.debug('saved');
 };
 
 const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
   const localForage = await import('localforage');
-  const raw = await localForage.getItem<Item.ExportedItem>(id);
+  const raw = await localForage.getItem<ExportedItem>(id);
+  const { editorFromRaw } = await import('./editor');
+  const fromJSON = ({ id, expand, rawContent, children, parent }: ExportedItem): Item => ({
+    id,
+    expand,
+    parent,
+    children: fromJS(children),
+    editor: editorFromRaw(rawContent),
+    deleted: false,
+    loaded: children.length === 0,
+  });
   if (raw) {
-    let item = Item.fromJSON(raw);
+    let item = fromJSON(raw);
     item.loaded = true;
     return item;
   } else {
@@ -113,8 +131,18 @@ const loadChildren = async (item: Item | null, max_level: number): Promise<ItemM
   return await map;
 };
 
-const createEmptyState = (): LoadedState => {
-  const root = Item.create('Hello, this is an empty notebook.');
+export interface ExportedItem {
+  id: ID;
+  parent?: ID;
+  children: Array<ID>;
+  expand: boolean;
+  rawContent: RawDraftContentState;
+}
+
+const createEmptyState = async (): Promise<LoadedState> => {
+  const { createEditorWithText } = await import('./editor');
+  const text = 'Hello, this is an empty notebook.';
+  const root = Item.create(createEditorWithText(text));
   const rootID = root.id;
   const map: ItemMap = Map({ [rootID]: root });
   const state = { root: rootID, map, loading: false };

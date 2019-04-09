@@ -1,5 +1,5 @@
-import { fromJS, List } from 'immutable';
-import { ContentState, convertFromRaw, convertToRaw, EditorState, RawDraftContentState } from 'draft-js';
+import { List } from 'immutable';
+import { EditorState } from 'draft-js';
 
 const uuid1 = require('uuid/v1');
 
@@ -16,44 +16,13 @@ export interface Item {
 }
 
 export namespace Item {
-  const createEditor = (content: ContentState): EditorState => {
-    const editor = EditorState.createWithContent(content);
-    return EditorState.set(editor, {});
-  };
-
-  export const create = (source: string = '', parent?: ID): Item => ({
+  export const create = (editor: EditorState, source: string = '', parent?: ID): Item => ({
     id: uuid1(),
     children: List(),
-    editor: createEditor(ContentState.createFromText(source)),
+    editor,
     expand: true,
     deleted: false,
     loaded: true,
     parent,
-  });
-
-  export interface ExportedItem {
-    id: ID;
-    parent?: ID;
-    children: Array<ID>;
-    expand: boolean;
-    rawContent: RawDraftContentState;
-  }
-
-  export const fromJSON = ({ id, expand, rawContent, children, parent }: ExportedItem): Item => ({
-    id,
-    expand,
-    parent,
-    children: fromJS(children),
-    editor: createEditor(convertFromRaw(rawContent)),
-    deleted: false,
-    loaded: children.length === 0,
-  });
-
-  export const toJSON = ({ id, expand, editor, children, parent }: Item): ExportedItem => ({
-    id,
-    expand,
-    parent,
-    children: children.toJS(),
-    rawContent: convertToRaw(editor.getCurrentContent()),
   });
 }
