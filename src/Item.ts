@@ -16,7 +16,7 @@ export interface Item {
 }
 
 export namespace Item {
-  export const create = (editor: EditorState, source: string = '', parent?: ID): Item => ({
+  export const create = (editor: EditorState, parent?: ID): Item => ({
     id: uuid1(),
     children: List(),
     editor,
