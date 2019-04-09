@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "description": "A notebook app help you to organize everything.",
   "license": "GPL-3.0",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quanbrew/neonao"
+  },
   "dependencies": {
     "draft-js": "0.11.0-beta2",
     "immutable": "~3.7.4",
@@ -18,6 +21,7 @@
   },
   "scripts": {
     "start": "webpack-dev-server --open --config config/webpack.dev.js",
+    "format": "prettier --write src/**",
     "build": "webpack --config config/webpack.prod.js --env.production --env.NODE_ENV=production"
   },
   "devDependencies": {
