@@ -109,7 +109,7 @@ const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
     loaded: children.length === 0,
   });
   if (raw) {
-    let item = fromJSON(raw);
+    const item = fromJSON(raw);
     item.loaded = true;
     return item;
   } else {
@@ -117,16 +117,16 @@ const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
   }
 };
 
-const loadChildren = async (item: Item | null, max_level: number): Promise<ItemMap> => {
+const loadChildren = async (item: Item | null, maxLevel: number): Promise<ItemMap> => {
   const mapper = async (childID: ID): Promise<ItemMap> => {
     const item = await getItemByIDFromStorage(childID);
-    return loadChildren(item, max_level - 1);
+    return loadChildren(item, maxLevel - 1);
   };
 
   let map: ItemMap = Map();
   if (item) {
     map = map.set(item.id, item);
-    if (max_level > 0) {
+    if (maxLevel > 0) {
       const childrenMaps = await Promise.all(item.children.toArray().map(mapper));
       return await map.merge(...childrenMaps);
     } else if (item.children.size > 0) {
@@ -140,7 +140,7 @@ const loadChildren = async (item: Item | null, max_level: number): Promise<ItemM
 export interface ExportedItem {
   id: ID;
   parent?: ID;
-  children: Array<ID>;
+  children: ID[];
   expand: boolean;
   rawContent: RawDraftContentState;
 }
@@ -155,18 +155,18 @@ const createEmptyState = async (): Promise<LoadedState> => {
   return loadedState(state);
 };
 
-export const loadItemState = async (item: Item, max_level: number = 2): Promise<LoadedState> => {
-  let map = await loadChildren(item, max_level);
+export const loadItemState = async (item: Item, maxLevel: number = 2): Promise<LoadedState> => {
+  let map = await loadChildren(item, maxLevel);
   map = map.set(item.id, { ...item, loaded: true });
   return await loadedState({ map });
 };
 
-export const loadTreeState = async (max_level: number = 128): Promise<LoadedState> => {
+export const loadTreeState = async (maxLevel: number = 128): Promise<LoadedState> => {
   const localForage = await import('localforage');
   const rootID = await localForage.getItem<ID>('root');
   if (!rootID) return await createEmptyState();
   const root = await getItemByIDFromStorage(rootID);
-  const map = await loadChildren(root, max_level);
+  const map = await loadChildren(root, maxLevel);
   console.log('loaded');
   return await loadedState({ root: rootID, map, loading: false });
 };

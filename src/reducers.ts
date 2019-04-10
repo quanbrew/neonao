@@ -38,7 +38,7 @@ import {
 
 type Timeout = number;
 
-let history: Tree[] = [];
+const history: Tree[] = [];
 let future: Tree[] = [];
 // record node tree travel order
 let nodeOrder: ID[] = [];
@@ -48,7 +48,7 @@ const handleCreate = (state: Tree, create: Create): Tree => {
   if (!parentID) return state;
 
   let map = state.map;
-  let parent = map.get(parentID) || null;
+  const parent = map.get(parentID) || null;
   if (parent === null) throw new Error("Can't found item " + parentID);
   const item = create.item;
   const children = parent.children.unshift(item.id);
@@ -63,19 +63,19 @@ const handleRemove = (state: Tree, remove: Remove): Tree => {
   const itemID = remove.id;
   const item = map.get(itemID) || null;
   if (item === null) return state;
-  let idToRemove: ID[] = [];
-  let addTreeId = (i: Item | null) => {
+  const idToRemove: ID[] = [];
+  const addTreeId = (i: Item | null) => {
     if (i === null) return;
     idToRemove.push(i.id);
     i.children.forEach((child: ID) => addTreeId(map.get(child) || null));
   };
   addTreeId(item);
-  for (let id of idToRemove) {
+  for (const id of idToRemove) {
     map = map.remove(id);
   }
-  let parentID = item.parent;
+  const parentID = item.parent;
   if (parentID) {
-    let parent = map.get(parentID) || null;
+    const parent = map.get(parentID) || null;
     if (parent !== null) {
       const children = List<ID>(parent.children.filter(v => v !== itemID));
       map = map.set(parentID, { ...parent, children });
@@ -100,15 +100,14 @@ const handleMove = (state: Tree, action: MoveInto): Tree => {
   if (action.order === 'append') {
     let children = parent.children.remove(oldPosition);
     map = map.set(parent.id, { ...parent, children });
-    let nextParent = map.get(action.nextParent) || null;
+    const nextParent = map.get(action.nextParent) || null;
     if (nextParent === null) throw Error();
     children = nextParent.children.push(action.id);
     map = map.set(nextParent.id, { ...nextParent, children });
     map = resetItemParent(map, action.id, nextParent.id);
     return { ...state, map };
-  }
-  // compute index with relative order
-  else if (action.relative) {
+  } else if (action.relative) {
+    // compute index with relative order
     targetIndex = action.order + oldPosition;
   } else {
     targetIndex = action.order;
@@ -165,7 +164,7 @@ const applyEdit = (oldState: Tree, action: Edit): { state: Tree; record: boolean
   const oldItem = oldState.map.get(id) || null;
   if (oldItem === null || oldItem.editor === editor) return { state: oldState, record };
   const oldEditor = oldItem.editor;
-  // TODO: Disable undo and implement record judgement.
+  // TODO: Disable draft-js undo stack and implement record judgement.
   record = oldEditor.getUndoStack() !== editor.getUndoStack();
   const item = { ...oldItem, editor };
   const map = oldState.map.set(id, item);

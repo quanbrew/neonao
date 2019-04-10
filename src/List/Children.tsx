@@ -11,7 +11,7 @@ interface Props {
 }
 
 const dummy = (length: number) => {
-  let dummyList = [];
+  const dummyList = [];
   for (let i = 0; i < length; i++) {
     dummyList.push(<li key={i}>Loading...</li>);
   }

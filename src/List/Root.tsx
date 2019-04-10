@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect } from 'react';
 import { loadTreeState, Tree } from '../tree';
 import { connect } from 'react-redux';
 import { ID, Item } from '../Item';
@@ -14,30 +14,26 @@ interface Props {
 }
 
 const Loading = () => (
-  <div className="page-loading">
-    <p>Loading</p>
+  <div className="items-loading">
+    <p>Loading Items Data...</p>
   </div>
 );
 
-class Root extends React.PureComponent<Props> {
-  componentDidMount(): void {
-    this.props.init();
-  }
-
-  componentDidUpdate(): void {
-    const { root, createEmpty } = this.props;
-    if (root && root.children.size === 0) {
+const Root = ({ root, init, createEmpty }: Props) => {
+  useEffect(() => {
+    if (root === null) {
+      init();
+    } else if (root.children.size === 0) {
       createEmpty(root.id);
     }
-  }
+  });
 
-  render(): React.ReactNode {
-    const { root } = this.props;
-
-    if (root === null) return <Loading />;
-    return <Children items={root.children} loaded={root.loaded} expand parentDragging={false} />;
+  if (root === null) {
+    return <Loading />;
+  } else {
+    return <Children items={root.children} loaded={root.loaded} expand={true} parentDragging={false} />;
   }
-}
+};
 
 type TStateProps = Pick<Props, 'root'>;
 

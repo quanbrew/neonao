@@ -30,28 +30,24 @@ const mapDispatchToProps = (dispatch: Dispatch): Pick<Props, 'undo' | 'redo'> =>
   return { undo: performUndo, redo: performRedo };
 };
 
-class App extends React.Component<Props> {
-  render() {
-    return (
-      <div>
-        <header>
-          <a className="app-name" href="/">
-            NeoNao
-          </a>
-        </header>
-        <button onClick={this.props.undo} id="undo">
-          UNDO
-        </button>
-        <button onClick={this.props.redo} id="redo">
-          REDO
-        </button>
-        <React.Suspense fallback={<div>Loading...</div>}>
-          <List />
-        </React.Suspense>
-      </div>
-    );
-  }
-}
+const App = ({ redo, undo }: Props) => (
+  <div>
+    <header>
+      <a className="app-name" href="/">
+        NeoNao
+      </a>
+    </header>
+    <button onClick={undo} id="undo">
+      UNDO
+    </button>
+    <button onClick={redo} id="redo">
+      REDO
+    </button>
+    <React.Suspense fallback={<div>Loading Module...</div>}>
+      <List />
+    </React.Suspense>
+  </div>
+);
 
 const main = async () => {
   const { DragDropContext } = await import('react-dnd');
@@ -85,4 +81,4 @@ document.onkeydown = e => {
   }
 };
 
-main().then(() => {});
+main();

@@ -1,13 +1,12 @@
 import * as React from 'react';
-import Root from "./Root";
+import Root from './Root';
 
-interface Props {
-}
-
-class List extends React.PureComponent<Props> {
-  render() {
-    return <div className='list'><Root/></div>
-  }
-}
+const List = () => {
+  return (
+    <div className="list">
+      <Root />
+    </div>
+  );
+};
 
 export default List;

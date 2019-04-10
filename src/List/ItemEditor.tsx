@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding } from 'draft-js';
 import { isRedoKey, isToggleKey, isUndoKey, keyboard } from '../keyboard';
 
@@ -39,62 +39,62 @@ const keyBindingFn = (e: React.KeyboardEvent): string | null => {
   return getDefaultKeyBinding(e);
 };
 
-const handleKeyCommand = (props: Props) => (command: string, editorState: EditorState): DraftHandleValue => {
-  switch (command) {
-    case 'backspace':
-      if (
-        editorState
-          .getCurrentContent()
-          .getPlainText()
-          .trim() === ''
-      ) {
-        props.remove();
-        return 'handled';
-      }
-      break;
-    case 'toggle':
-      props.toggle();
-      return 'handled';
-    case 'left':
-      props.left();
-      return 'handled';
-    case 'right':
-      props.right();
-      return 'handled';
-    case 'swap-up':
-      props.up();
-      return 'handled';
-    case 'swap-down':
-      props.down();
-      return 'handled';
-  }
-  return 'not-handled';
-};
-
-const handleReturn = (props: Props) => (e: KeyboardEvent): DraftHandleValue => {
-  e.preventDefault();
-  props.create();
-  return 'handled';
-};
-
-export const ItemEditor = (props: Props) => {
-  const { editor, editing, onChange } = props;
+export const ItemEditor = ({ editor, editing, onChange, create, toggle, left, right, down, up, remove }: Props) => {
   const classList = ['ItemEditor'];
-  const editorRef = useRef<Editor>(null);
+
   if (editing) {
     classList.push('editing');
   }
-  const prevEditing = useRef(false);
 
+  const editorRef = useRef<Editor>(null);
+
+  // focus, if now editing this node.
   useEffect(() => {
-    if (editing !== prevEditing.current) {
-      prevEditing.current = editing;
-      const hasFocus = editor.getSelection().getHasFocus();
-      if (editing && editorRef.current && !hasFocus) {
-        editorRef.current.focus();
-      }
+    const hasFocus = editor.getSelection().getHasFocus();
+    if (editing && editorRef.current && !hasFocus) {
+      editorRef.current.focus();
     }
-  });
+  }, [editing]);
+
+  const handleReturn = useCallback(
+    (e: KeyboardEvent): DraftHandleValue => {
+      e.preventDefault();
+      create();
+      return 'handled';
+    },
+    [create]
+  );
+
+  const handleKeyCommand = useCallback(
+    (command: string, editorState: EditorState): DraftHandleValue => {
+      const content = editorState.getCurrentContent();
+      switch (command) {
+        case 'backspace':
+          if (content.getPlainText().trim() === '') {
+            remove();
+            return 'handled';
+          }
+          break;
+        case 'toggle':
+          toggle();
+          return 'handled';
+        case 'left':
+          left();
+          return 'handled';
+        case 'right':
+          right();
+          return 'handled';
+        case 'swap-up':
+          up();
+          return 'handled';
+        case 'swap-down':
+          down();
+          return 'handled';
+      }
+      return 'not-handled';
+    },
+    [up, down, left, right, remove, toggle]
+  );
 
   return (
     <div className={classList.join(' ')}>
@@ -103,10 +103,10 @@ export const ItemEditor = (props: Props) => {
         editorState={editor}
         onChange={onChange}
         keyBindingFn={keyBindingFn}
-        handleKeyCommand={handleKeyCommand(props)}
-        stripPastedStyles
+        handleKeyCommand={handleKeyCommand}
+        stripPastedStyles={true}
         spellCheck={false}
-        handleReturn={handleReturn(props)}
+        handleReturn={handleReturn}
       />
     </div>
   );

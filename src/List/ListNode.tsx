@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 import { ID, Item } from '../Item';
 import { Dispatch } from 'redux';
@@ -15,18 +15,8 @@ import {
 } from 'react-dnd';
 import { EditorState } from 'draft-js';
 import { dragMode, dropAt, DropPosition, EditMode, editMode, loadItemState, normalMode, Tree } from '../tree';
-import {
-  addIndent,
-  applyDrop,
-  create,
-  edit,
-  ItemAction,
-  moveNear,
-  relativeMove,
-  remove,
-  switchMode,
-  toggle,
-} from '../actions';
+import * as actions from '../actions';
+import { ItemAction } from '../actions';
 import './ListNode.scss';
 import { DRAG_MODE, EDIT_MODE, ITEM } from '../constants';
 import { findDOMNode } from 'react-dom';
@@ -46,8 +36,6 @@ export interface Props {
   parentDragging: boolean;
 }
 
-interface State {}
-
 interface SourceProps {
   isDragging: boolean;
   connectDragSource: ConnectDragSource;
@@ -61,15 +49,17 @@ interface TargetProps {
 
 const nodeSource: DragSourceSpec<Props, Item> = {
   beginDrag: ({ item, dispatch }) => {
-    dispatch(switchMode(dragMode()));
+    dispatch(actions.switchMode(dragMode()));
     return item;
   },
   canDrag: ({ item }) => item.parent !== undefined,
   endDrag: (props, monitor) => {
     const draggingItem: Item = monitor.getItem();
     const { id, parent } = draggingItem;
-    if (parent) props.dispatch(applyDrop(id, parent));
-    props.dispatch(switchMode(normalMode()));
+    if (parent) {
+      props.dispatch(actions.applyDrop(id, parent));
+    }
+    props.dispatch(actions.switchMode(normalMode()));
   },
 };
 
@@ -79,7 +69,7 @@ const nodeTarget: DropTargetSpec<Props> = {
     // not drop to dropping node self and nodes which parent is being dragged
     return draggingItem.id !== props.id && !props.parentDragging;
   },
-  hover: (props, monitor, component: RawListNode | null) => {
+  hover: (props, monitor, component: any) => {
     if (!component || !props.item.parent) return;
     // If not hovering me, do nothing
     if (!monitor.isOver({ shallow: true })) return;
@@ -114,7 +104,7 @@ const nodeTarget: DropTargetSpec<Props> = {
     }
     if (position === props.dropPosition) return;
     const mode = dragMode(dropAt(props.item.id, position));
-    props.dispatch(switchMode(mode));
+    props.dispatch(actions.switchMode(mode));
   },
 };
 
@@ -136,115 +126,99 @@ const targetCollect: DropTargetCollector<TargetProps, Props> = (connect, monitor
 
 type RawListNodeProps = Props & SourceProps & TargetProps;
 
-export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
-  constructor(props: RawListNodeProps) {
-    super(props);
-    this.state = {};
-  }
+export const RawListNode = (props: RawListNodeProps) => {
+  const { item, dispatch, editing, id } = props;
 
-  load = () => {
-    const { item, dispatch } = this.props;
-    if (!item.loaded) loadItemState(item).then(dispatch);
-  };
-
-  onChange = (editor: EditorState) => {
-    const { item, dispatch } = this.props;
-    dispatch(edit(item.id, editor));
-  };
-
-  componentDidMount() {
-    this.load();
-  }
-
-  up = () => {
-    const { dispatch, item } = this.props;
-    if (item.parent) dispatch(relativeMove(item.id, item.parent, -1));
-  };
-
-  down = () => {
-    const { dispatch, item } = this.props;
-    if (item.parent) dispatch(relativeMove(item.id, item.parent, 1));
-  };
-  left = () => {
-    const { dispatch, item } = this.props;
-    if (item.parent) dispatch(moveNear(item.id, item.parent, item.parent, 1));
-  };
-  right = () => {
-    const { dispatch, item } = this.props;
-    if (item.parent) dispatch(addIndent(item.id, item.parent));
-  };
-  create = () => this.props.dispatch(create(Item.create(emptyEditor, this.props.item.parent)));
-  remove = () => {
-    const { id, dispatch, item } = this.props;
-    if (item.children.size === 0) dispatch(remove(id));
-  };
-  toggle = () => {
-    const { id, dispatch, item } = this.props;
-    if (item.children.size > 0) dispatch(toggle(id));
-  };
-  startEdit = () => {
-    const { id, dispatch, editing } = this.props;
+  // load children
+  const init = useRef(true);
+  useEffect(() => {
+    if (init.current) {
+      init.current = false;
+      if (!item.loaded) loadItemState(item).then(dispatch);
+    }
+  });
+  const onChange = useCallback((editor: EditorState) => dispatch(actions.edit(item.id, editor)), [item, dispatch]);
+  const up = useCallback(() => {
+    if (item.parent) {
+      dispatch(actions.relativeMove(item.id, item.parent, -1));
+    }
+  }, [item, dispatch]);
+  const down = useCallback(() => {
+    if (item.parent) {
+      dispatch(actions.relativeMove(item.id, item.parent, 1));
+    }
+  }, [item, dispatch]);
+  const left = useCallback(() => {
+    if (item.parent) {
+      dispatch(actions.moveNear(item.id, item.parent, item.parent, 1));
+    }
+  }, [item, dispatch]);
+  const right = useCallback(() => {
+    if (item.parent) {
+      dispatch(actions.addIndent(item.id, item.parent));
+    }
+  }, [item, dispatch]);
+  const create = useCallback(() => {
+    dispatch(actions.create(Item.create(emptyEditor, item.parent)));
+  }, [item, dispatch]);
+  const remove = useCallback(() => {
+    if (item.children.size === 0) {
+      dispatch(actions.remove(id));
+    }
+  }, [item, dispatch]);
+  const toggle = useCallback(() => {
+    if (item.children.size > 0) {
+      dispatch(actions.toggle(id));
+    }
+  }, [item, dispatch]);
+  const startEdit = useCallback(() => {
     if (!editing) {
-      dispatch(switchMode(editMode(id)));
+      dispatch(actions.switchMode(editMode(id)));
     }
-  };
+  }, [dispatch, editing]);
 
-  render() {
-    let classNames = ['ListNode'];
-    const {
-      isDragging,
-      isOver,
-      connectDragSource,
-      dropPosition,
-      parentDragging,
-      connectDropTarget,
-      item,
-      editing,
-    } = this.props;
-    const bullet = connectDragSource(<div className="bullet">•</div>);
-    const dragging = isDragging || parentDragging;
-    if (isDragging) {
-      classNames.push(DRAGGING_CLASS);
-    }
-    if (parentDragging) {
-      classNames.push('parent-dragging');
-    }
-    if (isOver && !dragging) classNames.push('is-over');
-    if (dropPosition === 'inner') {
-      classNames.push('drop-inner');
-    }
-    const above = dropPosition === 'above' ? <DropLine /> : null;
-    const below = dropPosition === 'below' ? <DropLine /> : null;
-    return connectDropTarget(
-      <div className={classNames.join(' ')}>
-        {bullet}
-        {above}
-        {connectDragSource(<div className="bullet">•</div>)}
-        <div onClick={this.startEdit}>
-          <ItemEditor
-            onChange={this.onChange}
-            editor={item.editor}
-            editing={!!editing}
-            up={this.up}
-            down={this.down}
-            left={this.left}
-            toggle={this.toggle}
-            right={this.right}
-            create={this.create}
-            remove={this.remove}
-          />
-        </div>
-        <Children
-          items={item.children}
-          loaded={item.loaded}
-          expand={this.props.item.expand}
-          parentDragging={dragging}
-        />
-        {below}
-      </div>
-    );
+  const classNames = ['ListNode'];
+  const { isDragging, isOver, connectDragSource, dropPosition, parentDragging, connectDropTarget } = props;
+  const bullet = connectDragSource(<div className="bullet">•</div>);
+  const dragging = isDragging || parentDragging;
+  if (isDragging) {
+    classNames.push(DRAGGING_CLASS);
   }
-}
+  if (parentDragging) {
+    classNames.push('parent-dragging');
+  }
+  if (isOver && !dragging) {
+    classNames.push('is-over');
+  }
+  if (dropPosition === 'inner') {
+    classNames.push('drop-inner');
+  }
+  const above = dropPosition === 'above' ? <DropLine /> : null;
+  const below = dropPosition === 'below' ? <DropLine /> : null;
+  return connectDropTarget(
+    <div className={classNames.join(' ')}>
+      {bullet}
+      {above}
+      {connectDragSource(<div className="bullet">•</div>)}
+      <div onClick={startEdit}>
+        <ItemEditor
+          onChange={onChange}
+          editor={item.editor}
+          editing={!!editing}
+          up={up}
+          down={down}
+          left={left}
+          right={right}
+          toggle={toggle}
+          create={create}
+          remove={remove}
+        />
+      </div>
+      <Children items={item.children} loaded={item.loaded} expand={item.expand} parentDragging={dragging} />
+      {below}
+    </div>
+  );
+};
 
 type StateProps = Pick<Props, 'item' | 'dropPosition' | 'editing'>;
 
