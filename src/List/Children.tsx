@@ -18,16 +18,16 @@ const dummy = (length: number) => {
   return dummyList;
 };
 
-export class Children extends React.Component<Props> {
-  shouldComponentUpdate(nextProps: Readonly<Props>): boolean {
-    const { items, loaded, expand, parentDragging } = this.props;
-    return (
-      loaded !== nextProps.loaded ||
-      expand !== nextProps.expand ||
-      !items.equals(nextProps.items) ||
-      parentDragging !== nextProps.parentDragging
-    );
-  }
+export class Children extends React.PureComponent<Props> {
+  // shouldComponentUpdate(nextProps: Readonly<Props>): boolean {
+  //   const { items, loaded, expand, parentDragging } = this.props;
+  //   return (
+  //     loaded !== nextProps.loaded ||
+  //     expand !== nextProps.expand ||
+  //     !items.equals(nextProps.items) ||
+  //     parentDragging !== nextProps.parentDragging
+  //   );
+  // }
 
   render() {
     const { items, loaded, expand, parentDragging } = this.props;

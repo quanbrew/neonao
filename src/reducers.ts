@@ -15,7 +15,7 @@ import {
 } from './actions';
 import { ID, Item } from './Item';
 import { List } from 'immutable';
-import { initTree, isChildrenOf, ItemMap, normalMode, saveTreeState, Tree } from './tree';
+import { editMode, initTree, isChildrenOf, ItemMap, Mode, normalMode, saveTreeState, Tree } from './tree';
 import {
   ADD_INDENT,
   APPLY_DROP,
@@ -44,21 +44,18 @@ let future: Tree[] = [];
 let nodeOrder: ID[] = [];
 
 const handleCreate = (state: Tree, create: Create): Tree => {
-  let map = state.map;
   const parentID = create.item.parent;
-  if (parentID) {
-    let parent = map.get(parentID) || null;
-    if (parent === null) {
-      throw new Error("Can't found item " + parentID);
-    }
-    const item = create.item;
-    const children = parent.children.unshift(item.id);
-    map = map.set(item.id, item);
-    map = map.set(parentID, { ...parent, children });
-  } else {
-    map = map.set(create.item.id, create.item);
-  }
-  return { ...state, map };
+  if (!parentID) return state;
+
+  let map = state.map;
+  let parent = map.get(parentID) || null;
+  if (parent === null) throw new Error("Can't found item " + parentID);
+  const item = create.item;
+  const children = parent.children.unshift(item.id);
+  map = map.set(item.id, item);
+  map = map.set(parentID, { ...parent, children });
+  const mode: Mode = editMode(item.id);
+  return { ...state, map, mode };
 };
 
 const handleRemove = (state: Tree, remove: Remove): Tree => {

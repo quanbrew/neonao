@@ -173,7 +173,7 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
     const { dispatch, item } = this.props;
     if (item.parent) dispatch(addIndent(item.id, item.parent));
   };
-  create = () => this.props.dispatch(create(Item.create(emptyEditor, this.props.id)));
+  create = () => this.props.dispatch(create(Item.create(emptyEditor, this.props.item.parent)));
   remove = () => {
     const { id, dispatch, item } = this.props;
     if (item.children.size === 0) dispatch(remove(id));
@@ -203,7 +203,6 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
     } = this.props;
     const bullet = connectDragSource(<div className="bullet">•</div>);
     const dragging = isDragging || parentDragging;
-
     if (isDragging) {
       classNames.push(DRAGGING_CLASS);
     }
@@ -225,7 +224,7 @@ export class RawListNode extends React.PureComponent<RawListNodeProps, State> {
           <ItemEditor
             onChange={this.onChange}
             editor={item.editor}
-            editing={editing !== null}
+            editing={!!editing}
             up={this.up}
             down={this.down}
             left={this.left}
