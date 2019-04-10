@@ -20,7 +20,6 @@ import {
   ADD_INDENT,
   APPLY_DROP,
   CREATE,
-  DRAG_MODE,
   EDIT,
   EXPAND,
   FETCH_ALL,
@@ -127,14 +126,21 @@ const handleMove = (state: Tree, action: MoveInto): Tree => {
 };
 
 const handleMoveNear = (state: Tree, action: MoveNear): Tree => {
+  // retrieve sibling
   const sibling = state.map.get(action.sibling) || null;
   if (sibling === null) throw Error();
   if (!sibling.parent) return state;
+
+  // retrieve sibling parent
   const parent = state.map.get(sibling.parent) || null;
   if (parent === null) throw Error();
+
+  // search sibling in the parent's children
   const position = parent.children.findIndex(id => id === sibling.id);
   if (position === -1) throw Error();
+
   const moveIntoAction = moveInto(action.id, action.parent, sibling.parent, position + action.offset);
+  console.log(moveIntoAction);
   return handleMove(state, moveIntoAction);
 };
 
@@ -173,18 +179,58 @@ const applyEdit = (oldState: Tree, action: Edit): { state: Tree; record: boolean
 };
 
 const handleApplyDrop = (state: Tree, action: ApplyDrop): Tree => {
-  if (state.mode.type !== DRAG_MODE || !state.mode.dropAt) return state;
-  const { id, parent } = action;
-  const { position, target } = state.mode.dropAt;
+  // if (state.mode.type !== DRAG_MODE || !state.mode.dropAt) return state;
+  const { id, position, target } = action;
+
+  // get the item will be moved
+  const item = state.map.get(id);
+  if (!item) return state;
+
+  // get item parent id
+  const { parent } = item;
+  if (!parent) return state;
+
+  // get target item
+  const targetItem = state.map.get(target) || null;
+  if (targetItem === null || targetItem.parent === null) return state;
+
+  // avoid self-contained move
   if (id === target) return state;
   if (isChildrenOf(state.map, target, id)) return state;
+
   let offset = 0;
   if (position === 'inner') {
     const moveIntoAction = moveInto(id, parent, target, 'append');
     return handleMove(state, moveIntoAction);
-  } else if (position === 'above') offset = 0;
-  else if (position === 'below') offset = 1;
+  } else if (item.parent === targetItem.parent) {
+    // get parent item
+    if (!item.parent) return state;
+    const parentItem = state.map.get(item.parent) || null;
+    if (parentItem === null) return state;
+    const children = parentItem.children;
+    const itemIndex = children.indexOf(id);
+    const targetIndex = children.indexOf(target);
+    if (itemIndex === targetIndex) return state;
+    else if (itemIndex < targetIndex) {
+      if (position === 'above') {
+        offset = -1;
+      } else if (position === 'below') {
+        offset = 0;
+      }
+    } else {
+      if (position === 'above') {
+        offset = 0;
+      } else if (position === 'below') {
+        offset = 1;
+      }
+    }
+  } else if (position === 'above') {
+    offset = 0;
+  } else if (position === 'below') {
+    offset = 1;
+  }
   const moveNearAction = moveNear(id, parent, target, offset);
+  console.log(moveNearAction);
   return handleMoveNear(state, moveNearAction);
 };
 

@@ -29,24 +29,12 @@ export const normalMode = (): NormalMode => ({ type: NORMAL_MODE });
 
 export type DropPosition = 'above' | 'below' | 'inner';
 
-export interface DropAt {
-  target: ID;
-  position: DropPosition;
-}
-
-export const dropAt = (target: ID, position: DropPosition): DropAt => ({
-  target,
-  position,
-});
-
 export interface DragMode {
   type: typeof DRAG_MODE;
-  dropAt?: DropAt;
 }
 
-export const dragMode = (dropAt?: DropAt): DragMode => ({
+export const dragMode = (): DragMode => ({
   type: DRAG_MODE,
-  dropAt,
 });
 
 export interface EditMode {

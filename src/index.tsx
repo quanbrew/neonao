@@ -8,10 +8,6 @@ import { redo, undo } from './actions';
 import { isRedoKey, isUndoKey } from './keyboard';
 import 'normalize.css';
 
-import(/* webpackChunkName: "react_dnd" */
-'react-dnd');
-import(/* webpackChunkName: "dnd_backend" */
-'react-dnd-html5-backend');
 const List = React.lazy(() =>
   import(/* webpackChunkName: "list_component" */
   './List/List')
@@ -49,22 +45,17 @@ const App = ({ redo, undo }: Props) => (
   </div>
 );
 
-const main = async () => {
-  const { DragDropContext } = await import('react-dnd');
-  const HTML5Backend = await import('react-dnd-html5-backend');
-  const applyDragDrop = DragDropContext(HTML5Backend.default)(App);
-  const ConnectedApp = connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(applyDragDrop);
+const AppContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App);
 
-  ReactDOM.render(
-    <Provider store={store}>
-      <ConnectedApp />
-    </Provider>,
-    document.getElementById('root') as HTMLElement
-  );
-};
+ReactDOM.render(
+  <Provider store={store}>
+    <AppContainer />
+  </Provider>,
+  document.getElementById('root') as HTMLElement
+);
 
 document.onkeydown = e => {
   const undoButton = document.getElementById('undo') as HTMLButtonElement;
@@ -80,5 +71,3 @@ document.onkeydown = e => {
     click(redoButton);
   }
 };
-
-main();

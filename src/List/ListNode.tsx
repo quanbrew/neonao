@@ -1,135 +1,29 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { DragEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 
 import { ID, Item } from '../Item';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import {
-  ConnectDragSource,
-  ConnectDropTarget,
-  DragSource,
-  DragSourceCollector,
-  DragSourceSpec,
-  DropTarget,
-  DropTargetCollector,
-  DropTargetSpec,
-} from 'react-dnd';
 import { EditorState } from 'draft-js';
-import { dragMode, dropAt, DropPosition, EditMode, editMode, loadItemState, normalMode, Tree } from '../tree';
+import { dragMode, DropPosition, EditMode, editMode, loadItemState, normalMode, Tree } from '../tree';
 import * as actions from '../actions';
-import { ItemAction } from '../actions';
 import './ListNode.scss';
-import { DRAG_MODE, EDIT_MODE, ITEM } from '../constants';
-import { findDOMNode } from 'react-dom';
+import { EDIT_MODE } from '../constants';
 import { Children } from './Children';
-import { DropLine } from './DropLine';
 import { ItemEditor } from './ItemEditor';
 import { emptyEditor } from '../editor';
 
 const DRAGGING_CLASS = 'node-dragging';
+const DROP_DATA_TYPE = 'text/list-node-id';
 
 export interface Props {
   id: ID;
   item: Item;
-  dispatch: (action: ItemAction) => void;
-  dropPosition: DropPosition | null;
+  dispatch: Dispatch;
   editing: null | EditMode;
   parentDragging: boolean;
 }
 
-interface SourceProps {
-  isDragging: boolean;
-  connectDragSource: ConnectDragSource;
-}
-
-interface TargetProps {
-  connectDropTarget: ConnectDropTarget;
-  canDrop: boolean;
-  isOver: boolean;
-}
-
-const nodeSource: DragSourceSpec<Props, Item> = {
-  beginDrag: ({ item, dispatch }) => {
-    dispatch(actions.switchMode(dragMode()));
-    return item;
-  },
-  canDrag: ({ item }) => item.parent !== undefined,
-  endDrag: (props, monitor) => {
-    const draggingItem: Item = monitor.getItem();
-    const { id, parent } = draggingItem;
-    if (parent) {
-      props.dispatch(actions.applyDrop(id, parent));
-    }
-    props.dispatch(actions.switchMode(normalMode()));
-  },
-};
-
-const nodeTarget: DropTargetSpec<Props> = {
-  canDrop: (props, monitor) => {
-    const draggingItem: Item = monitor.getItem();
-    // not drop to dropping node self and nodes which parent is being dragged
-    return draggingItem.id !== props.id && !props.parentDragging;
-  },
-  hover: (props, monitor, component: any) => {
-    if (!component || !props.item.parent) return;
-    // If not hovering me, do nothing
-    if (!monitor.isOver({ shallow: true })) return;
-
-    if (props.parentDragging) return;
-
-    const draggingItem: Item = monitor.getItem();
-    if (draggingItem.id === props.item.id) return;
-
-    // Determine rectangle on screen
-    const domNode = findDOMNode(component) as Element;
-
-    const hoverBoundingRect = domNode.getBoundingClientRect();
-
-    // Get vertical middle
-    const hoverHeight = hoverBoundingRect.bottom - hoverBoundingRect.top;
-    const hoverMiddleY = hoverHeight / 2;
-
-    // Determine mouse position
-    const clientOffset = monitor.getClientOffset();
-
-    if (!clientOffset) return;
-
-    // Get pixels to the top
-    const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-    let position: DropPosition = 'inner';
-    const margin = props.item.children.size === 0 ? 12 : 0;
-    if (hoverClientY > hoverMiddleY + margin) {
-      position = 'below';
-    } else if (hoverClientY < hoverMiddleY - margin) {
-      position = 'above';
-    }
-    if (position === props.dropPosition) return;
-    const mode = dragMode(dropAt(props.item.id, position));
-    props.dispatch(actions.switchMode(mode));
-  },
-};
-
-const sourceCollect: DragSourceCollector<SourceProps, Props> = (connect, monitor) => {
-  return {
-    connectDragSource: connect.dragSource(),
-    isDragging: monitor.isDragging(),
-  };
-};
-
-const targetCollect: DropTargetCollector<TargetProps, Props> = (connect, monitor) => {
-  const isOver = monitor.isOver({ shallow: true });
-  return {
-    connectDropTarget: connect.dropTarget(),
-    isOver,
-    canDrop: monitor.canDrop(),
-  };
-};
-
-type RawListNodeProps = Props & SourceProps & TargetProps;
-
-export const RawListNode = (props: RawListNodeProps) => {
-  const { item, dispatch, editing, id } = props;
-
-  // load children
+const useLoadChildren = (item: Item, dispatch: Dispatch) => {
   const init = useRef(true);
   useEffect(() => {
     if (init.current) {
@@ -137,6 +31,80 @@ export const RawListNode = (props: RawListNodeProps) => {
       if (!item.loaded) loadItemState(item).then(dispatch);
     }
   });
+};
+
+interface DragAndDrop {
+  onDragStart: DragEventHandler;
+  onDragEnd: DragEventHandler;
+  onDrop: DragEventHandler;
+  onDragOver: DragEventHandler;
+  onDragLeave: DragEventHandler;
+  dragging: boolean;
+  isOver: DropPosition | null;
+}
+
+const getDropId = (e: React.DragEvent): ID => {
+  return e.dataTransfer.getData(DROP_DATA_TYPE);
+};
+
+const computeDropPosition = (e: React.DragEvent, elem: Element): DropPosition => {
+  const y = e.clientY;
+  const rect = elem.getBoundingClientRect();
+
+  const top = Math.abs(y - rect.top);
+  const bottom = Math.abs(y - rect.bottom);
+  return top > bottom ? 'below' : 'above';
+};
+
+type ContentRef = React.RefObject<HTMLDivElement>;
+
+const useDragAndDrop = (id: ID, dispatch: Dispatch, contentRef: ContentRef, parentDragging: boolean): DragAndDrop => {
+  const [dragging, setDragging] = useState(false);
+  const [isOver, setIsOver] = useState<DropPosition | null>(null);
+  const onDragStart: DragEventHandler = e => {
+    e.dataTransfer.setData(DROP_DATA_TYPE, id);
+    e.dataTransfer.effectAllowed = 'move';
+    setDragging(true);
+    dispatch(actions.switchMode(dragMode()));
+  };
+  const onDragEnd: DragEventHandler = () => {
+    setDragging(false);
+    dispatch(actions.switchMode(normalMode()));
+  };
+  const canDrop = (e: React.DragEvent): boolean => {
+    return e.dataTransfer.types.includes(DROP_DATA_TYPE) && !dragging && !parentDragging;
+  };
+
+  const onDrop: DragEventHandler = e => {
+    setDragging(false);
+    if (canDrop(e) && contentRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsOver(null);
+      dispatch(actions.applyDrop(getDropId(e), id, computeDropPosition(e, contentRef.current)));
+    }
+    dispatch(actions.switchMode(normalMode()));
+  };
+  const onDragOver: DragEventHandler = e => {
+    if (canDrop(e) && contentRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      const position = computeDropPosition(e, contentRef.current);
+      if (position !== isOver) {
+        setIsOver(position);
+      }
+    }
+  };
+  const onDragLeave: DragEventHandler = () => {
+    if (isOver) {
+      setIsOver(null);
+    }
+  };
+  return { onDragEnd, onDragLeave, onDragOver, onDragStart, onDrop, isOver, dragging: dragging || parentDragging };
+};
+
+export const ListNode = ({ item, dispatch, editing, id, parentDragging }: Props) => {
+  useLoadChildren(item, dispatch);
   const onChange = useCallback((editor: EditorState) => dispatch(actions.edit(item.id, editor)), [item, dispatch]);
   const up = useCallback(() => {
     if (item.parent) {
@@ -177,30 +145,31 @@ export const RawListNode = (props: RawListNodeProps) => {
     }
   }, [dispatch, editing]);
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { onDrop, onDragStart, onDragOver, onDragLeave, onDragEnd, isOver, dragging } = useDragAndDrop(
+    id,
+    dispatch,
+    contentRef,
+    parentDragging
+  );
+
   const classNames = ['ListNode'];
-  const { isDragging, isOver, connectDragSource, dropPosition, parentDragging, connectDropTarget } = props;
-  const bullet = connectDragSource(<div className="bullet">•</div>);
-  const dragging = isDragging || parentDragging;
-  if (isDragging) {
+  if (dragging) {
     classNames.push(DRAGGING_CLASS);
   }
   if (parentDragging) {
     classNames.push('parent-dragging');
   }
-  if (isOver && !dragging) {
-    classNames.push('is-over');
+  if (isOver !== null) {
+    // drop-inner | drop-above | drop-below
+    classNames.push(`drop-${isOver}`);
   }
-  if (dropPosition === 'inner') {
-    classNames.push('drop-inner');
-  }
-  const above = dropPosition === 'above' ? <DropLine /> : null;
-  const below = dropPosition === 'below' ? <DropLine /> : null;
-  return connectDropTarget(
-    <div className={classNames.join(' ')}>
-      {bullet}
-      {above}
-      {connectDragSource(<div className="bullet">•</div>)}
-      <div onClick={startEdit}>
+  return (
+    <div className={classNames.join(' ')} onDrop={onDrop} onDragOver={onDragOver} onDragLeave={onDragLeave}>
+      <div className="bullet" draggable={true} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+        •
+      </div>
+      <div onClick={startEdit} ref={contentRef}>
         <ItemEditor
           onChange={onChange}
           editor={item.editor}
@@ -215,33 +184,26 @@ export const RawListNode = (props: RawListNodeProps) => {
         />
       </div>
       <Children items={item.children} loaded={item.loaded} expand={item.expand} parentDragging={dragging} />
-      {below}
     </div>
   );
 };
 
-type StateProps = Pick<Props, 'item' | 'dropPosition' | 'editing'>;
+type StateProps = Pick<Props, 'item' | 'editing'>;
 
 const mapStateToProps = (initState: Tree, { id }: Props) => ({ map, mode }: Tree): StateProps => {
   const item = map.get(id) as Item;
-  let dropPosition: Props['dropPosition'] = null;
   let editing = null;
-  if (mode.type === DRAG_MODE && mode.dropAt && mode.dropAt.target === id) {
-    dropPosition = mode.dropAt.position;
-  } else if (mode.type === EDIT_MODE && mode.id === id) {
+  if (mode.type === EDIT_MODE && mode.id === id) {
     editing = mode;
   }
-  return { item, dropPosition, editing };
+  return { item, editing };
 };
 
 type DispatchProps = Pick<Props, 'dispatch'>;
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({ dispatch });
 
-const DragSourceListNode = DragSource<Props, SourceProps>(ITEM, nodeSource, sourceCollect)(RawListNode);
-const DropTargetListNode = DropTarget<Props, TargetProps>(ITEM, nodeTarget, targetCollect)(DragSourceListNode);
-const ListNode = connect<StateProps, DispatchProps>(
+export default connect<StateProps, DispatchProps>(
   mapStateToProps,
   mapDispatchToProps
-)(DropTargetListNode);
-export default ListNode;
+)(ListNode);

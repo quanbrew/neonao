@@ -1,5 +1,5 @@
 import { ID, Item } from './Item';
-import { Mode, Tree } from './tree';
+import { DropPosition, Mode, Tree } from './tree';
 import { EditorState } from 'draft-js';
 import {
   ADD_INDENT,
@@ -209,11 +209,13 @@ export const switchMode = (mode: Mode): SwitchMode => ({
 export interface ApplyDrop {
   type: typeof APPLY_DROP;
   id: ID;
-  parent: ID;
+  target: ID;
+  position: DropPosition;
 }
 
-export const applyDrop = (id: ID, parent: ID): ApplyDrop => ({
+export const applyDrop = (id: ID, target: ID, position: DropPosition): ApplyDrop => ({
   type: APPLY_DROP,
   id,
-  parent,
+  target,
+  position,
 });
