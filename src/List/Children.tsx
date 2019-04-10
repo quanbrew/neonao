@@ -10,29 +10,14 @@ interface Props {
   parentDragging: boolean;
 }
 
-const dummy = (length: number) => {
-  const dummyList = [];
-  for (let i = 0; i < length; i++) {
-    dummyList.push(<li key={i}>Loading...</li>);
+export const Children = ({ items, loaded, expand, parentDragging }: Props) => {
+  if (items.size === 0 || !expand) {
+    return null;
+  } else if (loaded) {
+    const mapper = (id: string) => <ListNode key={id} id={id} parentDragging={parentDragging} />;
+    return <div className="children">{items.map(mapper)}</div>;
+  } else {
+    const dummyList = [...Array(items.size).keys()].map(key => <li key={key}>Loading...</li>);
+    return <div className="children">{dummyList}</div>;
   }
-  return dummyList;
 };
-
-export class Children extends React.PureComponent<Props> {
-  // shouldComponentUpdate(nextProps: Readonly<Props>): boolean {
-  //   const { items, loaded, expand, parentDragging } = this.props;
-  //   return (
-  //     loaded !== nextProps.loaded ||
-  //     expand !== nextProps.expand ||
-  //     !items.equals(nextProps.items) ||
-  //     parentDragging !== nextProps.parentDragging
-  //   );
-  // }
-
-  render() {
-    const { items, loaded, expand, parentDragging } = this.props;
-    if (items.size === 0 || !expand) return null;
-    const children = items.map((id: string) => <ListNode key={id} id={id} parentDragging={parentDragging} />);
-    return <div className="children">{loaded ? children : dummy(items.size)}</div>;
-  }
-}
