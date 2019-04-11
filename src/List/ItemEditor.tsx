@@ -1,20 +1,14 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { DraftHandleValue, Editor, EditorState, getDefaultKeyBinding } from 'draft-js';
 import { isRedoKey, isToggleKey, isUndoKey, keyboard } from '../keyboard';
+import { EditOperator } from './ListNode';
 
 // import 'draft-js/dist/Draft.css';
 
-interface Props {
+interface Props extends EditOperator {
   onChange: (next: EditorState) => void;
   editor: EditorState;
   editing: boolean;
-  up: () => void;
-  down: () => void;
-  left: () => void;
-  right: () => void;
-  create: () => void;
-  remove: () => void;
-  toggle: () => void;
 }
 
 type KeyboardEvent = React.KeyboardEvent<{}>;
@@ -39,7 +33,19 @@ const keyBindingFn = (e: React.KeyboardEvent): string | null => {
   return getDefaultKeyBinding(e);
 };
 
-export const ItemEditor = ({ editor, editing, onChange, create, toggle, left, right, down, up, remove }: Props) => {
+export const ItemEditor = ({
+  editor,
+  editing,
+  onChange,
+  create,
+  toggle,
+  left,
+  right,
+  down,
+  up,
+  remove,
+  edit,
+}: Props) => {
   const classList = ['ItemEditor'];
 
   if (editing) {
@@ -106,6 +112,7 @@ export const ItemEditor = ({ editor, editing, onChange, create, toggle, left, ri
         handleKeyCommand={handleKeyCommand}
         stripPastedStyles={true}
         spellCheck={false}
+        onFocus={edit}
         handleReturn={handleReturn}
       />
     </div>

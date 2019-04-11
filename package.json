@@ -13,15 +13,11 @@
     "localforage": "^1.7.3",
     "normalize.css": "^8.0.1",
     "react": "^16.8.5",
-    "react-dnd": "^7.4.5",
-    "react-dnd-html5-backend": "^7.4.4",
     "react-dom": "^16.8.5",
-    "react-redux": "^7.0.1",
-    "redux": "^4.0.1",
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "start": "webpack-dev-server --open --config config/webpack.dev.js",
+    "start": "webpack-dev-server --open --progress --config config/webpack.dev.js",
     "format": "prettier --write src/**",
     "build": "NODE_ENV=production webpack --config config/webpack.prod.js"
   },
@@ -30,7 +26,6 @@
     "@types/node": "^11.13.0",
     "@types/react": "^16.8.13",
     "@types/react-dom": "^16.8.3",
-    "@types/react-redux": "^7.0.5",
     "bundle-loader": "^0.5.6",
     "clean-webpack-plugin": "^2.0.1",
     "css-loader": "^2.1.1",

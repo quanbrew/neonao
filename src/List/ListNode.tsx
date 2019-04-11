@@ -1,16 +1,16 @@
 import React, { DragEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 
 import { ID, Item } from '../Item';
-import { Dispatch } from 'redux';
-import { connect } from 'react-redux';
 import { EditorState } from 'draft-js';
-import { dragMode, DropPosition, EditMode, editMode, loadItemState, normalMode, Tree } from '../tree';
+import { dragMode, DropPosition, EditMode, editMode, loadItemState, normalMode } from '../tree';
 import * as actions from '../actions';
+import { unIndent } from '../actions';
 import './ListNode.scss';
-import { EDIT_MODE } from '../constants';
+// import { EDIT_MODE } from '../constants';
 import { Children } from './Children';
 import { ItemEditor } from './ItemEditor';
 import { emptyEditor } from '../editor';
+import { Dispatch, useDispatch } from './List';
 
 const DRAGGING_CLASS = 'node-dragging';
 const DROP_DATA_TYPE = 'text/list-node-id';
@@ -18,7 +18,6 @@ const DROP_DATA_TYPE = 'text/list-node-id';
 export interface Props {
   id: ID;
   item: Item;
-  dispatch: Dispatch;
   editing: null | EditMode;
   parentDragging: boolean;
 }
@@ -81,7 +80,7 @@ const useDragAndDrop = (id: ID, dispatch: Dispatch, contentRef: ContentRef, pare
       e.preventDefault();
       e.stopPropagation();
       setIsOver(null);
-      dispatch(actions.applyDrop(getDropId(e), id, computeDropPosition(e, contentRef.current)));
+      dispatch(actions.drop(getDropId(e), id, computeDropPosition(e, contentRef.current)));
     }
     dispatch(actions.switchMode(normalMode()));
   };
@@ -103,47 +102,67 @@ const useDragAndDrop = (id: ID, dispatch: Dispatch, contentRef: ContentRef, pare
   return { onDragEnd, onDragLeave, onDragOver, onDragStart, onDrop, isOver, dragging: dragging || parentDragging };
 };
 
-export const ListNode = ({ item, dispatch, editing, id, parentDragging }: Props) => {
-  useLoadChildren(item, dispatch);
-  const onChange = useCallback((editor: EditorState) => dispatch(actions.edit(item.id, editor)), [item, dispatch]);
+export interface EditOperator {
+  up: () => void;
+  down: () => void;
+  left: () => void;
+  right: () => void;
+  create: () => void;
+  remove: () => void;
+  toggle: () => void;
+  edit: () => void;
+}
+
+const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): EditOperator => {
+  const id = item.id;
+  const parent = item.parent;
+  const childCount = item.children.size;
   const up = useCallback(() => {
-    if (item.parent) {
-      dispatch(actions.relativeMove(item.id, item.parent, -1));
+    if (parent) {
+      dispatch(actions.reorder(id, -1));
     }
-  }, [item, dispatch]);
+  }, [parent]);
   const down = useCallback(() => {
-    if (item.parent) {
-      dispatch(actions.relativeMove(item.id, item.parent, 1));
+    if (parent) {
+      dispatch(actions.reorder(id, 1));
     }
-  }, [item, dispatch]);
+  }, [parent]);
   const left = useCallback(() => {
-    if (item.parent) {
-      dispatch(actions.moveNear(item.id, item.parent, item.parent, 1));
+    if (parent) {
+      dispatch(unIndent(id, parent));
     }
-  }, [item, dispatch]);
+  }, [parent]);
   const right = useCallback(() => {
-    if (item.parent) {
-      dispatch(actions.addIndent(item.id, item.parent));
+    if (parent) {
+      dispatch(actions.indent(id, parent));
     }
-  }, [item, dispatch]);
+  }, [parent]);
   const create = useCallback(() => {
-    dispatch(actions.create(Item.create(emptyEditor, item.parent)));
-  }, [item, dispatch]);
+    dispatch(actions.create(Item.create(emptyEditor, parent)));
+  }, [parent]);
   const remove = useCallback(() => {
-    if (item.children.size === 0) {
+    if (childCount === 0) {
       dispatch(actions.remove(id));
     }
-  }, [item, dispatch]);
+  }, [childCount]);
   const toggle = useCallback(() => {
-    if (item.children.size > 0) {
+    if (childCount > 0) {
       dispatch(actions.toggle(id));
     }
-  }, [item, dispatch]);
-  const startEdit = useCallback(() => {
+  }, [childCount]);
+  const edit = useCallback(() => {
     if (!editing) {
       dispatch(actions.switchMode(editMode(id)));
     }
-  }, [dispatch, editing]);
+  }, [editing]);
+  return { up, down, left, right, remove, create, toggle, edit };
+};
+
+export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
+  const dispatch = useDispatch();
+  useLoadChildren(item, dispatch);
+  const onChange = useCallback((editor: EditorState) => dispatch(actions.edit(item.id, editor)), [item]);
+  const operates = useEditOperate(dispatch, item, editing);
 
   const contentRef = useRef<HTMLDivElement>(null);
   const { onDrop, onDragStart, onDragOver, onDragLeave, onDragEnd, isOver, dragging } = useDragAndDrop(
@@ -169,41 +188,12 @@ export const ListNode = ({ item, dispatch, editing, id, parentDragging }: Props)
       <div className="bullet" draggable={true} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         •
       </div>
-      <div onClick={startEdit} ref={contentRef}>
-        <ItemEditor
-          onChange={onChange}
-          editor={item.editor}
-          editing={!!editing}
-          up={up}
-          down={down}
-          left={left}
-          right={right}
-          toggle={toggle}
-          create={create}
-          remove={remove}
-        />
+      <div ref={contentRef}>
+        <ItemEditor onChange={onChange} editor={item.editor} editing={!!editing} {...operates} />
       </div>
       <Children items={item.children} loaded={item.loaded} expand={item.expand} parentDragging={dragging} />
     </div>
   );
 };
 
-type StateProps = Pick<Props, 'item' | 'editing'>;
-
-const mapStateToProps = (initState: Tree, { id }: Props) => ({ map, mode }: Tree): StateProps => {
-  const item = map.get(id) as Item;
-  let editing = null;
-  if (mode.type === EDIT_MODE && mode.id === id) {
-    editing = mode;
-  }
-  return { item, editing };
-};
-
-type DispatchProps = Pick<Props, 'dispatch'>;
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({ dispatch });
-
-export default connect<StateProps, DispatchProps>(
-  mapStateToProps,
-  mapDispatchToProps
-)(ListNode);
+export default ListNode;

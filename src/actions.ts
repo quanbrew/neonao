@@ -2,49 +2,49 @@ import { ID, Item } from './Item';
 import { DropPosition, Mode, Tree } from './tree';
 import { EditorState } from 'draft-js';
 import {
-  ADD_INDENT,
-  APPLY_DROP,
   CREATE,
+  DROP,
   EDIT,
   EXPAND,
-  FETCH_ALL,
   FOLD,
+  INDENT,
   LOADED_STATE,
-  MOVE_INTO,
-  MOVE_NEAR,
+  PATCH,
   REDO,
   REMOVE,
+  REORDER,
+  START_LOAD,
   SWITCH_MODE,
   TOGGLE,
+  UN_INDENT,
   UNDO,
   UPDATE,
   ZOOM,
 } from './constants';
 
-export type ItemAction =
+export type ListAction = TreeAction | LoadedState | Patch | Undo | Redo;
+
+export type TreeAction =
   | Fold
   | Expand
   | FetchAll
   | Zoom
+  | Reorder
   | Create
   | Update
   | Edit
   | Remove
   | Toggle
-  | LoadedState
-  | Undo
-  | Redo
-  | MoveInto
-  | MoveNear
-  | AddIndent
+  | Indent
+  | UnIndent
   | SwitchMode
-  | ApplyDrop;
+  | Drop;
 
 export interface FetchAll {
-  type: typeof FETCH_ALL;
+  type: typeof START_LOAD;
 }
 
-export const fetchAll = (): FetchAll => ({ type: FETCH_ALL });
+export const fetchAll = (): FetchAll => ({ type: START_LOAD });
 
 export interface Remove {
   type: typeof REMOVE;
@@ -117,59 +117,38 @@ export interface Toggle {
 
 export const toggle = (id: ID): Toggle => ({ type: TOGGLE, id });
 
-export interface MoveInto {
-  type: typeof MOVE_INTO;
+export interface Reorder {
+  type: typeof REORDER;
   id: ID;
-  parent: ID;
-  nextParent: ID;
-  order: number | 'append';
-  relative: boolean;
+  delta: number;
 }
 
-export type Order = number | 'append';
-export const moveInto = (id: ID, parent: ID, nextParent: ID, order: Order, relative?: boolean): MoveInto => ({
-  type: MOVE_INTO,
+export const reorder = (id: ID, delta: number): Reorder => ({
+  type: REORDER,
   id,
-  parent,
-  order,
-  nextParent,
-  relative: relative === true,
+  delta,
 });
 
-export const relativeMove = (id: ID, parent: ID, order: number | 'append'): MoveInto => ({
-  type: MOVE_INTO,
-  id,
-  parent,
-  order,
-  nextParent: parent,
-  relative: true,
-});
-
-export interface MoveNear {
-  type: typeof MOVE_NEAR;
-  id: ID;
-  parent: ID;
-  sibling: ID;
-  offset: number;
-}
-
-export const moveNear = (id: ID, parent: ID, sibling: ID, offset: number): MoveNear => ({
-  type: MOVE_NEAR,
-  id,
-  sibling,
-  parent,
-  offset,
-});
-
-// as child, append to previous item.
-export interface AddIndent {
-  type: typeof ADD_INDENT;
+export interface Indent {
+  type: typeof INDENT;
   id: ID;
   parent: ID;
 }
 
-export const addIndent = (id: ID, parent: ID): AddIndent => ({
-  type: ADD_INDENT,
+export const indent = (id: ID, parent: ID): Indent => ({
+  type: INDENT,
+  id,
+  parent,
+});
+
+export interface UnIndent {
+  type: typeof UN_INDENT;
+  id: ID;
+  parent: ID;
+}
+
+export const unIndent = (id: ID, parent: ID): UnIndent => ({
+  type: UN_INDENT,
   id,
   parent,
 });
@@ -188,12 +167,22 @@ export const redo: Redo = { type: REDO };
 
 export interface LoadedState {
   type: typeof LOADED_STATE;
-  state: Partial<Tree>;
+  tree: Tree;
 }
 
-export const loadedState = (state: Partial<Tree>): LoadedState => ({
+export const loadedState = (tree: Tree): LoadedState => ({
   type: LOADED_STATE,
-  state,
+  tree,
+});
+
+export interface Patch {
+  type: typeof PATCH;
+  tree: Partial<Tree>;
+}
+
+export const patch = (tree: Partial<Tree>): Patch => ({
+  type: PATCH,
+  tree,
 });
 
 export interface SwitchMode {
@@ -206,15 +195,15 @@ export const switchMode = (mode: Mode): SwitchMode => ({
   mode,
 });
 
-export interface ApplyDrop {
-  type: typeof APPLY_DROP;
+export interface Drop {
+  type: typeof DROP;
   id: ID;
   target: ID;
   position: DropPosition;
 }
 
-export const applyDrop = (id: ID, target: ID, position: DropPosition): ApplyDrop => ({
-  type: APPLY_DROP,
+export const drop = (id: ID, target: ID, position: DropPosition): Drop => ({
+  type: DROP,
   id,
   target,
   position,

@@ -1,16 +1,13 @@
 import React, { useEffect } from 'react';
-import { loadTreeState, Tree } from '../tree';
-import { connect } from 'react-redux';
-import { ID, Item } from '../Item';
+import { loadTreeState } from '../tree';
+import { Item } from '../Item';
 import { Children } from './Children';
-import { Dispatch } from 'redux';
 import { create, fetchAll } from '../actions';
 import { emptyEditor } from '../editor';
+import { useDispatch } from './List';
 
 interface Props {
   root: Item | null;
-  init: () => void;
-  createEmpty: (parent: ID) => void;
 }
 
 const Loading = () => (
@@ -19,38 +16,25 @@ const Loading = () => (
   </div>
 );
 
-const Root = ({ root, init, createEmpty }: Props) => {
+const useLoadRoot = (root: Item | null) => {
+  const dispatch = useDispatch();
   useEffect(() => {
     if (root === null) {
-      init();
+      dispatch(fetchAll());
+      loadTreeState(3).then(dispatch);
     } else if (root.children.size === 0) {
-      createEmpty(root.id);
+      dispatch(create(Item.create(emptyEditor, root.id)));
     }
-  });
+  }, [root]);
+};
 
+const Root = React.memo(({ root }: Props) => {
+  useLoadRoot(root);
   if (root === null) {
     return <Loading />;
   } else {
     return <Children items={root.children} loaded={root.loaded} expand={true} parentDragging={false} />;
   }
-};
+});
 
-type TStateProps = Pick<Props, 'root'>;
-
-const mapStateToProps = ({ root, map }: Tree): TStateProps => ({ root: root ? map.get(root) || null : null });
-
-type TDispatchProps = Pick<Props, 'init' | 'createEmpty'>;
-
-const mapDispatchToProps = (dispatch: Dispatch): TDispatchProps => {
-  const init = () => {
-    dispatch(fetchAll());
-    loadTreeState(3).then(dispatch);
-  };
-  const createEmpty = (parent: ID) => dispatch(create(Item.create(emptyEditor, parent)));
-  return { init, createEmpty };
-};
-
-export default connect<TStateProps, TDispatchProps>(
-  mapStateToProps,
-  mapDispatchToProps
-)(Root);
+export default Root;

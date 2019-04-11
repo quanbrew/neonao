@@ -1,6 +1,6 @@
 import { fromJS, Map } from 'immutable';
 import { ID, Item } from './Item';
-import { loadedState, LoadedState } from './actions';
+import { loadedState, LoadedState, patch, Patch } from './actions';
 import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
 import { RawDraftContentState, SelectionState } from 'draft-js';
 
@@ -13,9 +13,8 @@ import(/* webpackChunkName: "localforage" */
 export type ItemMap = Map<ID, Item>;
 
 export interface Tree {
-  root: ID | null;
+  root: ID;
   map: ItemMap;
-  loading: boolean;
   mode: Mode;
 }
 
@@ -60,14 +59,8 @@ export interface DetailMode {
   id: ID;
 }
 
-export const initTree: Tree = {
-  root: null,
-  map: Map(),
-  loading: true,
-  mode: normalMode(),
-};
-
-export const saveTreeState = async (state: Tree) => {
+export const saveTreeState = async (state: Tree | null) => {
+  if (!state) return;
   const { editorToRow } = await import('./editor');
   const localForage = await import('localforage');
   if (!state.root) return;
@@ -139,14 +132,14 @@ const createEmptyState = async (): Promise<LoadedState> => {
   const root = Item.create(createEditorWithText(text));
   const rootID = root.id;
   const map: ItemMap = Map({ [rootID]: root });
-  const state = { root: rootID, map, loading: false };
+  const state = { root: rootID, map, mode: normalMode() };
   return loadedState(state);
 };
 
-export const loadItemState = async (item: Item, maxLevel: number = 2): Promise<LoadedState> => {
+export const loadItemState = async (item: Item, maxLevel: number = 2): Promise<Patch> => {
   let map = await loadChildren(item, maxLevel);
   map = map.set(item.id, { ...item, loaded: true });
-  return await loadedState({ map });
+  return await patch({ map });
 };
 
 export const loadTreeState = async (maxLevel: number = 128): Promise<LoadedState> => {
@@ -156,7 +149,7 @@ export const loadTreeState = async (maxLevel: number = 128): Promise<LoadedState
   const root = await getItemByIDFromStorage(rootID);
   const map = await loadChildren(root, maxLevel);
   console.log('loaded');
-  return await loadedState({ root: rootID, map, loading: false });
+  return await loadedState({ root: rootID, map, mode: normalMode() });
 };
 
 export const isChildrenOf = (map: ItemMap, child: ID, parent: ID): boolean => {
@@ -166,4 +159,67 @@ export const isChildrenOf = (map: ItemMap, child: ID, parent: ID): boolean => {
     now = map.get(now.parent) || null;
   }
   return now ? now.id === parent : false;
+};
+
+export class NotFound extends Error {
+  id: ID | null;
+
+  constructor(id: ID | null = null) {
+    super('Some node not found');
+    Object.setPrototypeOf(this, NotFound.prototype);
+    this.id = id;
+  }
+}
+
+export const getItem = (map: ItemMap, id: ID | null | undefined): Item => {
+  if (!id) throw new NotFound();
+  const item = map.get(id) || null;
+  if (!item) throw new NotFound(id);
+  return item;
+};
+export const getItemAndParent = (map: ItemMap, id: ID | null | undefined): [Item, Item] => {
+  const item = getItem(map, id);
+  const parent = getItem(map, item.parent);
+  return [item, parent];
+};
+
+export const getItemPosition = (id: ID, parent: Item): number => {
+  const index = parent.children.indexOf(id);
+  if (index < 0) throw Error("can't get item position in parent");
+  return index;
+};
+
+export const mergeTree = (old: Tree, next: Partial<Tree>): Tree => {
+  const map = next.map ? old.map.merge(next.map) : old.map;
+  return { ...old, ...next, map };
+};
+
+const resetItemParent = (map: ItemMap, id: ID, parent: ID): ItemMap => {
+  const item = getItem(map, id);
+  return map.set(id, { ...item, parent });
+};
+
+export const moveInto = (map: ItemMap, id: ID, parentId: ID, nextParentId: ID, order: number): ItemMap => {
+  if (id === nextParentId || isChildrenOf(map, nextParentId, id) || order < 0) {
+    console.warn('self-contained move');
+    return map;
+  }
+  const parent = getItem(map, parentId);
+  const oldPosition = getItemPosition(id, parent);
+
+  let children = parent.children.remove(oldPosition);
+  map = map.set(parent.id, { ...parent, children });
+
+  // insert
+  const nextParent = getItem(map, nextParentId);
+  children = nextParent.children.insert(order, id);
+  map = map.set(nextParentId, { ...nextParent, children });
+  map = resetItemParent(map, id, nextParentId);
+  return map;
+};
+
+export const emptyTree: Tree = {
+  root: '',
+  map: Map(),
+  mode: normalMode(),
 };
