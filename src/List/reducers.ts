@@ -99,12 +99,13 @@ let saveTimer: Timeout | null = null;
 const edit = (prevTree: Tree, action: Edit): { state: Tree; record: boolean } => {
   let record = false;
   const { id, editor } = action;
-  const oldItem = getItem(prevTree.map, id);
-  if (oldItem.editor === editor) return { state: prevTree, record };
-  const oldEditor = oldItem.editor;
-  // TODO: Disable draft-js undo stack and implement record judgement.
-  record = oldEditor.getUndoStack() !== editor.getUndoStack();
-  const item = { ...oldItem, editor, modified: Date.now() };
+  const prevItem = getItem(prevTree.map, id);
+  const prevEditor = prevItem.editor;
+  if (prevEditor === editor) return { state: prevTree, record };
+  const prevContent = prevEditor.getCurrentContent().getPlainText();
+  const nextContent = editor.getCurrentContent().getPlainText();
+  record = prevContent !== nextContent;
+  const item = { ...prevItem, editor, modified: Date.now() };
   const map = prevTree.map.set(id, item);
   const state = { ...prevTree, map };
   return { state, record };
@@ -273,11 +274,11 @@ export const listReducer = (state: ListState, action: ListAction): ListState => 
       }
   }
   const treeChanged = tree !== state.tree;
-  if (record && treeChanged && tree) {
-    history = history.push(tree);
+  if (record && treeChanged && state.tree) {
+    history = history.push(state.tree);
     future = List();
   }
-  if (save && tree) {
+  if (save && tree && treeChanged) {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = window.setTimeout(() => saveTreeState(tree), saveTimeout);
   }

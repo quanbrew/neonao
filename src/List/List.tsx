@@ -46,10 +46,10 @@ export const List = React.memo(() => {
   const handleRedo = () => dispatch(redo);
   return (
     <div onKeyDownCapture={handleKeyDown}>
-      <button ref={undoRef} onClick={handleUndo}>
+      <button ref={undoRef} onClick={handleUndo} disabled={listState.history.size === 0}>
         UNDO
       </button>
-      <button ref={redoRef} onClick={handleRedo}>
+      <button ref={redoRef} onClick={handleRedo} disabled={listState.future.size === 0}>
         REDO
       </button>
       <DispatchContext.Provider value={dispatch}>
