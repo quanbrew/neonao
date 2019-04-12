@@ -43,9 +43,9 @@ const useAutoHeight = (text: string, inputRef: React.RefObject<Input>) => {
       } else if (isContentReduce) {
         input.style.height = oldHeightStyle;
       }
+      prevText.current = text;
     }
   }, [text]);
-  prevText.current = text;
 };
 
 export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, create, editing, modified }: Props) => {
