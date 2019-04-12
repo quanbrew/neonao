@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { EditOperator } from './ListNode';
 import { isRedoKey, isToggleKey, isUndoKey, keyboard } from '../keyboard';
-import { Simulate } from 'react-dom/test-utils';
-import input = Simulate.input;
+import './Editor.scss';
 
 interface Props extends EditOperator {
   onChange: (next: string) => void;
@@ -11,7 +10,7 @@ interface Props extends EditOperator {
   modified: number;
 }
 
-type Input = HTMLInputElement;
+type Input = HTMLTextAreaElement;
 
 const useAutoFocus = (inputRef: React.RefObject<Input>, editing: boolean) => {
   useEffect(() => {
@@ -21,6 +20,32 @@ const useAutoFocus = (inputRef: React.RefObject<Input>, editing: boolean) => {
       }
     }
   }, [editing]);
+};
+
+const useAutoHeight = (text: string, inputRef: React.RefObject<Input>) => {
+  const threshold = 4;
+  const additionPx = 2;
+
+  const prevText = useRef(text);
+  useEffect(() => {
+    const input = inputRef.current;
+    if (input) {
+      const isContentReduce = text.length < prevText.current.length;
+      let oldHeightStyle = null;
+      const height = input.clientHeight;
+      if (isContentReduce) {
+        oldHeightStyle = input.style.height;
+        input.style.height = '5px';
+      }
+      const scrollHeight = input.scrollHeight;
+      if (Math.abs(height - scrollHeight) > threshold) {
+        input.style.height = `${scrollHeight + additionPx}px`;
+      } else if (isContentReduce) {
+        input.style.height = oldHeightStyle;
+      }
+    }
+  }, [text]);
+  prevText.current = text;
 };
 
 export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, create, editing, modified }: Props) => {
@@ -39,6 +64,8 @@ export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, 
   const inputRef = useRef<Input>(null);
 
   useAutoFocus(inputRef, editing);
+
+  useAutoHeight(cache, inputRef);
 
   const handleKeyDown: React.KeyboardEventHandler = e => {
     if (isUndoKey(e) || isRedoKey(e)) {
@@ -81,17 +108,13 @@ export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, 
     }
   };
 
-  const [composition, setComposition] = useState(false);
+  const composition = useRef(false);
   const onCompositionStart: React.CompositionEventHandler = () => {
-    if (!composition) {
-      setComposition(true);
-    }
+    composition.current = true;
   };
   const onCompositionEnd: React.CompositionEventHandler<Input> = e => {
-    if (composition) {
-      setComposition(false);
-      onChange(e.currentTarget.value);
-    }
+    composition.current = false;
+    onChange(e.currentTarget.value);
   };
 
   const delta = 200;
@@ -99,7 +122,7 @@ export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, 
     const text = e.currentTarget.value;
     setCache(text);
     cacheModified.current = Date.now();
-    if (!composition) {
+    if (!composition.current) {
       if (submitTimer.current) {
         clearTimeout(submitTimer.current);
       }
@@ -111,21 +134,23 @@ export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, 
     }
   };
 
-  const classList = ['ItemEditor'];
+  const classList = ['Editor'];
   if (editing) {
     classList.push('editing');
   }
   return (
-    <input
-      className={classList.join(' ')}
-      ref={inputRef}
-      onFocus={onFocus}
-      onBlur={onBlur}
-      onKeyDown={handleKeyDown}
-      value={cache}
-      onChange={handleChange}
-      onCompositionStart={onCompositionStart}
-      onCompositionEnd={onCompositionEnd}
-    />
+    <div className={classList.join(' ')}>
+      <textarea
+        className="node-input"
+        ref={inputRef}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onKeyDown={handleKeyDown}
+        value={cache}
+        onChange={handleChange}
+        onCompositionStart={onCompositionStart}
+        onCompositionEndCapture={onCompositionEnd}
+      />
+    </div>
   );
 };
