@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { EditOperator } from './ListNode';
 import { isRedoKey, isToggleKey, isUndoKey, keyboard } from '../keyboard';
 import { Simulate } from 'react-dom/test-utils';
@@ -8,18 +8,12 @@ interface Props extends EditOperator {
   onChange: (next: string) => void;
   source: string;
   editing: boolean;
+  modified: number;
 }
 
 type Input = HTMLInputElement;
 
-export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, create, editing }: Props) => {
-  const handleChange: React.ChangeEventHandler<Input> = e => {
-    onChange(e.currentTarget.value);
-  };
-
-  const inputRef = useRef<Input>(null);
-
-  // focus, if now editing this node.
+const useAutoFocus = (inputRef: React.RefObject<Input>, editing: boolean) => {
   useEffect(() => {
     if (editing && inputRef.current) {
       if (inputRef.current !== document.activeElement) {
@@ -27,6 +21,24 @@ export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, 
       }
     }
   }, [editing]);
+};
+
+export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, create, editing, modified }: Props) => {
+  const submitTimer = useRef<number | null>(null);
+  const cacheModified = useRef<number>(Date.now());
+
+  const [cache, setCache] = useState(source);
+
+  // synchronize source and cache
+  useEffect(() => {
+    if (source !== cache) {
+      setCache(source);
+    }
+  }, [modified, source]);
+
+  const inputRef = useRef<Input>(null);
+
+  useAutoFocus(inputRef, editing);
 
   const handleKeyDown: React.KeyboardEventHandler = e => {
     if (isUndoKey(e) || isRedoKey(e)) {
@@ -68,6 +80,37 @@ export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, 
       // TODO: switch mode
     }
   };
+
+  const [composition, setComposition] = useState(false);
+  const onCompositionStart: React.CompositionEventHandler = () => {
+    if (!composition) {
+      setComposition(true);
+    }
+  };
+  const onCompositionEnd: React.CompositionEventHandler<Input> = e => {
+    if (composition) {
+      setComposition(false);
+      onChange(e.currentTarget.value);
+    }
+  };
+
+  const delta = 200;
+  const handleChange: React.ChangeEventHandler<Input> = e => {
+    const text = e.currentTarget.value;
+    setCache(text);
+    cacheModified.current = Date.now();
+    if (!composition) {
+      if (submitTimer.current) {
+        clearTimeout(submitTimer.current);
+      }
+      submitTimer.current = window.setTimeout(() => {
+        if (text !== source) {
+          onChange(text);
+        }
+      }, delta);
+    }
+  };
+
   const classList = ['ItemEditor'];
   if (editing) {
     classList.push('editing');
@@ -79,8 +122,10 @@ export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, 
       onFocus={onFocus}
       onBlur={onBlur}
       onKeyDown={handleKeyDown}
-      value={source}
+      value={cache}
       onChange={handleChange}
+      onCompositionStart={onCompositionStart}
+      onCompositionEnd={onCompositionEnd}
     />
   );
 };

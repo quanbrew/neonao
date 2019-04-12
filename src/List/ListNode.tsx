@@ -187,7 +187,7 @@ export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
         •
       </div>
       <div ref={contentRef}>
-        <Editor onChange={onChange} source={item.source} editing={!!editing} {...operates} />
+        <Editor onChange={onChange} source={item.source} editing={!!editing} modified={item.modified} {...operates} />
       </div>
       <Children items={item.children} loaded={item.loaded} expand={item.expand} parentDragging={dragging} />
     </div>
