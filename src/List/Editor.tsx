@@ -109,9 +109,11 @@ export const Editor = ({
       } else {
         gotoNext();
       }
-    } else if (e.keyCode === keyboard.ENTER) {
-      if (!e.shiftKey) {
-        e.preventDefault();
+    } else if (e.keyCode === keyboard.ENTER && !e.shiftKey) {
+      e.preventDefault();
+      if (/$\s*^/.test(cache)) {
+        unIndent();
+      } else {
         create();
       }
     } else if (e.keyCode === keyboard.BACKSPACE && cache === '') {
