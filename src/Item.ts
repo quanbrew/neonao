@@ -1,5 +1,4 @@
 import { List } from 'immutable';
-import { EditorState } from 'draft-js';
 
 const uuid1 = require('uuid/v1');
 
@@ -10,17 +9,17 @@ export interface Item {
   parent?: ID;
   children: List<ID>;
   expand: boolean;
-  editor: EditorState;
+  source: string;
   deleted: boolean;
   loaded: boolean;
   modified: number;
 }
 
 export namespace Item {
-  export const create = (editor: EditorState, parent?: ID): Item => ({
+  export const create = (source: string, parent?: ID): Item => ({
     id: uuid1(),
     children: List(),
-    editor,
+    source,
     expand: true,
     deleted: false,
     loaded: true,

@@ -1,6 +1,5 @@
 import { ID, Item } from './Item';
 import { DropPosition, Mode, Tree } from './tree';
-import { EditorState } from 'draft-js';
 import {
   CREATE,
   DROP,
@@ -68,13 +67,13 @@ export const update = (item: Item, record: boolean = false): Update => ({
 export interface Edit {
   type: typeof EDIT;
   id: ID;
-  editor: EditorState;
+  source: string;
 }
 
-export const edit = (id: ID, editor: EditorState): Edit => ({
+export const edit = (id: ID, source: string): Edit => ({
   type: EDIT,
   id,
-  editor,
+  source,
 });
 
 export interface Create {

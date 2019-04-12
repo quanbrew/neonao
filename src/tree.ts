@@ -2,10 +2,6 @@ import { fromJS, Map } from 'immutable';
 import { ID, Item } from './Item';
 import { loadedState, LoadedState, patch, Patch } from './actions';
 import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
-import { RawDraftContentState, SelectionState } from 'draft-js';
-
-import(/* webpackChunkName: "editor" */
-'./editor');
 
 import(/* webpackChunkName: "localforage" */
 'localforage');
@@ -39,13 +35,11 @@ export const dragMode = (): DragMode => ({
 export interface EditMode {
   type: typeof EDIT_MODE;
   id: ID;
-  selection?: SelectionState;
 }
 
-export const editMode = (id: ID, selection?: SelectionState): EditMode => ({
+export const editMode = (id: ID): EditMode => ({
   type: EDIT_MODE,
   id,
-  selection,
 });
 
 export interface SelectMode {
@@ -61,16 +55,15 @@ export interface DetailMode {
 
 export const saveTreeState = async (state: Tree | null) => {
   if (!state) return;
-  const { editorToRow } = await import('./editor');
   const localForage = await import('localforage');
   if (!state.root) return;
   await localForage.setItem('root', state.root);
-  const toJSON = ({ id, expand, editor, children, parent, modified }: Item): ExportedItem => ({
+  const toJSON = ({ id, expand, source, children, parent, modified }: Item): ExportedItem => ({
     id,
     expand,
     parent,
     children: children.toJS(),
-    rawContent: editorToRow(editor),
+    source,
     modified,
   });
   state.map.forEach((item: Item, key: ID) => localForage.setItem(key, toJSON(item)));
@@ -79,15 +72,14 @@ export const saveTreeState = async (state: Tree | null) => {
 
 const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
   const localForage = await import('localforage');
-  const { editorFromRaw } = await import('./editor');
   const raw = await localForage.getItem<ExportedItem>(id);
-  const fromJSON = ({ id, expand, rawContent, children, parent, modified }: ExportedItem): Item => ({
+  const fromJSON = ({ id, expand, source, children, parent, modified }: ExportedItem): Item => ({
     id,
     expand,
     parent,
     modified,
     children: fromJS(children),
-    editor: editorFromRaw(rawContent),
+    source,
     deleted: false,
     loaded: children.length === 0,
   });
@@ -126,13 +118,11 @@ export interface ExportedItem {
   children: ID[];
   expand: boolean;
   modified: number;
-  rawContent: RawDraftContentState;
+  source: string;
 }
 
 const createEmptyState = async (): Promise<LoadedState> => {
-  const { createEditorWithText } = await import('./editor');
-  const text = 'Hello, this is an empty notebook.';
-  const root = Item.create(createEditorWithText(text));
+  const root = Item.create('root');
   const rootID = root.id;
   const map: ItemMap = Map({ [rootID]: root });
   const state = { root: rootID, map, mode: normalMode() };

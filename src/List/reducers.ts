@@ -97,18 +97,14 @@ const unIndent = (tree: Tree, action: UnIndent): Tree => {
 let saveTimer: Timeout | null = null;
 
 const edit = (prevTree: Tree, action: Edit): { state: Tree; record: boolean } => {
-  let record = false;
-  const { id, editor } = action;
+  const { id, source } = action;
   const prevItem = getItem(prevTree.map, id);
-  const prevEditor = prevItem.editor;
-  if (prevEditor === editor) return { state: prevTree, record };
-  const prevContent = prevEditor.getCurrentContent().getPlainText();
-  const nextContent = editor.getCurrentContent().getPlainText();
-  record = prevContent !== nextContent;
-  const item = { ...prevItem, editor, modified: Date.now() };
+  const prevSource = prevItem.source;
+  if (prevSource === source) return { state: prevTree, record: false };
+  const item = { ...prevItem, source, modified: Date.now() };
   const map = prevTree.map.set(id, item);
   const state = { ...prevTree, map };
-  return { state, record };
+  return { state, record: true };
 };
 
 const reorder = (tree: Tree, action: Reorder): Tree => {
@@ -232,7 +228,7 @@ export const listReducer = (state: ListState, action: ListAction): ListState => 
   switch (action.type) {
     case UNDO:
       if (!tree) break;
-      const prev = history.last() || null;
+      const prev = history.last(null);
       if (prev) {
         future = future.push(tree);
         history = history.pop();
@@ -242,7 +238,7 @@ export const listReducer = (state: ListState, action: ListAction): ListState => 
       break;
     case REDO:
       if (!tree) break;
-      const futureState = future.last() || null;
+      const futureState = future.last(null);
       if (futureState) {
         history = history.push(tree);
         future = future.pop();

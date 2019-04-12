@@ -3,7 +3,6 @@ import { loadTreeState } from '../tree';
 import { Item } from '../Item';
 import { Children } from './Children';
 import { create, fetchAll } from '../actions';
-import { emptyEditor } from '../editor';
 import { useDispatch } from './List';
 
 interface Props {
@@ -23,7 +22,7 @@ const useLoadRoot = (root: Item | null) => {
       dispatch(fetchAll());
       loadTreeState(3).then(dispatch);
     } else if (root.children.size === 0) {
-      dispatch(create(Item.create(emptyEditor, root.id)));
+      dispatch(create(Item.create('', root.id)));
     }
   }, [root]);
 };

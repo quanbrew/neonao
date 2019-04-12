@@ -1,16 +1,14 @@
 import React, { DragEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 
 import { ID, Item } from '../Item';
-import { EditorState } from 'draft-js';
 import { dragMode, DropPosition, EditMode, editMode, loadItemState, normalMode } from '../tree';
 import * as actions from '../actions';
 import { unIndent } from '../actions';
 import './ListNode.scss';
 // import { EDIT_MODE } from '../constants';
 import { Children } from './Children';
-import { ItemEditor } from './ItemEditor';
-import { emptyEditor } from '../editor';
 import { Dispatch, useDispatch } from './List';
+import { Editor } from './Editor';
 
 const DRAGGING_CLASS = 'node-dragging';
 const DROP_DATA_TYPE = 'text/list-node-id';
@@ -138,7 +136,7 @@ const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null
     }
   }, [parent]);
   const create = useCallback(() => {
-    dispatch(actions.create(Item.create(emptyEditor, parent)));
+    dispatch(actions.create(Item.create('', parent)));
   }, [parent]);
   const remove = useCallback(() => {
     if (childCount === 0) {
@@ -161,7 +159,7 @@ const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null
 export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
   const dispatch = useDispatch();
   useLoadChildren(item, dispatch);
-  const onChange = useCallback((editor: EditorState) => dispatch(actions.edit(item.id, editor)), [item]);
+  const onChange = useCallback((source: string) => dispatch(actions.edit(item.id, source)), [item]);
   const operates = useEditOperate(dispatch, item, editing);
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -189,7 +187,7 @@ export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
         •
       </div>
       <div ref={contentRef}>
-        <ItemEditor onChange={onChange} editor={item.editor} editing={!!editing} {...operates} />
+        <Editor onChange={onChange} source={item.source} editing={!!editing} {...operates} />
       </div>
       <Children items={item.children} loaded={item.loaded} expand={item.expand} parentDragging={dragging} />
     </div>
