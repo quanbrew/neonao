@@ -65,12 +65,13 @@ export const saveTreeState = async (state: Tree | null) => {
   const localForage = await import('localforage');
   if (!state.root) return;
   await localForage.setItem('root', state.root);
-  const toJSON = ({ id, expand, editor, children, parent }: Item): ExportedItem => ({
+  const toJSON = ({ id, expand, editor, children, parent, modified }: Item): ExportedItem => ({
     id,
     expand,
     parent,
     children: children.toJS(),
     rawContent: editorToRow(editor),
+    modified,
   });
   state.map.forEach((item: Item, key: ID) => localForage.setItem(key, toJSON(item)));
   console.debug('saved');
@@ -80,10 +81,11 @@ const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
   const localForage = await import('localforage');
   const { editorFromRaw } = await import('./editor');
   const raw = await localForage.getItem<ExportedItem>(id);
-  const fromJSON = ({ id, expand, rawContent, children, parent }: ExportedItem): Item => ({
+  const fromJSON = ({ id, expand, rawContent, children, parent, modified }: ExportedItem): Item => ({
     id,
     expand,
     parent,
+    modified,
     children: fromJS(children),
     editor: editorFromRaw(rawContent),
     deleted: false,
@@ -123,6 +125,7 @@ export interface ExportedItem {
   parent?: ID;
   children: ID[];
   expand: boolean;
+  modified: number;
   rawContent: RawDraftContentState;
 }
 

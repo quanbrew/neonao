@@ -13,6 +13,7 @@ export interface Item {
   editor: EditorState;
   deleted: boolean;
   loaded: boolean;
+  modified: number;
 }
 
 export namespace Item {
@@ -24,5 +25,6 @@ export namespace Item {
     deleted: false,
     loaded: true,
     parent,
+    modified: Date.now(),
   });
 }

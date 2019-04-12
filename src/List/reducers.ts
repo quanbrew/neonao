@@ -104,7 +104,7 @@ const edit = (prevTree: Tree, action: Edit): { state: Tree; record: boolean } =>
   const oldEditor = oldItem.editor;
   // TODO: Disable draft-js undo stack and implement record judgement.
   record = oldEditor.getUndoStack() !== editor.getUndoStack();
-  const item = { ...oldItem, editor };
+  const item = { ...oldItem, editor, modified: Date.now() };
   const map = prevTree.map.set(id, item);
   const state = { ...prevTree, map };
   return { state, record };
