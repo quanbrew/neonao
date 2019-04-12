@@ -216,3 +216,53 @@ export const emptyTree: Tree = {
   map: Map(),
   mode: normalMode(),
 };
+
+export const getLastNode = (map: ItemMap, item: Item): Item => {
+  if (item.children.size === 0) {
+    return item;
+  } else {
+    const lastChild = getItem(map, item.children.last(null));
+    return getLastNode(map, lastChild);
+  }
+};
+
+export const getPrevItem = (map: ItemMap, item: Item, parent?: Item): Item => {
+  parent = parent || getItem(map, item.parent);
+  const position = getItemPosition(item.id, parent);
+  if (position === 0) {
+    return parent;
+  } else {
+    const prev = getItem(map, parent.children.get(position - 1, null));
+    return getLastNode(map, prev);
+  }
+};
+
+const getNextSibling = (map: ItemMap, item: Item): ID => {
+  const parent = getItem(map, item.parent);
+  const position = getItemPosition(item.id, parent);
+  const siblingId = parent.children.get(position + 1, null);
+  if (siblingId) {
+    return siblingId;
+  } else if (parent.parent) {
+    return getNextSibling(map, parent);
+  } else {
+    return parent.id;
+  }
+};
+
+export const getNextItemID = (map: ItemMap, item: Item): ID => {
+  const firstChild = item.children.first(null);
+  if (firstChild) {
+    return firstChild;
+  }
+  const parent = getItem(map, item.parent);
+  const position = getItemPosition(item.id, parent);
+  const next = parent.children.get(position + 1, null);
+  if (next) {
+    return next;
+  } else if (parent.parent) {
+    return getNextSibling(map, parent);
+  } else {
+    return item.id;
+  }
+};

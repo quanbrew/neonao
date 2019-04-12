@@ -3,7 +3,6 @@ import React, { DragEventHandler, useCallback, useEffect, useRef, useState } fro
 import { ID, Item } from '../Item';
 import { dragMode, DropPosition, EditMode, editMode, loadItemState, normalMode } from '../tree';
 import * as actions from '../actions';
-import { unIndent } from '../actions';
 import './ListNode.scss';
 // import { EDIT_MODE } from '../constants';
 import { Children } from './Children';
@@ -101,42 +100,44 @@ const useDragAndDrop = (id: ID, dispatch: Dispatch, contentRef: ContentRef, pare
 };
 
 export interface EditOperator {
-  up: () => void;
-  down: () => void;
-  left: () => void;
-  right: () => void;
+  swapUp: () => void;
+  swapDown: () => void;
+  unIndent: () => void;
+  indent: () => void;
   create: () => void;
   remove: () => void;
   toggle: () => void;
   edit: () => void;
+  gotoNext: () => void;
+  gotoPrev: () => void;
 }
 
 const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): EditOperator => {
   const id = item.id;
   const parent = item.parent;
   const childCount = item.children.size;
-  const up = useCallback(() => {
+  const swapUp = useCallback(() => {
     if (parent) {
       dispatch(actions.reorder(id, -1));
     }
   }, [parent]);
-  const down = useCallback(() => {
+  const swapDown = useCallback(() => {
     if (parent) {
       dispatch(actions.reorder(id, 1));
     }
   }, [parent]);
-  const left = useCallback(() => {
+  const unIndent = useCallback(() => {
     if (parent) {
-      dispatch(unIndent(id, parent));
+      dispatch(actions.unIndent(id, parent));
     }
   }, [parent]);
-  const right = useCallback(() => {
+  const indent = useCallback(() => {
     if (parent) {
       dispatch(actions.indent(id, parent));
     }
   }, [parent]);
   const create = useCallback(() => {
-    dispatch(actions.create(Item.create('', parent)));
+    dispatch(actions.create(Item.create('', parent), id));
   }, [parent]);
   const remove = useCallback(() => {
     if (childCount === 0) {
@@ -153,7 +154,13 @@ const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null
       dispatch(actions.switchMode(editMode(id)));
     }
   }, [editing]);
-  return { up, down, left, right, remove, create, toggle, edit };
+  const gotoNext = () => {
+    dispatch(actions.gotoNext(id));
+  };
+  const gotoPrev = () => {
+    dispatch(actions.gotoPrev(id));
+  };
+  return { swapUp, swapDown, unIndent, indent, remove, create, toggle, edit, gotoNext, gotoPrev };
 };
 
 export const ListNode = ({ item, id, parentDragging, editing }: Props) => {

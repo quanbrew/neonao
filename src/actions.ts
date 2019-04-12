@@ -6,6 +6,8 @@ import {
   EDIT,
   EXPAND,
   FOLD,
+  GOTO_NEXT,
+  GOTO_PREV,
   INDENT,
   LOADED_STATE,
   PATCH,
@@ -37,6 +39,8 @@ export type TreeAction =
   | Indent
   | UnIndent
   | SwitchMode
+  | GotoNext
+  | GotoPrev
   | Drop;
 
 export interface FetchAll {
@@ -79,13 +83,13 @@ export const edit = (id: ID, source: string): Edit => ({
 export interface Create {
   type: typeof CREATE;
   item: Item;
-  order?: number;
+  above?: ID;
 }
 
-export const create = (item: Item, order?: number): Create => ({
+export const create = (item: Item, above?: ID): Create => ({
   type: CREATE,
   item,
-  order,
+  above,
 });
 
 export interface Zoom {
@@ -207,3 +211,17 @@ export const drop = (id: ID, target: ID, position: DropPosition): Drop => ({
   target,
   position,
 });
+
+export interface GotoNext {
+  type: typeof GOTO_NEXT;
+  id: ID;
+}
+
+export const gotoNext = (id: ID): GotoNext => ({ type: GOTO_NEXT, id });
+
+export interface GotoPrev {
+  type: typeof GOTO_PREV;
+  id: ID;
+}
+
+export const gotoPrev = (id: ID): GotoPrev => ({ type: GOTO_PREV, id });

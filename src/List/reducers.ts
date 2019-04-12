@@ -4,6 +4,8 @@ import {
   Edit,
   Expand,
   Fold,
+  GotoNext,
+  GotoPrev,
   Indent,
   ListAction,
   Remove,
@@ -19,6 +21,8 @@ import {
   getItem,
   getItemAndParent,
   getItemPosition,
+  getNextItemID,
+  getPrevItem,
   mergeTree,
   Mode,
   moveInto,
@@ -33,6 +37,8 @@ import {
   EDIT,
   EXPAND,
   FOLD,
+  GOTO_NEXT,
+  GOTO_PREV,
   INDENT,
   LOADED_STATE,
   PATCH,
@@ -56,7 +62,13 @@ const create = (tree: Tree, create: Create): Tree => {
   let map = tree.map;
   const parent = getItem(map, parentID);
   const item = create.item;
-  const children = parent.children.unshift(item.id);
+  let children: List<ID>;
+  if (create.above) {
+    const abovePosition = parent.children.indexOf(create.above);
+    children = parent.children.insert(abovePosition + 1, item.id);
+  } else {
+    children = parent.children.unshift(item.id);
+  }
   map = map.set(item.id, item);
   map = map.set(parentID, { ...parent, children });
   const mode: Mode = editMode(item.id);
@@ -67,9 +79,11 @@ const handleRemove = (tree: Tree, remove: Remove): Tree => {
   let map = tree.map;
   const itemID = remove.id;
   const [item, parent] = getItemAndParent(map, itemID);
+  const prev = getPrevItem(map, item);
+  const mode = editMode(prev.id);
   const children = List<ID>(parent.children.filter(v => v !== item.id));
   map = map.set(parent.id, { ...parent, children });
-  return { ...tree, map };
+  return { ...tree, map, mode };
 };
 
 const indent = (tree: Tree, action: Indent): Tree => {
@@ -159,6 +173,24 @@ const toggle = (tree: Tree, action: Toggle | Expand | Fold): Tree => {
   return { ...tree, map };
 };
 
+const gotoNext = (tree: Tree, action: GotoNext): Tree => {
+  const item = getItem(tree.map, action.id);
+  const nextId = getNextItemID(tree.map, item);
+  if (nextId !== tree.root) {
+    return { ...tree, mode: editMode(nextId) };
+  } else {
+    return tree;
+  }
+};
+
+const gotoPrev = (tree: Tree, action: GotoPrev): Tree => {
+  const item = getItem(tree.map, action.id);
+  const prev = getPrevItem(tree.map, item);
+  if (prev.id === tree.root) return tree;
+  const mode = editMode(prev.id);
+  return { ...tree, mode };
+};
+
 const treeReducer = (state: Tree, action: TreeAction): { next: Tree; record: boolean; save: boolean } => {
   let record = true;
   let save = true;
@@ -199,6 +231,16 @@ const treeReducer = (state: Tree, action: TreeAction): { next: Tree; record: boo
       break;
     case SWITCH_MODE:
       next = { ...state, mode: action.mode };
+      record = false;
+      save = false;
+      break;
+    case GOTO_NEXT:
+      next = gotoNext(state, action);
+      record = false;
+      save = false;
+      break;
+    case GOTO_PREV:
+      next = gotoPrev(state, action);
       record = false;
       save = false;
       break;

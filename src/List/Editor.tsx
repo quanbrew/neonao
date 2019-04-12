@@ -48,7 +48,22 @@ const useAutoHeight = (text: string, inputRef: React.RefObject<Input>) => {
   }, [text]);
 };
 
-export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, create, editing, modified }: Props) => {
+export const Editor = ({
+  source,
+  onChange,
+  toggle,
+  unIndent,
+  indent,
+  edit,
+  swapUp,
+  swapDown,
+  create,
+  editing,
+  modified,
+  remove,
+  gotoNext,
+  gotoPrev,
+}: Props) => {
   const submitTimer = useRef<number | null>(null);
   const cacheModified = useRef<number>(Date.now());
 
@@ -76,23 +91,35 @@ export const Editor = ({ source, onChange, toggle, left, right, edit, up, down, 
     } else if (e.keyCode === keyboard.TAB) {
       e.preventDefault();
       if (e.shiftKey) {
-        left();
+        unIndent();
       } else {
-        right();
+        indent();
       }
     } else if (e.keyCode === keyboard.UP_ARROW) {
       e.preventDefault();
       if (e.shiftKey) {
-        up();
+        swapUp();
+      } else {
+        gotoPrev();
       }
     } else if (e.keyCode === keyboard.DOWN_ARROW) {
       e.preventDefault();
       if (e.shiftKey) {
-        down();
+        swapDown();
+      } else {
+        gotoNext();
       }
     } else if (e.keyCode === keyboard.ENTER) {
+      if (!e.shiftKey) {
+        e.preventDefault();
+        create();
+      }
+    } else if (e.keyCode === keyboard.BACKSPACE && cache === '') {
       e.preventDefault();
-      create();
+      remove();
+    } else if (e.keyCode === keyboard.PERIOD && e.metaKey) {
+      e.preventDefault();
+      toggle();
     }
   };
 
