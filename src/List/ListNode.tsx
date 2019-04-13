@@ -83,7 +83,7 @@ const useDragAndDrop = (
       const dropId = getDropId(e);
       e.stopPropagation();
       if (dropId === id) return;
-      e.preventDefault();
+      e.preventDefault(); // accept drop
       setIsOver(null);
       dispatch(actions.drop(getDropId(e), id, computeDropPosition(e, rect)));
     }
@@ -122,57 +122,61 @@ export interface EditOperator {
   edit: () => void;
   gotoNext: () => void;
   gotoPrev: () => void;
+  exitEdit: () => void;
 }
 
 const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): EditOperator => {
   const id = item.id;
   const parent = item.parent;
   const childCount = item.children.size;
-  const swapUp = useCallback(() => {
+  const swapUp = () => {
     if (parent) {
       dispatch(actions.reorder(id, -1));
     }
-  }, [parent]);
-  const swapDown = useCallback(() => {
+  };
+  const swapDown = () => {
     if (parent) {
       dispatch(actions.reorder(id, 1));
     }
-  }, [parent]);
-  const unIndent = useCallback(() => {
+  };
+  const unIndent = () => {
     if (parent) {
       dispatch(actions.unIndent(id, parent));
     }
-  }, [parent]);
-  const indent = useCallback(() => {
+  };
+  const indent = () => {
     if (parent) {
       dispatch(actions.indent(id, parent));
     }
-  }, [parent]);
-  const create = useCallback(() => {
+  };
+  const create = () => {
     dispatch(actions.create(Item.create('', parent), id));
-  }, [parent]);
-  const remove = useCallback(() => {
+  };
+  const remove = () => {
     if (childCount === 0) {
       dispatch(actions.remove(id));
     }
-  }, [childCount]);
-  const toggle = useCallback(() => {
+  };
+  const toggle = () => {
     if (childCount > 0) {
       dispatch(actions.toggle(id));
     }
-  }, [childCount]);
-  const edit = useCallback(() => {
+  };
+  const edit = () => {
     if (!editing) {
       dispatch(actions.switchMode(editMode(id)));
     }
-  }, [editing]);
+  };
   const gotoNext = () => {
     dispatch(actions.gotoNext(id));
   };
   const gotoPrev = () => {
     dispatch(actions.gotoPrev(id));
   };
-  return { swapUp, swapDown, unIndent, indent, remove, create, toggle, edit, gotoNext, gotoPrev };
+  const exitEdit = () => {
+    dispatch(actions.switchMode(normalMode()));
+  };
+  return { swapUp, swapDown, unIndent, indent, remove, create, toggle, edit, gotoNext, gotoPrev, exitEdit };
 };
 
 export const ListNode = ({ item, id, parentDragging, editing }: Props) => {

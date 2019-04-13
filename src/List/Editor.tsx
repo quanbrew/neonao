@@ -63,6 +63,7 @@ export const Editor = ({
   remove,
   gotoNext,
   gotoPrev,
+  exitEdit,
 }: Props) => {
   const submitTimer = useRef<number | null>(null);
   const cacheModified = useRef<number>(Date.now());
@@ -133,7 +134,7 @@ export const Editor = ({
 
   const onBlur: React.FocusEventHandler<Input> = () => {
     if (editing) {
-      // TODO: switch mode
+      exitEdit();
     }
   };
 
