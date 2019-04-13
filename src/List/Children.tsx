@@ -31,7 +31,7 @@ const NodeList = ({ items, parentDragging }: Pick<Props, 'items' | 'parentDraggi
   return <div className="children">{items.map(mapper)}</div>;
 };
 
-const DummyList = (length: { length: number }) => {
+const DummyList = ({ length }: { length: number }) => {
   const dummyList = [...Array(length).keys()].map(key => <li key={key}>Loading...</li>);
   return <div className="children">{dummyList}</div>;
 };

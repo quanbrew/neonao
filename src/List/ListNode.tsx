@@ -19,13 +19,10 @@ export interface Props {
 }
 
 const useLoadChildren = (item: Item, dispatch: Dispatch) => {
-  const init = useRef(true);
-  useEffect(() => {
-    if (init.current) {
-      init.current = false;
-      if (!item.loaded) loadItemState(item).then(dispatch);
-    }
-  });
+  const loadChildren = () => {
+    if (!item.loaded) loadItemState(item).then(dispatch);
+  };
+  useEffect(loadChildren, [item.loaded]);
 };
 
 interface DragAndDrop {
