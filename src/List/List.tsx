@@ -1,10 +1,8 @@
 import * as React from 'react';
-import { useContext, useReducer, useRef } from 'react';
+import { useContext } from 'react';
 import Root from './Root';
 import { getItem, Tree } from '../tree';
 import { ListAction, redo, undo } from '../actions';
-import { initListState, listReducer } from './reducers';
-import { isRedoKey, isUndoKey } from '../keyboard';
 
 export const TreeContext: React.Context<Tree | null> = React.createContext(null);
 export type Dispatch = React.Dispatch<ListAction>;
@@ -24,32 +22,24 @@ export const useTree = (): Tree => {
   return tree;
 };
 
-export const List = React.memo(() => {
-  const [listState, dispatch] = useReducer(listReducer, initListState);
-  const { tree } = listState;
-  const root = tree ? getItem(tree.map, tree.root) : null;
-  const undoRef = useRef<HTMLButtonElement>(null);
-  const redoRef = useRef<HTMLButtonElement>(null);
+interface Props {
+  tree: Tree | null;
+  dispatch: Dispatch;
+  emptyFuture: boolean;
+  emptyHistory: boolean;
+}
 
-  const handleKeyDown: React.KeyboardEventHandler = e => {
-    if (isUndoKey(e)) {
-      e.stopPropagation();
-      e.preventDefault();
-      if (undoRef.current) undoRef.current.click();
-    } else if (isRedoKey(e)) {
-      e.stopPropagation();
-      e.preventDefault();
-      if (redoRef.current) redoRef.current.click();
-    }
-  };
+export const List = React.memo(({ tree, dispatch, emptyFuture, emptyHistory }: Props) => {
+  const root = tree ? getItem(tree.map, tree.root) : null;
+
   const handleUndo = () => dispatch(undo);
   const handleRedo = () => dispatch(redo);
   return (
-    <div onKeyDownCapture={handleKeyDown}>
-      <button ref={undoRef} onClick={handleUndo} disabled={listState.history.size === 0}>
+    <div>
+      <button id="undo" onClick={handleUndo} disabled={emptyHistory}>
         UNDO
       </button>
-      <button ref={redoRef} onClick={handleRedo} disabled={listState.future.size === 0}>
+      <button id="redo" onClick={handleRedo} disabled={emptyFuture}>
         REDO
       </button>
       <DispatchContext.Provider value={dispatch}>

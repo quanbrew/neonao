@@ -49,7 +49,6 @@ const computeDropPosition = (e: React.DragEvent, rect: Rect): DropPosition => {
 
   const top = Math.abs(y - rect.top);
   const bottom = Math.abs(y - rect.bottom);
-  console.log(`Y: ${y} top: ${top} ${bottom}`);
   return top > bottom ? 'below' : 'above';
 };
 
@@ -61,6 +60,7 @@ const useDragAndDrop = (
 ): DragAndDrop => {
   const [dragging, setDragging] = useState(false);
   const [isOver, setIsOver] = useState<DropPosition | null>(null);
+  const ignoreOverCounter = useRef(5);
   const onDragStart: DragEventHandler = e => {
     e.dataTransfer.setData(DROP_DATA_TYPE, id);
     e.dataTransfer.effectAllowed = 'move';
@@ -91,10 +91,10 @@ const useDragAndDrop = (
   };
   const onDragOver: DragEventHandler = e => {
     if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
     if (canDrop(e)) {
       e.preventDefault();
       e.stopPropagation();
+      const rect = ref.current.getBoundingClientRect();
       const position = computeDropPosition(e, rect);
       if (position !== isOver) {
         setIsOver(position);
