@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useReducer } from 'react';
-import List from './List/List';
+import List from './List';
 import { initListState, listReducer } from './reducers';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
 import { ListAction, redo, startLoad, undo } from './actions';

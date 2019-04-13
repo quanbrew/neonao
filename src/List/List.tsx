@@ -50,5 +50,3 @@ export const List = React.memo(({ tree, dispatch, emptyFuture, emptyHistory }: P
     </div>
   );
 });
-
-export default List;
