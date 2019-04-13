@@ -2,12 +2,12 @@ import { List } from 'immutable';
 
 const uuid1 = require('uuid/v1');
 
-export type ID = string;
+export type Id = string;
 
 export interface Item {
-  id: ID;
-  parent?: ID;
-  children: List<ID>;
+  id: Id;
+  parent?: Id;
+  children: List<Id>;
   expand: boolean;
   source: string;
   deleted: boolean;
@@ -16,7 +16,7 @@ export interface Item {
 }
 
 export namespace Item {
-  export const create = (source: string, parent?: ID): Item => ({
+  export const create = (source: string, parent?: Id): Item => ({
     id: uuid1(),
     children: List(),
     source,

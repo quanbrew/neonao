@@ -1,15 +1,15 @@
 import { fromJS, Map } from 'immutable';
-import { ID, Item } from './Item';
+import { Id, Item } from './Item';
 import { loadedState, LoadedState, patch, Patch } from './actions';
 import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
 
 import(/* webpackChunkName: "localforage" */
 'localforage');
 
-export type ItemMap = Map<ID, Item>;
+export type ItemMap = Map<Id, Item>;
 
 export interface Tree {
-  root: ID;
+  root: Id;
   map: ItemMap;
   mode: Mode;
 }
@@ -34,23 +34,23 @@ export const dragMode = (): DragMode => ({
 
 export interface EditMode {
   type: typeof EDIT_MODE;
-  id: ID;
+  id: Id;
 }
 
-export const editMode = (id: ID): EditMode => ({
+export const editMode = (id: Id): EditMode => ({
   type: EDIT_MODE,
   id,
 });
 
 export interface SelectMode {
   type: typeof SELECT_MODE;
-  selected: ID[];
+  selected: Id[];
   cut: boolean;
 }
 
 export interface DetailMode {
   type: typeof DETAIL_MODE;
-  id: ID;
+  id: Id;
 }
 
 export const saveTreeState = async (state: Tree | null) => {
@@ -66,11 +66,11 @@ export const saveTreeState = async (state: Tree | null) => {
     source,
     modified,
   });
-  state.map.forEach((item: Item, key: ID) => localForage.setItem(key, toJSON(item)));
+  state.map.forEach((item: Item, key: Id) => localForage.setItem(key, toJSON(item)));
   console.debug('saved');
 };
 
-const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
+const getItemByIdFromStorage = async (id: Id): Promise<Item | null> => {
   const localForage = await import('localforage');
   const raw = await localForage.getItem<ExportedItem>(id);
   const fromJSON = ({ id, expand, source, children, parent, modified }: ExportedItem): Item => ({
@@ -93,8 +93,8 @@ const getItemByIDFromStorage = async (id: ID): Promise<Item | null> => {
 };
 
 const loadChildren = async (item: Item | null, maxLevel: number): Promise<ItemMap> => {
-  const mapper = async (childID: ID): Promise<ItemMap> => {
-    const item = await getItemByIDFromStorage(childID);
+  const mapper = async (childId: Id): Promise<ItemMap> => {
+    const item = await getItemByIdFromStorage(childId);
     return loadChildren(item, maxLevel - 1);
   };
 
@@ -113,9 +113,9 @@ const loadChildren = async (item: Item | null, maxLevel: number): Promise<ItemMa
 };
 
 export interface ExportedItem {
-  id: ID;
-  parent?: ID;
-  children: ID[];
+  id: Id;
+  parent?: Id;
+  children: Id[];
   expand: boolean;
   modified: number;
   source: string;
@@ -123,9 +123,9 @@ export interface ExportedItem {
 
 const createEmptyState = async (): Promise<LoadedState> => {
   const root = Item.create('root');
-  const rootID = root.id;
-  const map: ItemMap = Map({ [rootID]: root });
-  const state = { root: rootID, map, mode: normalMode() };
+  const rootId = root.id;
+  const map: ItemMap = Map({ [rootId]: root });
+  const state = { root: rootId, map, mode: normalMode() };
   return loadedState(state);
 };
 
@@ -137,15 +137,15 @@ export const loadItemState = async (item: Item, maxLevel: number = 2): Promise<P
 
 export const loadTreeState = async (maxLevel: number = 128): Promise<LoadedState> => {
   const localForage = await import('localforage');
-  const rootID = await localForage.getItem<ID>('root');
-  if (!rootID) return await createEmptyState();
-  const root = await getItemByIDFromStorage(rootID);
+  const rootId = await localForage.getItem<Id>('root');
+  if (!rootId) return await createEmptyState();
+  const root = await getItemByIdFromStorage(rootId);
   const map = await loadChildren(root, maxLevel);
   console.log('loaded');
-  return await loadedState({ root: rootID, map, mode: normalMode() });
+  return await loadedState({ root: rootId, map, mode: normalMode() });
 };
 
-export const isChildrenOf = (map: ItemMap, child: ID, parent: ID): boolean => {
+export const isChildrenOf = (map: ItemMap, child: Id, parent: Id): boolean => {
   if (child === parent) return false;
   let now = map.get(child) || null;
   while (now && now.id !== parent && now.parent) {
@@ -155,28 +155,28 @@ export const isChildrenOf = (map: ItemMap, child: ID, parent: ID): boolean => {
 };
 
 export class NotFound extends Error {
-  id: ID | null;
+  id: Id | null;
 
-  constructor(id: ID | null = null) {
+  constructor(id: Id | null = null) {
     super('Some node not found');
     Object.setPrototypeOf(this, NotFound.prototype);
     this.id = id;
   }
 }
 
-export const getItem = (map: ItemMap, id: ID | null | undefined): Item => {
+export const getItem = (map: ItemMap, id: Id | null | undefined): Item => {
   if (!id) throw new NotFound();
   const item = map.get(id) || null;
   if (!item) throw new NotFound(id);
   return item;
 };
-export const getItemAndParent = (map: ItemMap, id: ID | null | undefined): [Item, Item] => {
+export const getItemAndParent = (map: ItemMap, id: Id | null | undefined): [Item, Item] => {
   const item = getItem(map, id);
   const parent = getItem(map, item.parent);
   return [item, parent];
 };
 
-export const getItemPosition = (id: ID, parent: Item): number => {
+export const getItemPosition = (id: Id, parent: Item): number => {
   const index = parent.children.indexOf(id);
   if (index < 0) throw Error("can't get item position in parent");
   return index;
@@ -187,12 +187,12 @@ export const mergeTree = (old: Tree, next: Partial<Tree>): Tree => {
   return { ...old, ...next, map };
 };
 
-const resetItemParent = (map: ItemMap, id: ID, parent: ID): ItemMap => {
+const resetItemParent = (map: ItemMap, id: Id, parent: Id): ItemMap => {
   const item = getItem(map, id);
   return map.set(id, { ...item, parent });
 };
 
-export const moveInto = (map: ItemMap, id: ID, parentId: ID, nextParentId: ID, order: number): ItemMap => {
+export const moveInto = (map: ItemMap, id: Id, parentId: Id, nextParentId: Id, order: number): ItemMap => {
   if (id === nextParentId || isChildrenOf(map, nextParentId, id) || order < 0) {
     console.warn('self-contained move');
     return map;
@@ -231,7 +231,7 @@ export const getPrevItem = (map: ItemMap, item: Item, parent?: Item): Item => {
   }
 };
 
-const getNextSibling = (map: ItemMap, item: Item): ID => {
+const getNextSibling = (map: ItemMap, item: Item): Id => {
   const parent = getItem(map, item.parent);
   const position = getItemPosition(item.id, parent);
   const siblingId = parent.children.get(position + 1, null);
@@ -244,7 +244,7 @@ const getNextSibling = (map: ItemMap, item: Item): ID => {
   }
 };
 
-export const getNextItemID = (map: ItemMap, item: Item): ID => {
+export const getNextItemId = (map: ItemMap, item: Item): Id => {
   const firstChild = item.children.first(null);
   if (firstChild) {
     return firstChild;

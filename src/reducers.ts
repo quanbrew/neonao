@@ -14,14 +14,14 @@ import {
   TreeAction,
   UnIndent,
 } from './actions';
-import { ID } from './Item';
+import { Id } from './Item';
 import { List } from 'immutable';
 import {
   editMode,
   getItem,
   getItemAndParent,
   getItemPosition,
-  getNextItemID,
+  getNextItemId,
   getPrevItem,
   mergeTree,
   Mode,
@@ -56,13 +56,13 @@ type Timeout = number;
 const saveTimeout = 200;
 
 const create = (tree: Tree, create: Create): Tree => {
-  const parentID = create.item.parent;
-  if (!parentID) throw Error('create note without parent');
+  const parentId = create.item.parent;
+  if (!parentId) throw Error('create note without parent');
 
   let map = tree.map;
-  const parent = getItem(map, parentID);
+  const parent = getItem(map, parentId);
   const item = create.item;
-  let children: List<ID>;
+  let children: List<Id>;
   if (create.above) {
     const abovePosition = parent.children.indexOf(create.above);
     children = parent.children.insert(abovePosition + 1, item.id);
@@ -70,18 +70,18 @@ const create = (tree: Tree, create: Create): Tree => {
     children = parent.children.unshift(item.id);
   }
   map = map.set(item.id, item);
-  map = map.set(parentID, { ...parent, children });
+  map = map.set(parentId, { ...parent, children });
   const mode: Mode = editMode(item.id);
   return { ...tree, map, mode };
 };
 
 const handleRemove = (tree: Tree, remove: Remove): Tree => {
   let map = tree.map;
-  const itemID = remove.id;
-  const [item, parent] = getItemAndParent(map, itemID);
+  const itemId = remove.id;
+  const [item, parent] = getItemAndParent(map, itemId);
   const prev = getPrevItem(map, item);
   const mode = editMode(prev.id);
-  const children = List<ID>(parent.children.filter(v => v !== item.id));
+  const children = List<Id>(parent.children.filter(v => v !== item.id));
   map = map.set(parent.id, { ...parent, children });
   return { ...tree, map, mode };
 };
@@ -175,7 +175,7 @@ const toggle = (tree: Tree, action: Toggle | Expand | Fold): Tree => {
 
 const gotoNext = (tree: Tree, action: GotoNext): Tree => {
   const item = getItem(tree.map, action.id);
-  const nextId = getNextItemID(tree.map, item);
+  const nextId = getNextItemId(tree.map, item);
   if (nextId !== tree.root) {
     return { ...tree, mode: editMode(nextId) };
   } else {

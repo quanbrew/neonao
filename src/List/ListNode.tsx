@@ -1,6 +1,6 @@
 import React, { DragEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 
-import { ID, Item } from '../Item';
+import { Id, Item } from '../Item';
 import { dragMode, DropPosition, EditMode, editMode, loadItemState, normalMode } from '../tree';
 import * as actions from '../actions';
 import './ListNode.scss';
@@ -12,7 +12,7 @@ const DRAGGING_CLASS = 'node-dragging';
 const DROP_DATA_TYPE = 'text/list-node-id';
 
 export interface Props {
-  id: ID;
+  id: Id;
   item: Item;
   editing: null | EditMode;
   parentDragging: boolean;
@@ -35,7 +35,7 @@ interface DragAndDrop {
   isOver: DropPosition | null;
 }
 
-const getDropId = (e: React.DragEvent): ID => {
+const getDropId = (e: React.DragEvent): Id => {
   return e.dataTransfer.getData(DROP_DATA_TYPE);
 };
 
@@ -50,7 +50,7 @@ const computeDropPosition = (e: React.DragEvent, rect: Rect): DropPosition => {
 };
 
 const useDragAndDrop = (
-  id: ID,
+  id: Id,
   dispatch: Dispatch,
   ref: React.RefObject<Element>,
   parentDragging: boolean

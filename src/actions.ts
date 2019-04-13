@@ -1,4 +1,4 @@
-import { ID, Item } from './Item';
+import { Id, Item } from './Item';
 import { DropPosition, Mode, Tree } from './tree';
 import {
   CREATE,
@@ -51,10 +51,10 @@ export const startLoad = (): StartLoad => ({ type: START_LOAD });
 
 export interface Remove {
   type: typeof REMOVE;
-  id: ID;
+  id: Id;
 }
 
-export const remove = (id: ID): Remove => ({ type: REMOVE, id });
+export const remove = (id: Id): Remove => ({ type: REMOVE, id });
 
 export interface Update {
   type: typeof UPDATE;
@@ -70,11 +70,11 @@ export const update = (item: Item, record: boolean = false): Update => ({
 
 export interface Edit {
   type: typeof EDIT;
-  id: ID;
+  id: Id;
   source: string;
 }
 
-export const edit = (id: ID, source: string): Edit => ({
+export const edit = (id: Id, source: string): Edit => ({
   type: EDIT,
   id,
   source,
@@ -83,10 +83,10 @@ export const edit = (id: ID, source: string): Edit => ({
 export interface Create {
   type: typeof CREATE;
   item: Item;
-  above?: ID;
+  above?: Id;
 }
 
-export const create = (item: Item, above?: ID): Create => ({
+export const create = (item: Item, above?: Id): Create => ({
   type: CREATE,
   item,
   above,
@@ -94,39 +94,39 @@ export const create = (item: Item, above?: ID): Create => ({
 
 export interface Zoom {
   type: typeof ZOOM;
-  id: ID;
+  id: Id;
 }
 
-export const zoom = (id: ID): Zoom => ({ type: ZOOM, id });
+export const zoom = (id: Id): Zoom => ({ type: ZOOM, id });
 
 export interface Expand {
   type: typeof EXPAND;
-  id: ID;
+  id: Id;
 }
 
-export const expand = (id: ID): Expand => ({ type: EXPAND, id });
+export const expand = (id: Id): Expand => ({ type: EXPAND, id });
 
 export interface Fold {
   type: typeof FOLD;
-  id: ID;
+  id: Id;
 }
 
-export const fold = (id: ID): Fold => ({ type: FOLD, id });
+export const fold = (id: Id): Fold => ({ type: FOLD, id });
 
 export interface Toggle {
   type: typeof TOGGLE;
-  id: ID;
+  id: Id;
 }
 
-export const toggle = (id: ID): Toggle => ({ type: TOGGLE, id });
+export const toggle = (id: Id): Toggle => ({ type: TOGGLE, id });
 
 export interface Reorder {
   type: typeof REORDER;
-  id: ID;
+  id: Id;
   delta: number;
 }
 
-export const reorder = (id: ID, delta: number): Reorder => ({
+export const reorder = (id: Id, delta: number): Reorder => ({
   type: REORDER,
   id,
   delta,
@@ -134,11 +134,11 @@ export const reorder = (id: ID, delta: number): Reorder => ({
 
 export interface Indent {
   type: typeof INDENT;
-  id: ID;
-  parent: ID;
+  id: Id;
+  parent: Id;
 }
 
-export const indent = (id: ID, parent: ID): Indent => ({
+export const indent = (id: Id, parent: Id): Indent => ({
   type: INDENT,
   id,
   parent,
@@ -146,11 +146,11 @@ export const indent = (id: ID, parent: ID): Indent => ({
 
 export interface UnIndent {
   type: typeof UN_INDENT;
-  id: ID;
-  parent: ID;
+  id: Id;
+  parent: Id;
 }
 
-export const unIndent = (id: ID, parent: ID): UnIndent => ({
+export const unIndent = (id: Id, parent: Id): UnIndent => ({
   type: UN_INDENT,
   id,
   parent,
@@ -200,12 +200,12 @@ export const switchMode = (mode: Mode): SwitchMode => ({
 
 export interface Drop {
   type: typeof DROP;
-  id: ID;
-  target: ID;
+  id: Id;
+  target: Id;
   position: DropPosition;
 }
 
-export const drop = (id: ID, target: ID, position: DropPosition): Drop => ({
+export const drop = (id: Id, target: Id, position: DropPosition): Drop => ({
   type: DROP,
   id,
   target,
@@ -214,14 +214,14 @@ export const drop = (id: ID, target: ID, position: DropPosition): Drop => ({
 
 export interface GotoNext {
   type: typeof GOTO_NEXT;
-  id: ID;
+  id: Id;
 }
 
-export const gotoNext = (id: ID): GotoNext => ({ type: GOTO_NEXT, id });
+export const gotoNext = (id: Id): GotoNext => ({ type: GOTO_NEXT, id });
 
 export interface GotoPrev {
   type: typeof GOTO_PREV;
-  id: ID;
+  id: Id;
 }
 
-export const gotoPrev = (id: ID): GotoPrev => ({ type: GOTO_PREV, id });
+export const gotoPrev = (id: Id): GotoPrev => ({ type: GOTO_PREV, id });

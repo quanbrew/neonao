@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ID } from '../Item';
+import { Id } from '../Item';
 import ListNode from './ListNode';
 import { List } from 'immutable';
 import { useTree } from './List';
@@ -7,7 +7,7 @@ import { EditMode, getItem } from '../tree';
 import { EDIT_MODE } from '../constants';
 
 interface Props {
-  items: List<ID>;
+  items: List<Id>;
   loaded: boolean;
   expand: boolean;
   parentDragging: boolean;
