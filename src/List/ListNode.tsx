@@ -4,7 +4,6 @@ import { ID, Item } from '../Item';
 import { dragMode, DropPosition, EditMode, editMode, loadItemState, normalMode } from '../tree';
 import * as actions from '../actions';
 import './ListNode.scss';
-// import { EDIT_MODE } from '../constants';
 import { Children } from './Children';
 import { Dispatch, useDispatch } from './List';
 import { Editor } from './Editor';
@@ -43,18 +42,23 @@ const getDropId = (e: React.DragEvent): ID => {
   return e.dataTransfer.getData(DROP_DATA_TYPE);
 };
 
-const computeDropPosition = (e: React.DragEvent, elem: Element): DropPosition => {
+type Rect = ClientRect | DOMRect;
+
+const computeDropPosition = (e: React.DragEvent, rect: Rect): DropPosition => {
   const y = e.clientY;
-  const rect = elem.getBoundingClientRect();
 
   const top = Math.abs(y - rect.top);
   const bottom = Math.abs(y - rect.bottom);
+  console.log(`Y: ${y} top: ${top} ${bottom}`);
   return top > bottom ? 'below' : 'above';
 };
 
-type ContentRef = React.RefObject<HTMLDivElement>;
-
-const useDragAndDrop = (id: ID, dispatch: Dispatch, contentRef: ContentRef, parentDragging: boolean): DragAndDrop => {
+const useDragAndDrop = (
+  id: ID,
+  dispatch: Dispatch,
+  ref: React.RefObject<Element>,
+  parentDragging: boolean
+): DragAndDrop => {
   const [dragging, setDragging] = useState(false);
   const [isOver, setIsOver] = useState<DropPosition | null>(null);
   const onDragStart: DragEventHandler = e => {
@@ -73,22 +77,30 @@ const useDragAndDrop = (id: ID, dispatch: Dispatch, contentRef: ContentRef, pare
 
   const onDrop: DragEventHandler = e => {
     setDragging(false);
-    if (canDrop(e) && contentRef.current) {
-      e.preventDefault();
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    if (canDrop(e)) {
+      const dropId = getDropId(e);
       e.stopPropagation();
+      if (dropId === id) return;
+      e.preventDefault();
       setIsOver(null);
-      dispatch(actions.drop(getDropId(e), id, computeDropPosition(e, contentRef.current)));
+      dispatch(actions.drop(getDropId(e), id, computeDropPosition(e, rect)));
     }
     dispatch(actions.switchMode(normalMode()));
   };
   const onDragOver: DragEventHandler = e => {
-    if (canDrop(e) && contentRef.current) {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    if (canDrop(e)) {
       e.preventDefault();
       e.stopPropagation();
-      const position = computeDropPosition(e, contentRef.current);
+      const position = computeDropPosition(e, rect);
       if (position !== isOver) {
         setIsOver(position);
       }
+    } else if (dragging || parentDragging) {
+      e.stopPropagation();
     }
   };
   const onDragLeave: DragEventHandler = () => {
@@ -169,11 +181,11 @@ export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
   const onChange = useCallback((source: string) => dispatch(actions.edit(item.id, source)), [item]);
   const operates = useEditOperate(dispatch, item, editing);
 
-  const contentRef = useRef<HTMLDivElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
   const { onDrop, onDragStart, onDragOver, onDragLeave, onDragEnd, isOver, dragging } = useDragAndDrop(
     id,
     dispatch,
-    contentRef,
+    dropRef,
     parentDragging
   );
 
@@ -189,11 +201,17 @@ export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
     classNames.push(`drop-${isOver}`);
   }
   return (
-    <div className={classNames.join(' ')} onDrop={onDrop} onDragOver={onDragOver} onDragLeave={onDragLeave}>
+    <div
+      ref={dropRef}
+      className={classNames.join(' ')}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+    >
       <div className="bullet" draggable={true} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         •
       </div>
-      <div ref={contentRef}>
+      <div>
         <Editor onChange={onChange} source={item.source} editing={!!editing} modified={item.modified} {...operates} />
       </div>
       <Children items={item.children} loaded={item.loaded} expand={item.expand} parentDragging={dragging} />
