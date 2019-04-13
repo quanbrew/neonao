@@ -28,7 +28,7 @@ export type ListAction = TreeAction | LoadedState | Patch | Undo | Redo;
 export type TreeAction =
   | Fold
   | Expand
-  | FetchAll
+  | StartLoad
   | Zoom
   | Reorder
   | Create
@@ -43,11 +43,11 @@ export type TreeAction =
   | GotoPrev
   | Drop;
 
-export interface FetchAll {
+export interface StartLoad {
   type: typeof START_LOAD;
 }
 
-export const fetchAll = (): FetchAll => ({ type: START_LOAD });
+export const startLoad = (): StartLoad => ({ type: START_LOAD });
 
 export interface Remove {
   type: typeof REMOVE;

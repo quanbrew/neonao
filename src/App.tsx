@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { useEffect, useReducer } from 'react';
 import List from './List/List';
-import { initListState, listReducer } from './List/reducers';
+import { initListState, listReducer } from './reducers';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
-import { ListAction, redo, undo } from './actions';
+import { ListAction, redo, startLoad, undo } from './actions';
+import { loadTreeState, Tree } from './tree';
 
 export type Dispatch = React.Dispatch<ListAction>;
 
@@ -25,9 +26,32 @@ const useGlobalKey = (dispatch: Dispatch) => {
   }, []);
 };
 
+const useLoadTree = (dispatch: Dispatch, tree: Tree | null) => {
+  useEffect(() => {
+    if (tree === null) {
+      dispatch(startLoad());
+      loadTreeState(3).then(dispatch);
+    }
+  }, [tree]);
+};
+
 export const App = () => {
   const [listState, dispatch] = useReducer(listReducer, initListState);
   useGlobalKey(dispatch);
+  useLoadTree(dispatch, listState.tree);
+  let list;
+  if (listState.tree) {
+    list = (
+      <List
+        tree={listState.tree}
+        dispatch={dispatch}
+        emptyFuture={listState.future.size === 0}
+        emptyHistory={listState.history.size === 0}
+      />
+    );
+  } else {
+    list = <div>Loading Tree...</div>;
+  }
   return (
     <div>
       <header>
@@ -35,12 +59,7 @@ export const App = () => {
           NeoNao
         </a>
       </header>
-      <List
-        tree={listState.tree}
-        dispatch={dispatch}
-        emptyFuture={listState.future.size === 0}
-        emptyHistory={listState.history.size === 0}
-      />
+      {list}
     </div>
   );
 };

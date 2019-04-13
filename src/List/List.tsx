@@ -23,14 +23,14 @@ export const useTree = (): Tree => {
 };
 
 interface Props {
-  tree: Tree | null;
+  tree: Tree;
   dispatch: Dispatch;
   emptyFuture: boolean;
   emptyHistory: boolean;
 }
 
 export const List = React.memo(({ tree, dispatch, emptyFuture, emptyHistory }: Props) => {
-  const root = tree ? getItem(tree.map, tree.root) : null;
+  const root = getItem(tree.map, tree.root);
 
   const handleUndo = () => dispatch(undo);
   const handleRedo = () => dispatch(redo);

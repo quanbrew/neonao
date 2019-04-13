@@ -13,8 +13,8 @@ import {
   Toggle,
   TreeAction,
   UnIndent,
-} from '../actions';
-import { ID } from '../Item';
+} from './actions';
+import { ID } from './Item';
 import { List } from 'immutable';
 import {
   editMode,
@@ -30,7 +30,7 @@ import {
   NotFound,
   saveTreeState,
   Tree,
-} from '../tree';
+} from './tree';
 import {
   CREATE,
   DROP,
@@ -50,7 +50,7 @@ import {
   UN_INDENT,
   UNDO,
   UPDATE,
-} from '../constants';
+} from './constants';
 
 type Timeout = number;
 const saveTimeout = 200;
@@ -263,6 +263,7 @@ export interface ListState {
 export const initListState: ListState = { tree: null, history: List(), future: List() };
 
 export const listReducer = (state: ListState, action: ListAction): ListState => {
+  console.log(action);
   let { future, history } = state;
   let tree: Tree | null = state.tree;
   let record = false;

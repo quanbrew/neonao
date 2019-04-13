@@ -211,12 +211,6 @@ export const moveInto = (map: ItemMap, id: ID, parentId: ID, nextParentId: ID, o
   return map;
 };
 
-export const emptyTree: Tree = {
-  root: '',
-  map: Map(),
-  mode: normalMode(),
-};
-
 export const getLastNode = (map: ItemMap, item: Item): Item => {
   if (item.children.size === 0) {
     return item;
