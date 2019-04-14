@@ -29,7 +29,6 @@ export type TreeAction =
   | Fold
   | Expand
   | StartLoad
-  | Zoom
   | Reorder
   | Create
   | Update
@@ -42,6 +41,8 @@ export type TreeAction =
   | GotoNext
   | GotoPrev
   | Drop;
+
+export type ViewAction = Zoom;
 
 export interface StartLoad {
   type: typeof START_LOAD;
@@ -94,10 +95,11 @@ export const create = (item: Item, above?: Id): Create => ({
 
 export interface Zoom {
   type: typeof ZOOM;
-  id: Id;
+  id: Id | null;
+  push: boolean;
 }
 
-export const zoom = (id: Id): Zoom => ({ type: ZOOM, id });
+export const zoom = (id: Id | null, push: boolean = true): Zoom => ({ type: ZOOM, id, push });
 
 export interface Expand {
   type: typeof EXPAND;

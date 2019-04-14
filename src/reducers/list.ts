@@ -14,9 +14,8 @@ import {
   TreeAction,
   UnIndent,
   Update,
-  Zoom,
-} from './actions';
-import { Id } from './Item';
+} from '../actions';
+import { Id } from '../Item';
 import { List } from 'immutable';
 import {
   editMode,
@@ -32,7 +31,7 @@ import {
   NotFound,
   saveTreeState,
   Tree,
-} from './tree';
+} from '../tree';
 import {
   CREATE,
   DROP,
@@ -52,8 +51,7 @@ import {
   UN_INDENT,
   UNDO,
   UPDATE,
-  ZOOM,
-} from './constants';
+} from '../constants';
 
 type Timeout = number;
 const saveTimeout = 200;
@@ -109,13 +107,6 @@ const unIndent = (tree: Tree, action: UnIndent): Tree => {
   const order = grandParent.children.indexOf(parent.id);
   const map = moveInto(tree.map, item.id, parent.id, grandParent.id, order + 1);
   return { ...tree, map };
-};
-
-const handleZoom = (tree: Tree, { id }: Zoom): Tree => {
-  if (tree.root === id) {
-    return tree;
-  }
-  return { ...tree, root: id };
 };
 
 const handleUpdate = (tree: Tree, action: Update): Tree => {
@@ -259,9 +250,6 @@ const treeReducer = (state: Tree, action: TreeAction): { next: Tree; record: boo
       break;
     case DROP:
       next = applyDrop(state, action);
-      break;
-    case ZOOM:
-      next = handleZoom(state, action);
       break;
     default:
       break;

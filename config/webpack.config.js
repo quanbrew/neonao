@@ -49,11 +49,13 @@ module.exports = {
   output: {
     filename: '[name].[hash].js',
     path: path.resolve(rootPath, 'dist'),
+    publicPath: '/',
   },
 
   devServer: {
     contentBase: './public',
     hot: true,
+    historyApiFallback: true,
   },
 
   resolve: {

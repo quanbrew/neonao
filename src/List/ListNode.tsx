@@ -1,11 +1,11 @@
-import React, { DragEventHandler, useCallback, useEffect, useRef, useState } from 'react';
+import React, { DragEventHandler, useCallback, useRef, useState } from 'react';
 
 import { Id, Item } from '../Item';
-import { dragMode, DropPosition, EditMode, editMode, loadItemState, normalMode } from '../tree';
+import { dragMode, DropPosition, EditMode, editMode, normalMode } from '../tree';
 import * as actions from '../actions';
 import './ListNode.scss';
 import { Children } from './Children';
-import { useDispatch } from './List';
+import { useDispatch, useViewDispatch } from './List';
 import { Editor } from './Editor';
 import { Dispatch } from '../App';
 
@@ -18,13 +18,6 @@ export interface Props {
   editing: null | EditMode;
   parentDragging: boolean;
 }
-
-const useLoadChildren = (item: Item, dispatch: Dispatch) => {
-  const loadChildren = () => {
-    if (!item.loaded) loadItemState(item).then(dispatch);
-  };
-  useEffect(loadChildren, [item.loaded]);
-};
 
 interface DragAndDrop {
   onDragStart: DragEventHandler;
@@ -179,9 +172,9 @@ const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null
 
 export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
   const dispatch = useDispatch();
-  useLoadChildren(item, dispatch);
+  const viewDispatch = useViewDispatch();
   const zoom = () => {
-    dispatch(actions.zoom(id));
+    viewDispatch(actions.zoom(id));
   };
   const onChange = useCallback((source: string) => dispatch(actions.edit(item.id, source)), [item]);
   const operates = useEditOperate(dispatch, item, editing);
@@ -220,7 +213,7 @@ export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
         <Editor onChange={onChange} source={item.source} editing={!!editing} modified={item.modified} {...operates} />
         {item.children.size > 0 ? <button onClick={zoom}>🔍</button> : null}
       </div>
-      <Children items={item.children} loaded={item.loaded} expand={item.expand} parentDragging={dragging} />
+      <Children item={item} parentDragging={dragging} />
     </div>
   );
 };

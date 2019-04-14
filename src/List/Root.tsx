@@ -17,9 +17,9 @@ const useAutoCreate = (root: Item) => {
   }, [root]);
 };
 
-const Root = React.memo(({ root }: Props) => {
+const Root = ({ root }: Props) => {
   useAutoCreate(root);
-  return <Children items={root.children} loaded={root.loaded} expand={true} parentDragging={false} />;
-});
+  return <Children item={root} parentDragging={false} />;
+};
 
 export default Root;

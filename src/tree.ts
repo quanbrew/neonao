@@ -149,18 +149,20 @@ export const loadItemState = async (item: Item, maxLevel: number = 2): Promise<P
   return await patch({ map });
 };
 
-export const loadListState = async (maxLevel: number = 128, rootId?: Id): Promise<LoadedState> => {
+export const loadListState = async (maxLevel: number = 128, fromId: Id | null): Promise<LoadedState> => {
   const localForage = await import('localforage');
-  rootId = rootId || (await localForage.getItem<Id>('root'));
-  if (!rootId) return await createEmptyState();
-  const root = await getItemByIdFromStorage(rootId);
+  const root = await localForage.getItem<Id>('root');
   if (!root) {
-    throw Error('unable load root item');
+    return await createEmptyState();
   }
-  const childMap = await loadChildren(root, maxLevel);
-  const parentMap = await loadParent(root);
+  const start = await getItemByIdFromStorage(fromId || root);
+  if (!start) {
+    throw Error('unable load item');
+  }
+  const childMap = await loadChildren(start, maxLevel);
+  const parentMap = await loadParent(start);
   const map = childMap.merge(parentMap);
-  return await loadedState({ root: rootId, map, mode: normalMode() });
+  return await loadedState({ root, map, mode: normalMode() });
 };
 
 export const isChildrenOf = (map: ItemMap, child: Id, parent: Id): boolean => {

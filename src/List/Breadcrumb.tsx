@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { Id, Item } from '../Item';
 import { getPath, ItemMap } from '../tree';
-import { Dispatch } from '../App';
 import * as actions from '../actions';
+import { ViewDispatch } from './List';
 
 interface Props {
   id: Id;
   map: ItemMap;
-  dispatch: Dispatch;
+  dispatch: ViewDispatch;
 }
 
 const BreadcrumbItem = ({ item, zoom }: { item: Item; zoom: (id: Id) => void }) => {

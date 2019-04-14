@@ -1,10 +1,12 @@
 import * as React from 'react';
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import List from './List';
-import { initListState, listReducer } from './reducers';
+import { initListState, listReducer } from './reducers/list';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
 import { ListAction, redo, startLoad, undo } from './actions';
-import { loadListState, Tree } from './tree';
+import { loadListState } from './tree';
+import { Id } from './Item';
+import { getIdInPath } from './path';
 
 export type Dispatch = React.Dispatch<ListAction>;
 
@@ -26,25 +28,59 @@ const useGlobalKey = (dispatch: Dispatch) => {
   }, []);
 };
 
-const useLoadTree = (dispatch: Dispatch, tree: Tree | null) => {
+const useLoadTree = (dispatch: Dispatch, from: Id | null = null) => {
   useEffect(() => {
-    if (tree === null) {
-      dispatch(startLoad());
-      loadListState(3).then(dispatch);
+    dispatch(startLoad());
+    loadListState(3, from).then(dispatch);
+  }, [from]);
+};
+
+interface PageChange {
+  time: number;
+  path: string;
+}
+
+const makePageChange = (): PageChange => {
+  const time = Date.now();
+  const path = window.location.pathname;
+  return { time, path };
+};
+
+const usePageChange = (callback?: () => void): PageChange => {
+  const [pageChange, setPageChange] = useState(makePageChange());
+
+  const historyListener = () => {
+    console.log('history change');
+    setPageChange(makePageChange());
+    if (callback) {
+      callback();
     }
-  }, [tree]);
+  };
+
+  useEffect(() => {
+    window.addEventListener('popstate', historyListener);
+    return () => window.removeEventListener('popstate', historyListener);
+  }, []);
+  return pageChange;
 };
 
 export const App = () => {
   const [listState, dispatch] = useReducer(listReducer, initListState);
+  const pageChange = usePageChange();
+  const idInPath = getIdInPath(pageChange.path);
   useGlobalKey(dispatch);
-  useLoadTree(dispatch, listState.tree);
+  useLoadTree(dispatch, null); // TODO: Demand loading
+  console.log('render App', idInPath);
   let list;
   if (listState.tree) {
+    const startId = idInPath || listState.tree.root;
+    console.log('Start By', startId);
     list = (
       <List
         tree={listState.tree}
         dispatch={dispatch}
+        startId={startId}
+        pageStartTime={pageChange.time}
         emptyFuture={listState.future.size === 0}
         emptyHistory={listState.history.size === 0}
       />

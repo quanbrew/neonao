@@ -1,19 +1,28 @@
 import * as React from 'react';
-import { Id } from '../Item';
+import { useEffect } from 'react';
+import { Id, Item } from '../Item';
 import ListNode from './ListNode';
 import { List } from 'immutable';
-import { useTree } from './List';
-import { EditMode, getItem } from '../tree';
+import { useDispatch, useTree } from './List';
+import { EditMode, getItem, loadItemState } from '../tree';
 import { EDIT_MODE } from '../constants';
+import { Dispatch } from '../App';
 
 interface Props {
-  items: List<Id>;
-  loaded: boolean;
-  expand: boolean;
+  item: Item;
   parentDragging: boolean;
 }
 
-const NodeList = ({ items, parentDragging }: Pick<Props, 'items' | 'parentDragging'>) => {
+const useLoadChildren = (item: Item, dispatch: Dispatch) => {
+  const loadChildren = () => {
+    if (!item.loaded) {
+      loadItemState(item).then(dispatch);
+    }
+  };
+  useEffect(loadChildren, [item.loaded]);
+};
+
+const NodeList = ({ items, parentDragging }: { items: List<Id>; parentDragging: boolean }) => {
   const tree = useTree();
   const editing = tree.mode.type === EDIT_MODE ? tree.mode.id : null;
   const mapper = (id: string) => {
@@ -36,12 +45,14 @@ const DummyList = ({ length }: { length: number }) => {
   return <div className="children">{dummyList}</div>;
 };
 
-export const Children = React.memo(({ items, loaded, expand, parentDragging }: Props) => {
-  if (items.size === 0 || !expand) {
+export const Children = React.memo(({ item, parentDragging }: Props) => {
+  const dispatch = useDispatch();
+  useLoadChildren(item, dispatch);
+  if (item.children.size === 0 || !item.expand) {
     return null;
-  } else if (loaded) {
-    return <NodeList items={items} parentDragging={parentDragging} />;
+  } else if (item.loaded) {
+    return <NodeList items={item.children} parentDragging={parentDragging} />;
   } else {
-    return <DummyList length={items.size} />;
+    return <DummyList length={item.children.size} />;
   }
 });
