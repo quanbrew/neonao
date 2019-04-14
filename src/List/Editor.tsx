@@ -98,14 +98,14 @@ export const Editor = ({
       }
     } else if (e.keyCode === keyboard.UP_ARROW) {
       e.preventDefault();
-      if (e.shiftKey) {
+      if (e.metaKey) {
         swapUp();
       } else {
         gotoPrev();
       }
     } else if (e.keyCode === keyboard.DOWN_ARROW) {
       e.preventDefault();
-      if (e.shiftKey) {
+      if (e.metaKey) {
         swapDown();
       } else {
         gotoNext();
