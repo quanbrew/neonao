@@ -16,7 +16,7 @@
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "start": "webpack-dev-server --open --progress --config config/webpack.dev.js",
+    "start": "webpack-dev-server --output-public-path / --open --progress --config config/webpack.dev.js",
     "format": "prettier --write src/**",
     "build": "NODE_ENV=production webpack --config config/webpack.prod.js"
   },
@@ -33,7 +33,7 @@
     "mini-css-extract-plugin": "^0.6.0",
     "node-sass": "^4.11.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
-    "prettier": "1.16.4",
+    "prettier": "1.17.0",
     "pretty-quick": "^1.10.0",
     "sass-loader": "^7.1.0",
     "source-map-loader": "^0.2.4",
@@ -45,7 +45,7 @@
     "tslint-react-hooks": "^2.0.0",
     "typescript": "^3.4.3",
     "uglifyjs-webpack-plugin": "^2.1.2",
-    "webpack": "^4.29.6",
+    "webpack": "^4.30.0",
     "webpack-bundle-analyzer": "^3.2.0",
     "webpack-cli": "^3.3.0",
     "webpack-dev-server": "^3.3.1",

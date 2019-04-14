@@ -50,7 +50,6 @@ const usePageChange = (callback?: () => void): PageChange => {
   const [pageChange, setPageChange] = useState(makePageChange());
 
   const historyListener = () => {
-    console.log('history change');
     setPageChange(makePageChange());
     if (callback) {
       callback();
@@ -70,11 +69,9 @@ export const App = () => {
   const idInPath = getIdInPath(pageChange.path);
   useGlobalKey(dispatch);
   useLoadTree(dispatch, null); // TODO: Demand loading
-  console.log('render App', idInPath);
   let list;
   if (listState.tree) {
     const startId = idInPath || listState.tree.root;
-    console.log('Start By', startId);
     list = (
       <List
         tree={listState.tree}

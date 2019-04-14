@@ -49,7 +49,6 @@ module.exports = {
   output: {
     filename: '[name].[hash].js',
     path: path.resolve(rootPath, 'dist'),
-    publicPath: '/',
   },
 
   devServer: {

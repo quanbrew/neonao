@@ -268,7 +268,6 @@ export const initListState: ListState = { tree: null, history: List(), future: L
 let saveTimer: Timeout | null = null;
 
 export const listReducer = (state: ListState, action: ListAction): ListState => {
-  console.log(action);
   let { future, history } = state;
   let tree: Tree | null = state.tree;
   let record = false;

@@ -24,7 +24,6 @@ const handleZoom = (view: View, { id, push }: Zoom): View => {
 };
 
 export const viewReducer = (view: View, action: ViewAction): View => {
-  console.log(action);
   switch (action.type) {
     case ZOOM:
       return handleZoom(view, action);
