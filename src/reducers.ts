@@ -13,6 +13,8 @@ import {
   Toggle,
   TreeAction,
   UnIndent,
+  Update,
+  Zoom,
 } from './actions';
 import { Id } from './Item';
 import { List } from 'immutable';
@@ -50,6 +52,7 @@ import {
   UN_INDENT,
   UNDO,
   UPDATE,
+  ZOOM,
 } from './constants';
 
 type Timeout = number;
@@ -108,7 +111,17 @@ const unIndent = (tree: Tree, action: UnIndent): Tree => {
   return { ...tree, map };
 };
 
-let saveTimer: Timeout | null = null;
+const handleZoom = (tree: Tree, { id }: Zoom): Tree => {
+  if (tree.root === id) {
+    return tree;
+  }
+  return { ...tree, root: id };
+};
+
+const handleUpdate = (tree: Tree, action: Update): Tree => {
+  const map = tree.map.set(action.item.id, action.item);
+  return { ...tree, map };
+};
 
 const edit = (prevTree: Tree, action: Edit): { state: Tree; record: boolean } => {
   const { id, source } = action;
@@ -152,7 +165,7 @@ const applyDrop = (tree: Tree, action: Drop): Tree => {
   if (position === 'below') {
     targetIndex += 1;
   }
-  return { ...tree, map: moveInto(tree.map, id, parent.id, targetParent.id, targetIndex) };
+  return { ...tree, map: moveInto(tree.map, id, parent.id, targetParent.id, targetIndex), mode: normalMode() };
 };
 
 const toggle = (tree: Tree, action: Toggle | Expand | Fold): Tree => {
@@ -200,7 +213,7 @@ const treeReducer = (state: Tree, action: TreeAction): { next: Tree; record: boo
       next = create(state, action);
       break;
     case UPDATE:
-      next = { ...state, map: state.map.set(action.item.id, action.item) };
+      next = handleUpdate(state, action);
       record = action.record;
       break;
     case EDIT:
@@ -246,7 +259,9 @@ const treeReducer = (state: Tree, action: TreeAction): { next: Tree; record: boo
       break;
     case DROP:
       next = applyDrop(state, action);
-      state.mode = normalMode();
+      break;
+    case ZOOM:
+      next = handleZoom(state, action);
       break;
     default:
       break;
@@ -261,6 +276,8 @@ export interface ListState {
 }
 
 export const initListState: ListState = { tree: null, history: List(), future: List() };
+
+let saveTimer: Timeout | null = null;
 
 export const listReducer = (state: ListState, action: ListAction): ListState => {
   console.log(action);

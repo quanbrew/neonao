@@ -5,8 +5,9 @@ import { dragMode, DropPosition, EditMode, editMode, loadItemState, normalMode }
 import * as actions from '../actions';
 import './ListNode.scss';
 import { Children } from './Children';
-import { Dispatch, useDispatch } from './List';
+import { useDispatch } from './List';
 import { Editor } from './Editor';
+import { Dispatch } from '../App';
 
 const DRAGGING_CLASS = 'node-dragging';
 const DROP_DATA_TYPE = 'text/list-node-id';
@@ -179,6 +180,9 @@ const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null
 export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
   const dispatch = useDispatch();
   useLoadChildren(item, dispatch);
+  const zoom = () => {
+    dispatch(actions.zoom(id));
+  };
   const onChange = useCallback((source: string) => dispatch(actions.edit(item.id, source)), [item]);
   const operates = useEditOperate(dispatch, item, editing);
 
@@ -214,6 +218,7 @@ export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
       </div>
       <div>
         <Editor onChange={onChange} source={item.source} editing={!!editing} modified={item.modified} {...operates} />
+        {item.children.size > 0 ? <button onClick={zoom}>🔍</button> : null}
       </div>
       <Children items={item.children} loaded={item.loaded} expand={item.expand} parentDragging={dragging} />
     </div>

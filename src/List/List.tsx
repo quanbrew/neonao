@@ -2,10 +2,11 @@ import * as React from 'react';
 import { useContext } from 'react';
 import Root from './Root';
 import { getItem, Tree } from '../tree';
-import { ListAction, redo, undo } from '../actions';
+import { redo, undo } from '../actions';
+import { Breadcrumb } from './Breadcrumb';
+import { Dispatch } from '../App';
 
 export const TreeContext: React.Context<Tree | null> = React.createContext(null);
-export type Dispatch = React.Dispatch<ListAction>;
 export const DispatchContext: React.Context<Dispatch> = React.createContext(() => {
   throw Error('uninitiated dispatcher');
 });
@@ -36,6 +37,7 @@ export const List = React.memo(({ tree, dispatch, emptyFuture, emptyHistory }: P
   const handleRedo = () => dispatch(redo);
   return (
     <div>
+      <Breadcrumb id={tree.root} map={tree.map} dispatch={dispatch} />
       <button id="undo" onClick={handleUndo} disabled={emptyHistory}>
         UNDO
       </button>

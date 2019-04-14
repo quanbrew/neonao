@@ -1,10 +1,12 @@
-import { fromJS, Map } from 'immutable';
+import { fromJS, List, Map } from 'immutable';
 import { Id, Item } from './Item';
 import { loadedState, LoadedState, patch, Patch } from './actions';
 import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
 
-import(/* webpackChunkName: "localforage" */
-'localforage');
+import(
+  /* webpackChunkName: "localforage" */
+  'localforage'
+);
 
 export type ItemMap = Map<Id, Item>;
 
@@ -112,6 +114,18 @@ const loadChildren = async (item: Item | null, maxLevel: number): Promise<ItemMa
   return await map;
 };
 
+const loadParent = async (item: Item): Promise<ItemMap> => {
+  if (!item.parent) {
+    return Map({ [item.id]: item });
+  }
+  const parent = await getItemByIdFromStorage(item.parent);
+  if (!parent) {
+    throw Error('unable load item');
+  }
+  const parentMap = await loadParent(parent);
+  return parentMap.set(item.id, item);
+};
+
 export interface ExportedItem {
   id: Id;
   parent?: Id;
@@ -135,13 +149,17 @@ export const loadItemState = async (item: Item, maxLevel: number = 2): Promise<P
   return await patch({ map });
 };
 
-export const loadTreeState = async (maxLevel: number = 128): Promise<LoadedState> => {
+export const loadListState = async (maxLevel: number = 128, rootId?: Id): Promise<LoadedState> => {
   const localForage = await import('localforage');
-  const rootId = await localForage.getItem<Id>('root');
+  rootId = rootId || (await localForage.getItem<Id>('root'));
   if (!rootId) return await createEmptyState();
   const root = await getItemByIdFromStorage(rootId);
-  const map = await loadChildren(root, maxLevel);
-  console.log('loaded');
+  if (!root) {
+    throw Error('unable load root item');
+  }
+  const childMap = await loadChildren(root, maxLevel);
+  const parentMap = await loadParent(root);
+  const map = childMap.merge(parentMap);
   return await loadedState({ root: rootId, map, mode: normalMode() });
 };
 
@@ -167,7 +185,9 @@ export class NotFound extends Error {
 export const getItem = (map: ItemMap, id: Id | null | undefined): Item => {
   if (!id) throw new NotFound();
   const item = map.get(id) || null;
-  if (!item) throw new NotFound(id);
+  if (!item) {
+    throw new NotFound(id);
+  }
   return item;
 };
 export const getItemAndParent = (map: ItemMap, id: Id | null | undefined): [Item, Item] => {
@@ -258,5 +278,14 @@ export const getNextItemId = (map: ItemMap, item: Item): Id => {
     return getNextSibling(map, parent);
   } else {
     return item.id;
+  }
+};
+
+export const getPath = (map: ItemMap, id?: Id): List<Item> => {
+  if (!id) {
+    return List();
+  } else {
+    const item = getItem(map, id);
+    return getPath(map, item.parent).push(item);
   }
 };

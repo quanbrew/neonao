@@ -4,7 +4,7 @@ import List from './List';
 import { initListState, listReducer } from './reducers';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
 import { ListAction, redo, startLoad, undo } from './actions';
-import { loadTreeState, Tree } from './tree';
+import { loadListState, Tree } from './tree';
 
 export type Dispatch = React.Dispatch<ListAction>;
 
@@ -30,7 +30,7 @@ const useLoadTree = (dispatch: Dispatch, tree: Tree | null) => {
   useEffect(() => {
     if (tree === null) {
       dispatch(startLoad());
-      loadTreeState(3).then(dispatch);
+      loadListState(3).then(dispatch);
     }
   }, [tree]);
 };
