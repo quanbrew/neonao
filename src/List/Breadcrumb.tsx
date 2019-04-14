@@ -11,7 +11,13 @@ interface Props {
   dispatch: ViewDispatch;
 }
 
-const BreadcrumbItem = ({ item, zoom }: { item: Item; zoom: (id: Id) => void }) => {
+interface BreadcrumbItemProps {
+  item: Item;
+  zoom: (id: Id) => void;
+  index: number;
+}
+
+const BreadcrumbItem = ({ item, zoom }: BreadcrumbItemProps) => {
   const handleClick: React.MouseEventHandler = e => {
     e.preventDefault();
     zoom(item.id);
@@ -29,7 +35,7 @@ export const Breadcrumb = ({ id, map, dispatch }: Props) => {
   const zoom = (id: Id) => {
     dispatch(actions.zoom(id));
   };
-  const path = getPath(map, id).map((item, key) => <BreadcrumbItem item={item} key={key} zoom={zoom} />);
+  const path = getPath(map, id).map((item, key) => <BreadcrumbItem index={key} item={item} key={key} zoom={zoom} />);
   if (path.size === 1) {
     return null;
   }

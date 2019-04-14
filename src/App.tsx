@@ -37,13 +37,13 @@ const useLoadTree = (dispatch: Dispatch, from: Id | null = null) => {
 
 interface PageChange {
   time: number;
-  path: string;
+  location: Location;
 }
 
 const makePageChange = (): PageChange => {
   const time = Date.now();
-  const path = window.location.pathname;
-  return { time, path };
+  const location = window.location;
+  return { time, location };
 };
 
 const usePageChange = (callback?: () => void): PageChange => {
@@ -66,7 +66,7 @@ const usePageChange = (callback?: () => void): PageChange => {
 export const App = () => {
   const [listState, dispatch] = useReducer(listReducer, initListState);
   const pageChange = usePageChange();
-  const idInPath = getIdInPath(pageChange.path);
+  const idInPath = getIdInPath(pageChange.location.pathname);
   useGlobalKey(dispatch);
   useLoadTree(dispatch, idInPath);
   let list;
