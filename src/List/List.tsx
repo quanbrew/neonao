@@ -67,7 +67,7 @@ export const List = ({ tree, dispatch, emptyFuture, emptyHistory, startId, pageS
       <DispatchContext.Provider value={dispatch}>
         <ViewDispatchContext.Provider value={viewDispatch}>
           <TreeContext.Provider value={tree}>
-            <Root root={root} />
+            <Root root={root} mode={tree.mode} />
           </TreeContext.Provider>
         </ViewDispatchContext.Provider>
       </DispatchContext.Provider>

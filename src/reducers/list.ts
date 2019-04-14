@@ -190,7 +190,6 @@ const gotoNext = (tree: Tree, action: GotoNext): Tree => {
 const gotoPrev = (tree: Tree, action: GotoPrev): Tree => {
   const item = getItem(tree.map, action.id);
   const prev = getPrevItem(tree.map, item);
-  if (prev.id === tree.root) return tree;
   const mode = editMode(prev.id);
   return { ...tree, mode };
 };
