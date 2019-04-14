@@ -68,7 +68,7 @@ export const App = () => {
   const pageChange = usePageChange();
   const idInPath = getIdInPath(pageChange.path);
   useGlobalKey(dispatch);
-  useLoadTree(dispatch, null); // TODO: Demand loading
+  useLoadTree(dispatch, idInPath);
   let list;
   if (listState.tree) {
     const startId = idInPath || listState.tree.root;

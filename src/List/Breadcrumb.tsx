@@ -3,6 +3,7 @@ import { Id, Item } from '../Item';
 import { getPath, ItemMap } from '../tree';
 import * as actions from '../actions';
 import { ViewDispatch } from './List';
+import { makePathById } from '../path';
 
 interface Props {
   id: Id;
@@ -17,7 +18,7 @@ const BreadcrumbItem = ({ item, zoom }: { item: Item; zoom: (id: Id) => void }) 
   };
   return (
     <li>
-      <a href="#" onClick={handleClick}>
+      <a href={makePathById(item.id)} onClick={handleClick}>
         {item.source}
       </a>
     </li>

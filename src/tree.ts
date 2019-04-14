@@ -86,9 +86,7 @@ const getItemByIdFromStorage = async (id: Id): Promise<Item | null> => {
     loaded: children.length === 0,
   });
   if (raw) {
-    const item = fromJSON(raw);
-    item.loaded = true;
-    return item;
+    return fromJSON(raw);
   } else {
     return null;
   }
@@ -104,7 +102,7 @@ const loadChildren = async (item: Item | null, maxLevel: number): Promise<ItemMa
   if (item) {
     map = map.set(item.id, item);
     if (maxLevel > 0) {
-      const childrenMaps = await Promise.all(item.children.toArray().map(mapper));
+      const childrenMaps = await Promise.all(item.children.map(mapper));
       return await map.merge(...childrenMaps);
     } else if (item.children.size > 0) {
       item.loaded = false;
@@ -149,7 +147,7 @@ export const loadItemState = async (item: Item, maxLevel: number = 2): Promise<P
   return await patch({ map });
 };
 
-export const loadListState = async (maxLevel: number = 128, fromId: Id | null): Promise<LoadedState> => {
+export const loadListState = async (maxLevel: number = 16, fromId: Id | null): Promise<LoadedState> => {
   const localForage = await import('localforage');
   const root = await localForage.getItem<Id>('root');
   if (!root) {
@@ -281,6 +279,10 @@ export const getNextItemId = (map: ItemMap, item: Item): Id => {
   } else {
     return item.id;
   }
+};
+
+export const getUnloadItemId = (map: ItemMap, children: List<Id>): List<Id> => {
+  return children.filter(id => !map.has(id));
 };
 
 export const getPath = (map: ItemMap, id?: Id): List<Item> => {
