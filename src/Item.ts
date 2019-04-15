@@ -12,16 +12,21 @@ export interface Item {
   source: string;
   deleted: boolean;
   modified: number;
+  created: number;
 }
 
 export namespace Item {
-  export const create = (source: string, parent?: Id): Item => ({
-    id: uuid1(),
-    children: List(),
-    source,
-    expand: true,
-    deleted: false,
-    parent,
-    modified: Date.now(),
-  });
+  export const create = (source: string, parent?: Id): Item => {
+    const created = Date.now();
+    return {
+      id: uuid1(),
+      children: List(),
+      source,
+      expand: true,
+      deleted: false,
+      parent,
+      created,
+      modified: created,
+    };
+  };
 }
