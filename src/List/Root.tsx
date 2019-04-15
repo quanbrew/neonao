@@ -7,6 +7,7 @@ import { useDispatch } from './List';
 import { Editor } from './Editor';
 import { editMode, Mode, normalMode } from '../tree';
 import { EDIT_MODE } from '../constants';
+import './Root.sass';
 
 interface Props {
   root: Item;
@@ -49,7 +50,7 @@ const Root = ({ root, mode }: Props) => {
   };
 
   return (
-    <div>
+    <div className="Root">
       <Editor
         onChange={handleChange}
         source={root.source}

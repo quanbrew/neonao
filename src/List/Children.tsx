@@ -7,6 +7,7 @@ import { useDispatch, useTree } from './List';
 import { EditMode, getItem, getUnloadItemId, loadItemState } from '../tree';
 import { EDIT_MODE } from '../constants';
 import { Dispatch } from '../App';
+import './Children.scss';
 
 interface Props {
   item: Item;
@@ -39,12 +40,12 @@ const NodeList = ({ items, parentDragging }: { items: List<Id>; parentDragging: 
       />
     );
   };
-  return <div className="children">{items.map(mapper)}</div>;
+  return <div className="NodeList">{items.map(mapper)}</div>;
 };
 
 const DummyList = ({ length }: { length: number }) => {
   const dummyList = [...Array(length).keys()].map(key => <li key={key}>Loading...</li>);
-  return <div className="children">{dummyList}</div>;
+  return <div className="DummyList">{dummyList}</div>;
 };
 
 export const Children = React.memo(({ item, parentDragging }: Props) => {
@@ -52,9 +53,12 @@ export const Children = React.memo(({ item, parentDragging }: Props) => {
   const loaded = useLoadChildren(item, dispatch);
   if (item.children.size === 0 || !item.expand) {
     return null;
-  } else if (loaded) {
-    return <NodeList items={item.children} parentDragging={parentDragging} />;
-  } else {
-    return <DummyList length={item.children.size} />;
   }
+  let list;
+  if (loaded) {
+    list = <NodeList items={item.children} parentDragging={parentDragging} />;
+  } else {
+    list = <DummyList length={item.children.size} />;
+  }
+  return <div className="Children">{list}</div>;
 });

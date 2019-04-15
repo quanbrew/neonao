@@ -5,6 +5,7 @@ import { initListState, listReducer } from './reducers/list';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
 import { ListAction, redo, undo } from './actions';
 import { getIdInPath } from './path';
+import './App.scss';
 
 export type Dispatch = React.Dispatch<ListAction>;
 
@@ -61,7 +62,7 @@ export const App = () => {
   useGlobalKey(dispatch);
   const startId = idInPath || (listState.tree && listState.tree.root);
   return (
-    <div>
+    <div className="App">
       <header>
         <a className="app-name" href="/">
           NeoNao

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Id, Item } from '../Item';
 import { getPath, ItemMap } from '../tree';
 import { Link } from './Link';
+import './Breadcrumb.scss';
 
 interface Props {
   id: Id;
@@ -26,6 +27,6 @@ export const Breadcrumb = ({ id, map }: Props) => {
   if (path.size === 1) {
     return null;
   } else {
-    return <ol>{path}</ol>;
+    return <ol className="Breadcrumb">{path}</ol>;
   }
 };

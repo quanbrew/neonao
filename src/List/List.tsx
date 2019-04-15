@@ -7,6 +7,7 @@ import { Breadcrumb } from './Breadcrumb';
 import { Dispatch } from '../App';
 import { createView, viewReducer } from '../reducers/view';
 import { Id, Item } from '../Item';
+import './List.scss';
 
 export const TreeContext: React.Context<Tree | null> = React.createContext(null);
 export const DispatchContext: React.Context<Dispatch> = React.createContext(() => {
@@ -80,12 +81,12 @@ export const List = ({ tree, dispatch, emptyFuture, emptyHistory, startId, pageS
   const handleRedo = () => dispatch(redo);
   return (
     <ViewDispatchContext.Provider value={viewDispatch}>
-      <div>
+      <div className="List">
         <Breadcrumb id={root.id} map={tree.map} />
-        <button id="undo" onClick={handleUndo} disabled={emptyHistory}>
+        <button className="undo" onClick={handleUndo} disabled={emptyHistory}>
           UNDO
         </button>
-        <button id="redo" onClick={handleRedo} disabled={emptyFuture}>
+        <button className="redo" onClick={handleRedo} disabled={emptyFuture}>
           REDO
         </button>
         <DispatchContext.Provider value={dispatch}>
