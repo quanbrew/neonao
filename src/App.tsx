@@ -3,9 +3,7 @@ import { useEffect, useReducer, useState } from 'react';
 import List from './List';
 import { initListState, listReducer } from './reducers/list';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
-import { ListAction, redo, startLoad, undo } from './actions';
-import { loadListState } from './tree';
-import { Id } from './Item';
+import { ListAction, redo, undo } from './actions';
 import { getIdInPath } from './path';
 
 export type Dispatch = React.Dispatch<ListAction>;
@@ -26,13 +24,6 @@ const useGlobalKey = (dispatch: Dispatch) => {
     document.addEventListener('keydown', keyListener, true);
     return () => document.removeEventListener('keydown', keyListener, true);
   }, []);
-};
-
-const useLoadTree = (dispatch: Dispatch, from: Id | null = null) => {
-  useEffect(() => {
-    dispatch(startLoad());
-    loadListState(3, from).then(dispatch);
-  }, [from]);
 };
 
 interface PageChange {
@@ -68,11 +59,14 @@ export const App = () => {
   const pageChange = usePageChange();
   const idInPath = getIdInPath(pageChange.location.pathname);
   useGlobalKey(dispatch);
-  useLoadTree(dispatch, idInPath);
-  let list;
-  if (listState.tree) {
-    const startId = idInPath || listState.tree.root;
-    list = (
+  const startId = idInPath || (listState.tree && listState.tree.root);
+  return (
+    <div>
+      <header>
+        <a className="app-name" href="/">
+          NeoNao
+        </a>
+      </header>
       <List
         tree={listState.tree}
         dispatch={dispatch}
@@ -81,18 +75,6 @@ export const App = () => {
         emptyFuture={listState.future.size === 0}
         emptyHistory={listState.history.size === 0}
       />
-    );
-  } else {
-    list = <div>Loading Tree...</div>;
-  }
-  return (
-    <div>
-      <header>
-        <a className="app-name" href="/">
-          NeoNao
-        </a>
-      </header>
-      {list}
     </div>
   );
 };

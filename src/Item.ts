@@ -11,7 +11,6 @@ export interface Item {
   expand: boolean;
   source: string;
   deleted: boolean;
-  loaded: boolean;
   modified: number;
 }
 
@@ -22,7 +21,6 @@ export namespace Item {
     source,
     expand: true,
     deleted: false,
-    loaded: true,
     parent,
     modified: Date.now(),
   });

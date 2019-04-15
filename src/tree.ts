@@ -72,7 +72,7 @@ export const saveTreeState = async (state: Tree | null) => {
   console.debug('saved');
 };
 
-const getItemByIdFromStorage = async (id: Id): Promise<Item | null> => {
+const getItemByIdFromStorage = async (id: Id): Promise<Item> => {
   const localForage = await import('localforage');
   const raw = await localForage.getItem<ExportedItem>(id);
   const fromJSON = ({ id, expand, source, children, parent, modified }: ExportedItem): Item => ({
@@ -83,12 +83,11 @@ const getItemByIdFromStorage = async (id: Id): Promise<Item | null> => {
     children: fromJS(children),
     source,
     deleted: false,
-    loaded: children.length === 0,
   });
   if (raw) {
     return fromJSON(raw);
   } else {
-    return null;
+    throw new NotFound(id);
   }
 };
 
@@ -104,23 +103,24 @@ const loadChildren = async (item: Item | null, maxLevel: number): Promise<ItemMa
     if (maxLevel > 0) {
       const childrenMaps = await Promise.all(item.children.map(mapper));
       return await map.merge(...childrenMaps);
-    } else if (item.children.size > 0) {
-      item.loaded = false;
     }
   }
 
   return await map;
 };
 
-const loadParent = async (item: Item): Promise<ItemMap> => {
+const loadParent = async (item: Item, map: ItemMap | null = null): Promise<ItemMap> => {
   if (!item.parent) {
     return Map({ [item.id]: item });
   }
-  const parent = await getItemByIdFromStorage(item.parent);
-  if (!parent) {
-    throw Error('unable load item');
+  let parent;
+  if (map) {
+    parent = map.get(item.parent, null);
   }
-  const parentMap = await loadParent(parent);
+  if (!parent) {
+    parent = await getItemByIdFromStorage(item.parent);
+  }
+  const parentMap = await loadParent(parent, map);
   return parentMap.set(item.id, item);
 };
 
@@ -141,13 +141,29 @@ const createEmptyState = async (): Promise<LoadedState> => {
   return loadedState(state);
 };
 
+export const pathInMap = (map: ItemMap, id: Id | null): boolean => {
+  while (id) {
+    const item = map.get(id, null);
+    if (!item) {
+      return false;
+    }
+    id = item.parent || null;
+  }
+  return true;
+};
+
 export const loadItemState = async (item: Item, maxLevel: number = 2): Promise<Patch> => {
-  let map = await loadChildren(item, maxLevel);
-  map = map.set(item.id, { ...item, loaded: true });
+  const map = await loadChildren(item, maxLevel);
   return await patch({ map });
 };
 
-export const loadListState = async (maxLevel: number = 16, fromId: Id | null): Promise<LoadedState> => {
+export const patchTree = async (map: ItemMap, fromId: Id): Promise<Patch> => {
+  const start = await getItemByIdFromStorage(fromId);
+  map = map.merge(await loadParent(start, map));
+  return await patch({ map });
+};
+
+export const loadTree = async (fromId: Id | null): Promise<LoadedState> => {
   const localForage = await import('localforage');
   const root = await localForage.getItem<Id>('root');
   if (!root) {
@@ -157,9 +173,7 @@ export const loadListState = async (maxLevel: number = 16, fromId: Id | null): P
   if (!start) {
     throw Error('unable load item');
   }
-  const childMap = await loadChildren(start, maxLevel);
-  const parentMap = await loadParent(start);
-  const map = childMap.merge(parentMap);
+  const map = await loadParent(start);
   return await loadedState({ root, map, mode: normalMode() });
 };
 
@@ -281,8 +295,8 @@ export const getNextItemId = (map: ItemMap, item: Item): Id => {
   }
 };
 
-export const getUnloadItemId = (map: ItemMap, children: List<Id>): List<Id> => {
-  return children.filter(id => !map.has(id));
+export const getUnloadItemId = (map: ItemMap, idList: List<Id>): List<Id> => {
+  return idList.filter(id => !map.has(id));
 };
 
 export const getPath = (map: ItemMap, id?: Id): List<Item> => {
