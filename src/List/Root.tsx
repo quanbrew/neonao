@@ -7,7 +7,7 @@ import { useDispatch } from './List';
 import { Editor } from './Editor';
 import { editMode, Mode, normalMode } from '../tree';
 import { EDIT_MODE } from '../constants';
-import './Root.sass';
+import './Root.scss';
 
 interface Props {
   root: Item;

@@ -1,0 +1,8 @@
+.Root {
+  > .Children {
+    margin: 0;
+  }
+  > .Editor {
+    font-size: 2em;
+  }
+}

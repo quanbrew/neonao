@@ -8,7 +8,6 @@ import { Children } from './Children';
 import { useDispatch } from './List';
 import { Editor } from './Editor';
 import { Dispatch } from '../App';
-import { Link } from './Link';
 
 const DRAGGING_CLASS = 'node-dragging';
 const DROP_DATA_TYPE = 'text/list-node-id';
@@ -195,6 +194,11 @@ export const ListNode = React.memo(({ item, parentDragging, editing }: Props) =>
     // drop-inner | drop-above | drop-below
     classNames.push(`drop-${isOver}`);
   }
+  if (item.expand || children.size === 0) {
+    classNames.push('expanded');
+  } else {
+    classNames.push('folded');
+  }
   return (
     <div
       ref={dropRef}
@@ -203,12 +207,12 @@ export const ListNode = React.memo(({ item, parentDragging, editing }: Props) =>
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
     >
-      <div className="bullet" draggable={true} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-        •
-      </div>
-      <div>
+      <div className="line">
+        {/*{children.size > 0 ? <Link target={id} className="node-zoom">🔍</Link> : null}*/}
+        <div className="bullet" draggable={true} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+          •
+        </div>
         <Editor onChange={onChange} source={source} editing={!!editing} modified={modified} {...operates} />
-        {children.size > 0 ? <Link target={id}>🔍</Link> : null}
       </div>
       <Children item={item} parentDragging={dragging} />
     </div>

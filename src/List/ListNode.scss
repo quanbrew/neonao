@@ -1,49 +1,61 @@
+@import '../define';
+
 .ListNode {
   position: relative;
-  margin: 0 0 0 2em;
-  padding: 0.2em;
-  .children {
-    margin-left: 2em;
+  margin-left: 1em;
+  .line {
+    position: relative;
+    padding-left: 1em;
+    .bullet {
+      border-radius: 100%;
+      border: 5px solid lighten($bullet-color, 60%);
+      position: absolute;
+      left: -0.5em;
+      top: 0.3em;
+      display: block;
+      width: 1em;
+      height: 1em;
+      cursor: move;
+      background-color: lighten($bullet-color, 0%);
+      color: transparent;
+    }
+    &:hover .bullet {
+      border-color: lighten($bullet-color, 40%);
+    }
   }
+}
 
-  .bullet {
-    position: absolute;
-    left: -1.5rem;
-    display: block;
-    width: 1em;
-    height: 100%;
-    cursor: move;
-    background-color: #c58438;
-    color: transparent;
+.folded {
+  .line {
+    .bullet {
+      border-color: $bullet-color;
+      background-color: $bg-color;
+    }
   }
 }
 
-.drop-inner {
-  box-shadow: 0 0 4px 0 #808ead;
+.drop-above::before,
+.drop-below::after {
+  content: '';
+  height: 5px;
+  width: 100%;
+  display: block;
+  position: absolute;
+  background-color: #8bc56e;
+  z-index: 100;
 }
 
-.drop-above {
-  box-shadow: inset 0 2px 0 2px #808ead;
+.drop-above::before {
+  top: -10px;
 }
-.drop-below {
-  box-shadow: inset 0px -2px 0px 2px #808ead;
+
+.drop-below::after {
+  bottom: -5px;
 }
+
 .node-dragging {
   opacity: 0.4;
-  .DropLine {
-    display: none;
-  }
-
   .is-over {
     background-color: initial;
   }
-}
-
-.is-over {
-  background-color: #fbf0ff;
-}
-
-.parent-dragging {
-  background-color: #c58438;
-  border: #33ffc5 1px solid;
 }

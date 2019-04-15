@@ -1,7 +1,11 @@
+@import './define.scss';
+
 * {
   box-sizing: border-box;
 }
 
 body {
   font-family: 'Sarasa Mono SC', 'Monaco', 'Menlo', monospace;
+  background: $bg-color;
+  font-size: $main-font-size;
 }

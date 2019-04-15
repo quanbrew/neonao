@@ -1,12 +1,20 @@
+@import '../define';
+
 .Editor {
   .node-input {
     width: 100%;
     height: 1.5em;
+    border: 1px solid lighten($main-color, 15%);
+    overflow: auto;
+    outline: none;
+    box-shadow: none;
+    resize: none;
   }
 }
 
 .editing {
   .node-input {
-    background-color: #8bc56e;
+    background-color: lighten($main-color, 30%);
+    border-color: darken($main-color, 25%);
   }
 }

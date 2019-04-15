@@ -1,0 +1,24 @@
+@import '../define';
+
+.Children {
+  position: relative;
+  margin-left: 1rem;
+}
+
+$toggle-line-color: $main-color;
+
+.toggle-line {
+  position: absolute;
+  height: 100%;
+  left: -1.38rem;
+  width: 0.5rem;
+  display: block;
+  padding: 0.1rem;
+  background-color: lighten($toggle-line-color, 0%);
+  border: 0.3rem solid $bg-color;
+
+  &:hover {
+    background-color: darken($toggle-line-color, 20%);
+    border-color: lighten($toggle-line-color, 40%);
+  }
+}

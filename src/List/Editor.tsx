@@ -180,6 +180,7 @@ export const Editor = ({
         onChange={handleChange}
         onCompositionStart={onCompositionStart}
         onCompositionEndCapture={onCompositionEnd}
+        spellCheck={false}
       />
     </div>
   );
