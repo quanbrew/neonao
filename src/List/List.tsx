@@ -79,21 +79,21 @@ export const List = ({ tree, dispatch, emptyFuture, emptyHistory, startId, pageS
   const handleUndo = () => dispatch(undo);
   const handleRedo = () => dispatch(redo);
   return (
-    <div>
-      <Breadcrumb id={root.id} map={tree.map} dispatch={viewDispatch} />
-      <button id="undo" onClick={handleUndo} disabled={emptyHistory}>
-        UNDO
-      </button>
-      <button id="redo" onClick={handleRedo} disabled={emptyFuture}>
-        REDO
-      </button>
-      <DispatchContext.Provider value={dispatch}>
-        <ViewDispatchContext.Provider value={viewDispatch}>
+    <ViewDispatchContext.Provider value={viewDispatch}>
+      <div>
+        <Breadcrumb id={root.id} map={tree.map} />
+        <button id="undo" onClick={handleUndo} disabled={emptyHistory}>
+          UNDO
+        </button>
+        <button id="redo" onClick={handleRedo} disabled={emptyFuture}>
+          REDO
+        </button>
+        <DispatchContext.Provider value={dispatch}>
           <TreeContext.Provider value={tree}>
             <Root root={root} mode={tree.mode} />
           </TreeContext.Provider>
-        </ViewDispatchContext.Provider>
-      </DispatchContext.Provider>
-    </div>
+        </DispatchContext.Provider>
+      </div>
+    </ViewDispatchContext.Provider>
   );
 };

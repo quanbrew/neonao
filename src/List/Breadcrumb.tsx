@@ -1,43 +1,31 @@
 import * as React from 'react';
 import { Id, Item } from '../Item';
 import { getPath, ItemMap } from '../tree';
-import * as actions from '../actions';
-import { ViewDispatch } from './List';
-import { makePathById } from '../path';
+import { Link } from './Link';
 
 interface Props {
   id: Id;
   map: ItemMap;
-  dispatch: ViewDispatch;
 }
 
 interface BreadcrumbItemProps {
   item: Item;
-  zoom: (id: Id) => void;
   index: number;
 }
 
-const BreadcrumbItem = ({ item, zoom }: BreadcrumbItemProps) => {
-  const handleClick: React.MouseEventHandler = e => {
-    e.preventDefault();
-    zoom(item.id);
-  };
+const BreadcrumbItem = ({ item }: BreadcrumbItemProps) => {
   return (
     <li>
-      <a href={makePathById(item.id)} onClick={handleClick}>
-        {item.source}
-      </a>
+      <Link target={item.id}>{item.source}</Link>
     </li>
   );
 };
 
-export const Breadcrumb = ({ id, map, dispatch }: Props) => {
-  const zoom = (id: Id) => {
-    dispatch(actions.zoom(id));
-  };
-  const path = getPath(map, id).map((item, key) => <BreadcrumbItem index={key} item={item} key={key} zoom={zoom} />);
+export const Breadcrumb = ({ id, map }: Props) => {
+  const path = getPath(map, id).map((item, key) => <BreadcrumbItem index={key} item={item} key={key} />);
   if (path.size === 1) {
     return null;
+  } else {
+    return <ol>{path}</ol>;
   }
-  return <ol>{path}</ol>;
 };
