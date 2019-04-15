@@ -1,36 +1,36 @@
 @import '../define';
 
+$toggle-line-color: $main-color;
 .ListNode {
   position: relative;
-  margin-left: 1em;
-  .line {
-    position: relative;
-    padding-left: 1em;
-    .bullet {
-      border-radius: 100%;
-      border: 5px solid lighten($bullet-color, 60%);
-      position: absolute;
-      left: -0.5em;
-      top: 0.3em;
-      display: block;
-      width: 1em;
-      height: 1em;
-      cursor: move;
-      background-color: lighten($bullet-color, 0%);
-      color: transparent;
-    }
-    &:hover .bullet {
-      border-color: lighten($bullet-color, 40%);
+  margin: 0.25em 0;
+  .bullet {
+    border-radius: 100%;
+    left: 0.5rem;
+    top: 0.25rem;
+    border: 0.3rem solid $bg-color;
+    position: absolute;
+    z-index: 100;
+    display: block;
+    width: 1em;
+    height: 1em;
+    cursor: pointer;
+    background-color: lighten($bullet-color, 0%);
+    color: transparent;
+
+    &:hover {
+      border-color: lighten($bullet-color, 60%);
     }
   }
 }
 
 .folded {
-  .line {
-    .bullet {
-      border-color: $bullet-color;
-      background-color: $bg-color;
-    }
+  .bullet {
+    border-color: darken($main-color, 10%);
+    background-color: $bg-color;
+  }
+  &:hover .bullet {
+    border-color: lighten($main-color, 20%);
   }
 }
 

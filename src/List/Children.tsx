@@ -54,12 +54,7 @@ const NodeList = ({ id, items, parentDragging }: { id: Id; items: List<Id>; pare
       />
     );
   };
-  return (
-    <div className="NodeList">
-      <FoldLine id={id} />
-      {items.map(mapper)}
-    </div>
-  );
+  return <div className="NodeList">{items.map(mapper)}</div>;
 };
 
 const DummyList = ({ length }: { length: number }) => {

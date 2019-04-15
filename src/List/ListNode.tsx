@@ -1,4 +1,4 @@
-import React, { DragEventHandler, useRef, useState } from 'react';
+import React, { DragEventHandler, MouseEventHandler, useRef, useState } from 'react';
 
 import { Id, Item } from '../Item';
 import { dragMode, DropPosition, EditMode, editMode, normalMode } from '../tree';
@@ -100,6 +100,35 @@ const useDragAndDrop = (
   };
   return { onDragEnd, onDragLeave, onDragOver, onDragStart, onDrop, isOver, dragging: dragging || parentDragging };
 };
+
+interface BulletProps {
+  toggle: () => void;
+  onDragStart: DragEventHandler;
+  onDragEnd: DragEventHandler;
+}
+
+const Bullet = ({ onDragStart, onDragEnd, toggle }: BulletProps) => {
+  const handleClick: MouseEventHandler = e => {
+    e.preventDefault();
+    toggle();
+  };
+  return (
+    <div className="bullet" draggable={true} onDragStart={onDragStart} onDragEnd={onDragEnd} onClick={handleClick}>
+      •
+    </div>
+  );
+};
+
+// const FoldLine = ({ id }: { id: Id }) => {
+//   const dispatch = useDispatch();
+//   const handleClick: React.MouseEventHandler = e => {
+//     e.preventDefault();
+//     dispatch(fold(id));
+//   };
+//   return (
+//     <div className="toggle-line" onClick={handleClick}/>
+//   );
+// };
 
 export interface EditOperator {
   swapUp: () => void;
@@ -207,13 +236,8 @@ export const ListNode = React.memo(({ item, parentDragging, editing }: Props) =>
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
     >
-      <div className="line">
-        {/*{children.size > 0 ? <Link target={id} className="node-zoom">🔍</Link> : null}*/}
-        <div className="bullet" draggable={true} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-          •
-        </div>
-        <Editor onChange={onChange} source={source} editing={!!editing} modified={modified} {...operates} />
-      </div>
+      <Bullet onDragStart={onDragStart} onDragEnd={onDragEnd} toggle={operates.toggle} />
+      <Editor onChange={onChange} source={source} editing={!!editing} modified={modified} {...operates} />
       <Children item={item} parentDragging={dragging} />
     </div>
   );
