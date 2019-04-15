@@ -249,7 +249,7 @@ export const moveInto = (map: ItemMap, id: Id, parentId: Id, nextParentId: Id, o
 };
 
 export const getLastNode = (map: ItemMap, item: Item): Item => {
-  if (item.children.size === 0) {
+  if (item.children.size === 0 || !item.expand) {
     return item;
   } else {
     const lastChild = getItem(map, item.children.last(null));
@@ -264,7 +264,11 @@ export const getPrevItem = (map: ItemMap, item: Item, parent?: Item): Item => {
     return parent;
   } else {
     const prev = getItem(map, parent.children.get(position - 1, null));
-    return getLastNode(map, prev);
+    if (prev.expand && prev.children.size > 0) {
+      return getLastNode(map, prev);
+    } else {
+      return prev;
+    }
   }
 };
 
@@ -283,7 +287,7 @@ const getNextSibling = (map: ItemMap, item: Item): Id => {
 
 export const getNextItemId = (map: ItemMap, item: Item): Id => {
   const firstChild = item.children.first(null);
-  if (firstChild) {
+  if (item.expand && firstChild) {
     return firstChild;
   }
   const parent = getItem(map, item.parent);
