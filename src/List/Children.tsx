@@ -33,7 +33,6 @@ const NodeList = ({ items, parentDragging }: { items: List<Id>; parentDragging: 
     return (
       <ListNode
         key={id}
-        id={id}
         item={item}
         parentDragging={parentDragging}
         editing={id === editing ? (tree.mode as EditMode) : null}

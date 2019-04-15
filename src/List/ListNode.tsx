@@ -1,4 +1,4 @@
-import React, { DragEventHandler, useCallback, useRef, useState } from 'react';
+import React, { DragEventHandler, useRef, useState } from 'react';
 
 import { Id, Item } from '../Item';
 import { dragMode, DropPosition, EditMode, editMode, normalMode } from '../tree';
@@ -14,7 +14,6 @@ const DRAGGING_CLASS = 'node-dragging';
 const DROP_DATA_TYPE = 'text/list-node-id';
 
 export interface Props {
-  id: Id;
   item: Item;
   editing: null | EditMode;
   parentDragging: boolean;
@@ -171,9 +170,10 @@ const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null
   return { swapUp, swapDown, unIndent, indent, remove, create, toggle, edit, gotoNext, gotoPrev, exitEdit };
 };
 
-export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
+export const ListNode = React.memo(({ item, parentDragging, editing }: Props) => {
+  const { id, children, source, modified } = item;
   const dispatch = useDispatch();
-  const onChange = useCallback((source: string) => dispatch(actions.edit(item.id, source)), [item]);
+  const onChange = (source: string) => dispatch(actions.edit(id, source));
   const operates = useEditOperate(dispatch, item, editing);
 
   const dropRef = useRef<HTMLDivElement>(null);
@@ -207,12 +207,12 @@ export const ListNode = ({ item, id, parentDragging, editing }: Props) => {
         •
       </div>
       <div>
-        <Editor onChange={onChange} source={item.source} editing={!!editing} modified={item.modified} {...operates} />
-        {item.children.size > 0 ? <Link target={id}>🔍</Link> : null}
+        <Editor onChange={onChange} source={source} editing={!!editing} modified={modified} {...operates} />
+        {children.size > 0 ? <Link target={id}>🔍</Link> : null}
       </div>
       <Children item={item} parentDragging={dragging} />
     </div>
   );
-};
+});
 
 export default ListNode;
