@@ -141,7 +141,7 @@ export interface ExportedItem {
 }
 
 const createEmptyState = async (): Promise<LoadedState> => {
-  const root = Item.create('root');
+  const root = Item.create('');
   const rootId = root.id;
   const map: ItemMap = Map({ [rootId]: root });
   const state = { root: rootId, map, mode: normalMode() };
