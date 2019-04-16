@@ -1,10 +1,13 @@
 .Breadcrumb {
   margin: 0;
-  padding: 0;
+  padding: 0.5rem;
   list-style: none;
   li {
     display: inline-block;
-
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
     a {
       text-decoration: none;
       &:hover {

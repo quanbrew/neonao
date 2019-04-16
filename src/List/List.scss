@@ -1,0 +1,34 @@
+@import '../define';
+$icon-size: 1.5rem;
+
+.List {
+  .toolbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 100;
+
+    .undo,
+    .redo {
+      svg {
+        width: $icon-size;
+        height: $icon-size;
+      }
+
+      border: 1px solid darken($main-color, 0%);
+      background-color: lighten($main-color, 40%);
+
+      &:hover {
+        background-color: lighten($main-color, 45%);
+      }
+      &:active {
+        background-color: lighten($main-color, 25%);
+      }
+      &:focus {
+        outline: none;
+        border-color: darken($main-color, 20%);
+        box-shadow: 1px 1px 1px $main-color;
+      }
+    }
+  }
+}
