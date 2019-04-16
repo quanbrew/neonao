@@ -63,11 +63,6 @@ export const App = () => {
   const startId = idInPath || (listState.tree && listState.tree.root);
   return (
     <div className="App">
-      <header>
-        <a className="app-name" href="/">
-          NeoNao
-        </a>
-      </header>
       <List
         tree={listState.tree}
         dispatch={dispatch}
