@@ -18,8 +18,7 @@ const useAutoCreate = (root: Item) => {
   const dispatch = useDispatch();
   useEffect(() => {
     if (root.children.size === 0) {
-      dispatch(actions.create(Item.create('Ctrl/Command + . : toggle item', root.id)));
-      dispatch(actions.create(Item.create('Ctrl/Command + ↑/↓ : swap item', root.id)));
+      dispatch(actions.create(Item.create('', root.id)));
     }
   }, [root]);
 };
@@ -67,6 +66,7 @@ const Root = ({ root, mode }: Props) => {
         gotoNext={goNext}
         gotoPrev={empty}
         exitEdit={exitEdit}
+        zoom={empty}
       />
       <Children item={root} parentDragging={false} />
     </div>

@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { EditOperator } from './ListNode';
+import { Operator } from './ListNode';
 import { isRedoKey, isToggleKey, isUndoKey, keyboard } from '../keyboard';
 import './Editor.scss';
 
-interface Props extends EditOperator {
+interface Props extends Operator {
   onChange: (next: string) => void;
   source: string;
   editing: boolean;
@@ -63,6 +63,7 @@ export const Editor = ({
   remove,
   gotoNext,
   gotoPrev,
+  zoom,
   exitEdit,
 }: Props) => {
   const submitTimer = useRef<number | null>(null);
@@ -110,9 +111,11 @@ export const Editor = ({
       } else {
         gotoNext();
       }
-    } else if (e.keyCode === keyboard.ENTER && !e.shiftKey) {
+    } else if (e.keyCode === keyboard.ENTER) {
       e.preventDefault();
-      if (/$\s*^/.test(cache)) {
+      if (e.metaKey) {
+        zoom();
+      } else if (/$\s*^/.test(cache)) {
         unIndent();
       } else {
         create();

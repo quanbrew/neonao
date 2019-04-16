@@ -5,7 +5,7 @@ import { dragMode, DropPosition, EditMode, editMode, normalMode } from '../tree'
 import * as actions from '../actions';
 import './ListNode.scss';
 import { Children } from './Children';
-import { useDispatch } from './List';
+import { useDispatch, useViewDispatch } from './List';
 import { Editor } from './Editor';
 import { Dispatch } from '../App';
 
@@ -130,7 +130,7 @@ const Bullet = ({ onDragStart, onDragEnd, toggle }: BulletProps) => {
 //   );
 // };
 
-export interface EditOperator {
+export interface Operator {
   swapUp: () => void;
   swapDown: () => void;
   unIndent: () => void;
@@ -139,12 +139,14 @@ export interface EditOperator {
   remove: () => void;
   toggle: () => void;
   edit: () => void;
+  zoom: () => void;
   gotoNext: () => void;
   gotoPrev: () => void;
   exitEdit: () => void;
 }
 
-const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): EditOperator => {
+const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): Operator => {
+  const viewDispatch = useViewDispatch();
   const id = item.id;
   const parent = item.parent;
   const childCount = item.children.size;
@@ -192,6 +194,9 @@ const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null
       dispatch(actions.switchMode(editMode(id)));
     }
   };
+  const zoom = () => {
+    viewDispatch(actions.zoom(id));
+  };
   const gotoNext = () => {
     dispatch(actions.gotoNext(id));
   };
@@ -201,14 +206,14 @@ const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null
   const exitEdit = () => {
     dispatch(actions.switchMode(normalMode()));
   };
-  return { swapUp, swapDown, unIndent, indent, remove, create, toggle, edit, gotoNext, gotoPrev, exitEdit };
+  return { swapUp, swapDown, unIndent, indent, remove, create, toggle, edit, gotoNext, gotoPrev, exitEdit, zoom };
 };
 
 export const ListNode = React.memo(({ item, parentDragging, editing }: Props) => {
   const { id, children, source, modified } = item;
   const dispatch = useDispatch();
   const onChange = (source: string) => dispatch(actions.edit(id, source));
-  const operates = useEditOperate(dispatch, item, editing);
+  const operates = useOperate(dispatch, item, editing);
 
   const dropRef = useRef<HTMLDivElement>(null);
   const { onDrop, onDragStart, onDragOver, onDragLeave, onDragEnd, isOver, dragging } = useDragAndDrop(
