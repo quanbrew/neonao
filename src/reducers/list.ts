@@ -60,9 +60,11 @@ const create = (tree: Tree, create: Create): Tree => {
   const parentId = create.item.parent;
   if (!parentId) throw Error('create note without parent');
 
+  const item = create.item;
+
   let map = tree.map;
   const parent = getItem(map, parentId);
-  const item = create.item;
+
   let children: List<Id>;
   if (create.above) {
     const abovePosition = parent.children.indexOf(create.above);

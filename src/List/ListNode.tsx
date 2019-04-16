@@ -169,7 +169,13 @@ const useEditOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null
     }
   };
   const create = () => {
-    dispatch(actions.create(Item.create('', parent), id));
+    let action;
+    if (item.children.size > 0) {
+      action = actions.create(Item.create('', id));
+    } else {
+      action = actions.create(Item.create('', parent), id);
+    }
+    dispatch(action);
   };
   const remove = () => {
     if (childCount === 0) {
