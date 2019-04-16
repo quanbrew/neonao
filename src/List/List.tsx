@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useContext, useEffect, useReducer, useRef } from 'react';
+import { useContext, useEffect, useReducer, useRef, useState } from 'react';
 import Root from './Root';
 import { getItem, loadTree, patchTree, pathInMap, Tree } from '../tree';
 import { redo, undo, ViewAction, zoom } from '../actions';
@@ -37,16 +37,28 @@ export const useTree = (): Tree => {
   return tree;
 };
 
-const useRoot = (dispatch: Dispatch, tree: Tree | null, from: Id | null): Item | null => {
+const NOT_FOUND = 'NOT_FOUND';
+const LOADING = 'LOADING';
+type LoadState = typeof LOADING | typeof NOT_FOUND;
+
+const useRoot = (dispatch: Dispatch, tree: Tree | null, from: Id | null): Item | LoadState => {
+  const [loadState, setLoadState] = useState<LoadState>(LOADING);
   useEffect(() => {
+    const onNotFound = () => {
+      setLoadState(NOT_FOUND);
+    };
     if (tree) {
-      patchTree(tree.map, from || tree.root).then(dispatch);
+      patchTree(tree.map, from || tree.root)
+        .then(dispatch)
+        .catch(onNotFound);
     } else {
-      loadTree(from).then(dispatch);
+      loadTree(from)
+        .then(dispatch)
+        .catch(onNotFound);
     }
   }, [from]);
   if (!tree || !pathInMap(tree.map, from || tree.root)) {
-    return null;
+    return loadState;
   } else {
     return getItem(tree.map, from || tree.root);
   }
@@ -61,17 +73,15 @@ interface Props {
   emptyHistory: boolean;
 }
 
-const Loading = () => {
-  return <p>Tree Loading...</p>;
-};
-
 export const List = ({ tree, dispatch, emptyFuture, emptyHistory, startId, pageStartTime }: Props) => {
   const prevTime = useRef(pageStartTime);
   const [viewState, viewDispatch] = useReducer(viewReducer, createView(startId));
   const root = useRoot(dispatch, tree, viewState.root);
 
-  if (!root || !tree) {
-    return <Loading />;
+  if (root === NOT_FOUND) {
+    return <h1>404</h1>;
+  } else if (root === LOADING || !tree) {
+    return <h1>Tree Loading...</h1>;
   }
 
   if (prevTime.current !== pageStartTime) {
