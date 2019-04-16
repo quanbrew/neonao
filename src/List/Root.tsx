@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Item } from '../Item';
 import { Children } from './Children';
 import * as actions from '../actions';
@@ -14,21 +14,11 @@ interface Props {
   mode: Mode;
 }
 
-const useAutoCreate = (root: Item) => {
-  const dispatch = useDispatch();
-  useEffect(() => {
-    if (root.children.size === 0) {
-      dispatch(actions.create(Item.create('', root.id)));
-    }
-  }, [root]);
-};
-
 const empty = () => {
   // empty function
 };
 
 const Root = ({ root, mode }: Props) => {
-  useAutoCreate(root);
   const dispatch = useDispatch();
   const handleChange = (text: string) => {
     dispatch(actions.edit(root.id, text));

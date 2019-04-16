@@ -218,12 +218,15 @@ const treeReducer = (state: Tree, action: TreeAction): { next: Tree; record: boo
       break;
     case TOGGLE:
       next = toggle(state, action);
+      record = false;
       break;
     case FOLD:
       next = toggle(state, action);
+      record = false;
       break;
     case EXPAND:
       next = toggle(state, action);
+      record = false;
       break;
     case REORDER:
       next = reorder(state, action);
