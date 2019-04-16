@@ -1,0 +1,24 @@
+.Breadcrumb {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  li {
+    display: inline-block;
+
+    a {
+      text-decoration: none;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    &::after {
+      content: '>';
+      padding: 0 0.5rem;
+    }
+
+    &:last-child::after {
+      content: none;
+    }
+  }
+}
