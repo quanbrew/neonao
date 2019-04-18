@@ -1,9 +1,9 @@
-import { Action } from '../actions';
+import { Action, AddView } from '../actions';
 import { List } from 'immutable';
 import { mergeTree, NotFound, saveTreeState, Tree } from '../tree';
-import { LOADED_STATE, PATCH, REDO, SET_VIEW, SWITCH_MODE, UNDO } from '../constants';
+import { ADD_VIEW, LOADED_STATE, PATCH, REDO, SET_VIEW, SWITCH_MODE, UNDO } from '../constants';
 import { treeReducer } from './tree';
-import { Mode, State } from '../state';
+import { Mode, State, View, ViewList } from '../state';
 
 type Timeout = number;
 const saveTimeout = 200;
@@ -16,8 +16,25 @@ export interface Effect {
 
 let autoSaveTimer: Timeout | null = null;
 
+const handleSetView = (views: ViewList, view: View) => {
+  const index = views.findIndex(x => x.id === view.id);
+  if (index !== -1) {
+    return views.set(index, view);
+  } else {
+    return views;
+  }
+};
+
+function handleAddView(views: ViewList, { order, view }: AddView): ViewList {
+  if (order) {
+    return views.insert(order, view);
+  } else {
+    return views.push(view);
+  }
+}
+
 export const reducer = (state: State, action: Action): State => {
-  console.table(action);
+  console.log(action);
   const prevTree = state.tree;
   let tree: Tree | null = prevTree;
   let { future, history, mode, views } = state;
@@ -52,6 +69,7 @@ export const reducer = (state: State, action: Action): State => {
       break;
     case LOADED_STATE:
       tree = action.tree;
+      views = action.views;
       save = false;
       record = false;
       break;
@@ -69,7 +87,12 @@ export const reducer = (state: State, action: Action): State => {
       save = false;
       break;
     case SET_VIEW:
-      views = views.set(action.view.id, action.view);
+      views = handleSetView(views, action.view);
+      record = false;
+      save = false;
+      break;
+    case ADD_VIEW:
+      views = handleAddView(views, action);
       record = false;
       save = false;
       break;

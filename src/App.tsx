@@ -1,16 +1,16 @@
 import * as React from 'react';
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import List from './List';
 import { initState } from './state';
 import { reducer } from './reducers/state';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
 import { Action, redo, undo } from './actions';
-import { getIdInPath } from './path';
 import './App.scss';
+import { loadTree, Tree } from './tree';
 
 export type Dispatch = React.Dispatch<Action>;
 
-const useGlobalKey = (dispatch: Dispatch) => {
+const useHotKey = (dispatch: Dispatch) => {
   useEffect(() => {
     const keyListener = (e: KeyboardEvent) => {
       if (isRedoKey(e) || isUndoKey(e) || isSaveKey(e)) {
@@ -28,51 +28,33 @@ const useGlobalKey = (dispatch: Dispatch) => {
   }, []);
 };
 
-interface PageChange {
-  time: number;
-  location: Location;
-}
-
-const makePageChange = (): PageChange => {
-  const time = Date.now();
-  const location = window.location;
-  return { time, location };
-};
-
-const usePageChange = (callback?: () => void): PageChange => {
-  const [pageChange, setPageChange] = useState(makePageChange());
-
-  const historyListener = () => {
-    setPageChange(makePageChange());
-    if (callback) {
-      callback();
-    }
-  };
-
+export const useInit = (dispatch: Dispatch, tree: Tree | null) => {
   useEffect(() => {
-    window.addEventListener('popstate', historyListener);
-    return () => window.removeEventListener('popstate', historyListener);
-  }, []);
-  return pageChange;
+    if (tree === null) {
+      loadTree().then(dispatch);
+    }
+  });
 };
 
 export const App = () => {
   const [state, dispatch] = useReducer(reducer, initState);
-  const pageChange = usePageChange();
-  const idInPath = getIdInPath(pageChange.location.pathname);
-  useGlobalKey(dispatch);
-  const startId = idInPath || (state.tree && state.tree.root);
-  return (
-    <div className="App">
-      <List
-        tree={state.tree}
-        mode={state.mode}
-        dispatch={dispatch}
-        startId={startId}
-        pageStartTime={pageChange.time}
-        emptyFuture={state.future.size === 0}
-        emptyHistory={state.history.size === 0}
-      />
-    </div>
-  );
+  const { tree } = state;
+  useInit(dispatch, tree);
+  useHotKey(dispatch);
+  if (!tree) {
+    return <p>Loading Tree...</p>;
+  }
+
+  const lists = state.views.map(view => (
+    <List
+      key={view.id}
+      view={view}
+      tree={tree}
+      mode={state.mode}
+      dispatch={dispatch}
+      emptyFuture={state.future.size === 0}
+      emptyHistory={state.history.size === 0}
+    />
+  ));
+  return <div className="App">{lists}</div>;
 };

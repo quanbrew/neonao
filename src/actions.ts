@@ -1,7 +1,8 @@
 import { Id, Item } from './Item';
 import { Tree } from './tree';
-import { DropPosition, Mode, View } from './state';
+import { DropPosition, Mode, View, ViewList } from './state';
 import {
+  ADD_VIEW,
   CREATE,
   DROP,
   EDIT,
@@ -22,10 +23,9 @@ import {
   UN_INDENT,
   UNDO,
   UPDATE,
-  ZOOM,
 } from './constants';
 
-export type Action = TreeAction | LoadedState | Patch | SwitchMode | Undo | Redo | SetView;
+export type Action = TreeAction | LoadedState | Patch | SwitchMode | Undo | Redo | SetView | AddView;
 
 export type TreeAction =
   | Fold
@@ -42,8 +42,6 @@ export type TreeAction =
   | GotoNext
   | GotoPrev
   | Drop;
-
-export type ViewAction = Zoom;
 
 export interface StartLoad {
   type: typeof START_LOAD;
@@ -93,14 +91,6 @@ export const create = (item: Item, above?: Id): Create => ({
   item,
   above,
 });
-
-export interface Zoom {
-  type: typeof ZOOM;
-  id: Id | null;
-  push: boolean;
-}
-
-export const zoom = (id: Id | null, push: boolean = true): Zoom => ({ type: ZOOM, id, push });
 
 export interface Expand {
   type: typeof EXPAND;
@@ -174,11 +164,13 @@ export const redo: Redo = { type: REDO };
 export interface LoadedState {
   type: typeof LOADED_STATE;
   tree: Tree;
+  views: ViewList;
 }
 
-export const loadedState = (tree: Tree): LoadedState => ({
+export const loadedState = (tree: Tree, views: ViewList): LoadedState => ({
   type: LOADED_STATE,
   tree,
+  views,
 });
 
 export interface Patch {
@@ -235,3 +227,11 @@ export interface SetView {
 }
 
 export const setView = (view: View): SetView => ({ type: SET_VIEW, view });
+
+export interface AddView {
+  type: typeof ADD_VIEW;
+  view: View;
+  order?: number;
+}
+
+export const addView = (view: View, order?: number) => ({ type: ADD_VIEW, view, order });

@@ -1,6 +1,7 @@
 import { fromJS, List, Map } from 'immutable';
 import { Id, Item } from './Item';
 import { loadedState, LoadedState, patch, Patch } from './actions';
+import { createView } from './state';
 
 import(
   /* webpackChunkName: "localforage" */
@@ -103,8 +104,9 @@ const createEmptyState = async (): Promise<LoadedState> => {
   const root = Item.create('');
   const rootId = root.id;
   const map: ItemMap = Map({ [rootId]: root });
+  const view = createView(rootId);
   const state = { root: rootId, map };
-  return loadedState(state);
+  return loadedState(state, List([view]));
 };
 
 export const pathInMap = (map: ItemMap, id: Id | null): boolean => {
@@ -129,9 +131,14 @@ export const patchTree = async (map: ItemMap, fromId: Id): Promise<Patch> => {
   return await patch({ map });
 };
 
-export const loadTree = async (fromId: Id | null): Promise<LoadedState> => {
+export const getRootId = async (): Promise<Id | null> => {
   const localForage = await import('localforage');
   const root = await localForage.getItem<Id>('root');
+  return root || null;
+};
+
+export const loadTree = async (fromId?: Id | null): Promise<LoadedState> => {
+  const root = await getRootId();
   if (!root) {
     return await createEmptyState();
   }
@@ -140,7 +147,8 @@ export const loadTree = async (fromId: Id | null): Promise<LoadedState> => {
     throw Error('unable load item');
   }
   const map = await loadParent(start);
-  return await loadedState({ root, map });
+  const view = createView(root);
+  return await loadedState({ root, map }, List([view]));
 };
 
 export const isChildrenOf = (map: ItemMap, child: Id, parent: Id): boolean => {

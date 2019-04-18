@@ -1,4 +1,4 @@
-import { List, Map } from 'immutable';
+import { List } from 'immutable';
 import { Tree } from './tree';
 import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
 import { Id } from './Item';
@@ -49,22 +49,21 @@ export type ViewId = string;
 export interface View {
   id: ViewId;
   root: Id;
-  order?: number;
 }
 
-export const createView = (root: Id, order?: number): View => {
+export const createView = (root: Id): View => {
   const id = uuid1();
-  return { id, root, order };
+  return { id, root };
 };
 
-export type ViewMap = Map<ViewId, View>;
+export type ViewList = List<View>;
 
 export interface State {
   tree: Tree | null;
   history: List<Tree>;
   future: List<Tree>;
   mode: Mode;
-  views: ViewMap;
+  views: ViewList;
 }
 
 export const initState: State = {
@@ -72,5 +71,5 @@ export const initState: State = {
   history: List(),
   future: List(),
   mode: normalMode(),
-  views: Map(),
+  views: List(),
 };

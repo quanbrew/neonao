@@ -5,7 +5,7 @@ import { dragMode, DropPosition, EditMode, editMode, normalMode } from '../state
 import * as actions from '../actions';
 import './ListNode.scss';
 import { Children } from './Children';
-import { useDispatch, useViewDispatch } from './List';
+import { useDispatch, useView } from './List';
 import { Editor } from './Editor';
 import { Dispatch } from '../App';
 
@@ -146,7 +146,7 @@ export interface Operator {
 }
 
 const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): Operator => {
-  const viewDispatch = useViewDispatch();
+  const view = useView();
   const id = item.id;
   const parent = item.parent;
   const childCount = item.children.size;
@@ -195,7 +195,7 @@ const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): O
     }
   };
   const zoom = () => {
-    viewDispatch(actions.zoom(id));
+    dispatch(actions.setView({ ...view, root: id }));
   };
   const gotoNext = () => {
     dispatch(actions.gotoNext(id));
