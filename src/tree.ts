@@ -1,7 +1,6 @@
 import { fromJS, List, Map } from 'immutable';
 import { Id, Item } from './Item';
 import { loadedState, LoadedState, patch, Patch } from './actions';
-import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
 
 import(
   /* webpackChunkName: "localforage" */
@@ -13,46 +12,6 @@ export type ItemMap = Map<Id, Item>;
 export interface Tree {
   root: Id;
   map: ItemMap;
-  mode: Mode;
-}
-
-export type Mode = EditMode | SelectMode | DetailMode | DragMode | NormalMode;
-
-export interface NormalMode {
-  type: typeof NORMAL_MODE;
-}
-
-export const normalMode = (): NormalMode => ({ type: NORMAL_MODE });
-
-export type DropPosition = 'above' | 'below' | 'inner';
-
-export interface DragMode {
-  type: typeof DRAG_MODE;
-}
-
-export const dragMode = (): DragMode => ({
-  type: DRAG_MODE,
-});
-
-export interface EditMode {
-  type: typeof EDIT_MODE;
-  id: Id;
-}
-
-export const editMode = (id: Id): EditMode => ({
-  type: EDIT_MODE,
-  id,
-});
-
-export interface SelectMode {
-  type: typeof SELECT_MODE;
-  selected: Id[];
-  cut: boolean;
-}
-
-export interface DetailMode {
-  type: typeof DETAIL_MODE;
-  id: Id;
 }
 
 export const saveTreeState = async (state: Tree | null) => {
@@ -144,7 +103,7 @@ const createEmptyState = async (): Promise<LoadedState> => {
   const root = Item.create('');
   const rootId = root.id;
   const map: ItemMap = Map({ [rootId]: root });
-  const state = { root: rootId, map, mode: normalMode() };
+  const state = { root: rootId, map };
   return loadedState(state);
 };
 
@@ -181,7 +140,7 @@ export const loadTree = async (fromId: Id | null): Promise<LoadedState> => {
     throw Error('unable load item');
   }
   const map = await loadParent(start);
-  return await loadedState({ root, map, mode: normalMode() });
+  return await loadedState({ root, map });
 };
 
 export const isChildrenOf = (map: ItemMap, child: Id, parent: Id): boolean => {

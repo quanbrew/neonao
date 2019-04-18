@@ -1,7 +1,7 @@
 import React, { DragEventHandler, MouseEventHandler, useRef, useState } from 'react';
 
 import { Id, Item } from '../Item';
-import { dragMode, DropPosition, EditMode, editMode, normalMode } from '../tree';
+import { dragMode, DropPosition, EditMode, editMode, normalMode } from '../state';
 import * as actions from '../actions';
 import './ListNode.scss';
 import { Children } from './Children';

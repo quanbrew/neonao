@@ -5,7 +5,7 @@ import * as actions from '../actions';
 import { gotoNext } from '../actions';
 import { useDispatch } from './List';
 import { Editor } from './Editor';
-import { editMode, Mode, normalMode } from '../tree';
+import { editMode, Mode, normalMode } from '../state';
 import { EDIT_MODE } from '../constants';
 import './Root.scss';
 import { Dispatch } from '../App';

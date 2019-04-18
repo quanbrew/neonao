@@ -26,3 +26,4 @@ export const SWITCH_MODE = 'SWITCH_MODE';
 export const DROP = 'DROP';
 export const GOTO_NEXT = 'GOTO_NEXT';
 export const GOTO_PREV = 'GOTO_PREV';
+export const SET_VIEW = 'SET_VIEW';

@@ -10,6 +10,7 @@ import { Id, Item } from '../Item';
 import { UndoIcon } from '../icons/UndoIcon';
 import './List.scss';
 import { RedoIcon } from '../icons/RedoIcon';
+import { Mode, normalMode } from '../state';
 
 export const TreeContext: React.Context<Tree | null> = React.createContext(null);
 export const DispatchContext: React.Context<Dispatch> = React.createContext(() => {
@@ -36,6 +37,10 @@ export const useTree = (): Tree => {
   }
   return tree;
 };
+
+const ModeContext: React.Context<Mode> = React.createContext(normalMode());
+
+export const useMode = (): Mode => useContext(ModeContext);
 
 const NOT_FOUND = 'NOT_FOUND';
 const LOADING = 'LOADING';
@@ -66,6 +71,7 @@ const useRoot = (dispatch: Dispatch, tree: Tree | null, from: Id | null): Item |
 
 interface Props {
   tree: Tree | null;
+  mode: Mode;
   dispatch: Dispatch;
   startId: Id | null;
   pageStartTime: number;
@@ -73,7 +79,7 @@ interface Props {
   emptyHistory: boolean;
 }
 
-export const List = ({ tree, dispatch, emptyFuture, emptyHistory, startId, pageStartTime }: Props) => {
+export const List = ({ tree, mode, dispatch, emptyFuture, emptyHistory, startId, pageStartTime }: Props) => {
   const prevTime = useRef(pageStartTime);
   const [viewState, viewDispatch] = useReducer(viewReducer, createView(startId));
   const root = useRoot(dispatch, tree, viewState.root);
@@ -93,22 +99,24 @@ export const List = ({ tree, dispatch, emptyFuture, emptyHistory, startId, pageS
   const handleRedo = () => dispatch(redo);
   return (
     <ViewDispatchContext.Provider value={viewDispatch}>
-      <div className="List">
-        <Breadcrumb id={root.id} map={tree.map} />
-        <div className="toolbar">
-          <button className="undo" onClick={handleUndo} disabled={emptyHistory}>
-            <UndoIcon />
-          </button>
-          <button className="redo" onClick={handleRedo} disabled={emptyFuture}>
-            <RedoIcon />
-          </button>
+      <ModeContext.Provider value={mode}>
+        <div className="List">
+          <Breadcrumb id={root.id} map={tree.map} />
+          <div className="toolbar">
+            <button className="undo" onClick={handleUndo} disabled={emptyHistory}>
+              <UndoIcon />
+            </button>
+            <button className="redo" onClick={handleRedo} disabled={emptyFuture}>
+              <RedoIcon />
+            </button>
+          </div>
+          <DispatchContext.Provider value={dispatch}>
+            <TreeContext.Provider value={tree}>
+              <Root realRoot={tree.root} root={root} mode={mode} />
+            </TreeContext.Provider>
+          </DispatchContext.Provider>
         </div>
-        <DispatchContext.Provider value={dispatch}>
-          <TreeContext.Provider value={tree}>
-            <Root realRoot={tree.root} root={root} mode={tree.mode} />
-          </TreeContext.Provider>
-        </DispatchContext.Provider>
-      </div>
+      </ModeContext.Provider>
     </ViewDispatchContext.Provider>
   );
 };

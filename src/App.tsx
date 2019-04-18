@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { useEffect, useReducer, useState } from 'react';
 import List from './List';
-import { initListState, listReducer } from './reducers/list';
+import { initState } from './state';
+import { reducer } from './reducers/state';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
-import { ListAction, redo, undo } from './actions';
+import { Action, redo, undo } from './actions';
 import { getIdInPath } from './path';
 import './App.scss';
 
-export type Dispatch = React.Dispatch<ListAction>;
+export type Dispatch = React.Dispatch<Action>;
 
 const useGlobalKey = (dispatch: Dispatch) => {
   useEffect(() => {
@@ -56,20 +57,21 @@ const usePageChange = (callback?: () => void): PageChange => {
 };
 
 export const App = () => {
-  const [listState, dispatch] = useReducer(listReducer, initListState);
+  const [state, dispatch] = useReducer(reducer, initState);
   const pageChange = usePageChange();
   const idInPath = getIdInPath(pageChange.location.pathname);
   useGlobalKey(dispatch);
-  const startId = idInPath || (listState.tree && listState.tree.root);
+  const startId = idInPath || (state.tree && state.tree.root);
   return (
     <div className="App">
       <List
-        tree={listState.tree}
+        tree={state.tree}
+        mode={state.mode}
         dispatch={dispatch}
         startId={startId}
         pageStartTime={pageChange.time}
-        emptyFuture={listState.future.size === 0}
-        emptyHistory={listState.history.size === 0}
+        emptyFuture={state.future.size === 0}
+        emptyHistory={state.history.size === 0}
       />
     </div>
   );

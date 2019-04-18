@@ -1,5 +1,6 @@
 import { Id, Item } from './Item';
-import { DropPosition, Mode, Tree } from './tree';
+import { Tree } from './tree';
+import { DropPosition, Mode, View } from './state';
 import {
   CREATE,
   DROP,
@@ -14,6 +15,7 @@ import {
   REDO,
   REMOVE,
   REORDER,
+  SET_VIEW,
   START_LOAD,
   SWITCH_MODE,
   TOGGLE,
@@ -23,7 +25,7 @@ import {
   ZOOM,
 } from './constants';
 
-export type ListAction = TreeAction | LoadedState | Patch | Undo | Redo;
+export type Action = TreeAction | LoadedState | Patch | SwitchMode | Undo | Redo | SetView;
 
 export type TreeAction =
   | Fold
@@ -37,7 +39,6 @@ export type TreeAction =
   | Toggle
   | Indent
   | UnIndent
-  | SwitchMode
   | GotoNext
   | GotoPrev
   | Drop;
@@ -227,3 +228,10 @@ export interface GotoPrev {
 }
 
 export const gotoPrev = (id: Id): GotoPrev => ({ type: GOTO_PREV, id });
+
+export interface SetView {
+  type: typeof SET_VIEW;
+  view: View;
+}
+
+export const setView = (view: View): SetView => ({ type: SET_VIEW, view });
