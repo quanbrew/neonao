@@ -178,9 +178,11 @@ const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): O
       action = actions.create(Item.create('', parent), id);
     }
     dispatch(action);
+    dispatch(actions.focus(action.item.id, view.id));
   };
   const remove = () => {
     if (childCount === 0) {
+      dispatch(actions.gotoPrev(id, view.id));
       dispatch(actions.remove(id));
     }
   };
@@ -191,17 +193,17 @@ const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): O
   };
   const edit = () => {
     if (!editing) {
-      dispatch(actions.focus(id));
+      dispatch(actions.focus(id, view.id));
     }
   };
   const zoom = () => {
     dispatch(actions.setView({ ...view, root: id }));
   };
   const gotoNext = () => {
-    dispatch(actions.gotoNext(id));
+    dispatch(actions.gotoNext(id, view.id));
   };
   const gotoPrev = () => {
-    dispatch(actions.gotoPrev(id));
+    dispatch(actions.gotoPrev(id, view.id));
   };
   const exitEdit = () => {
     dispatch(actions.switchMode(normalMode()));

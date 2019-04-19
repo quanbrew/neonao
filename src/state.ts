@@ -26,11 +26,13 @@ export const dragMode = (): DragMode => ({
 export interface EditMode {
   type: typeof EDIT_MODE;
   id: Id;
+  view: ViewId;
 }
 
-export const editMode = (id: Id): EditMode => ({
+export const editMode = (id: Id, view: ViewId): EditMode => ({
   type: EDIT_MODE,
   id,
+  view,
 });
 
 export interface SelectMode {

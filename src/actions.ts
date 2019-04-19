@@ -1,6 +1,6 @@
 import { Id, Item } from './Item';
 import { Tree } from './tree';
-import { DropPosition, Mode, State, View } from './state';
+import { DropPosition, Mode, State, View, ViewId } from './state';
 import {
   ADD_VIEW,
   CREATE,
@@ -25,22 +25,20 @@ import {
   UPDATE,
 } from './constants';
 
-export type Action = TreeAction | LoadedState | Patch | SwitchMode | Undo | Redo | SetView | AddView | Focus;
-
-export type TreeAction =
-  | Fold
-  | Expand
-  | Reorder
-  | Create
-  | Update
-  | Edit
-  | Remove
-  | Toggle
-  | Indent
-  | UnIndent
+export type Action =
+  | TreeAction
+  | LoadedState
+  | Patch
+  | SwitchMode
+  | Undo
+  | Redo
+  | SetView
+  | AddView
+  | Focus
   | GotoNext
-  | GotoPrev
-  | Drop;
+  | GotoPrev;
+
+export type TreeAction = Fold | Expand | Reorder | Create | Update | Edit | Remove | Toggle | Indent | UnIndent | Drop;
 
 export interface Remove {
   type: typeof REMOVE;
@@ -201,16 +199,18 @@ export const drop = (id: Id, target: Id, position: DropPosition): Drop => ({
 export interface GotoNext {
   type: typeof GOTO_NEXT;
   id: Id;
+  view: ViewId;
 }
 
-export const gotoNext = (id: Id): GotoNext => ({ type: GOTO_NEXT, id });
+export const gotoNext = (id: Id, view: ViewId): GotoNext => ({ type: GOTO_NEXT, id, view });
 
 export interface GotoPrev {
   type: typeof GOTO_PREV;
   id: Id;
+  view: ViewId;
 }
 
-export const gotoPrev = (id: Id): GotoPrev => ({ type: GOTO_PREV, id });
+export const gotoPrev = (id: Id, view: ViewId): GotoPrev => ({ type: GOTO_PREV, id, view });
 
 export interface SetView {
   type: typeof SET_VIEW;
@@ -230,6 +230,7 @@ export const addView = (view: View, order?: number) => ({ type: ADD_VIEW, view, 
 export interface Focus {
   type: typeof FOCUS;
   target: Id;
+  view: ViewId;
 }
 
-export const focus = (target: Id): Focus => ({ type: FOCUS, target });
+export const focus = (target: Id, view: ViewId): Focus => ({ type: FOCUS, target, view });

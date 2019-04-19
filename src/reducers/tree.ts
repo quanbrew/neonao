@@ -1,13 +1,10 @@
-import { getItem, getItemAndParent, getItemPosition, getNextItemId, getPrevItem, moveInto, Tree } from '../tree';
-import { editMode, Mode } from '../state';
+import { getItem, getItemAndParent, getItemPosition, moveInto, Tree } from '../tree';
 import {
   Create,
   Drop,
   Edit,
   Expand,
   Fold,
-  GotoNext,
-  GotoPrev,
   Indent,
   Remove,
   Reorder,
@@ -18,21 +15,7 @@ import {
 } from '../actions';
 import { List } from 'immutable';
 import { Id } from '../Item';
-import {
-  CREATE,
-  DROP,
-  EDIT,
-  EXPAND,
-  FOLD,
-  GOTO_NEXT,
-  GOTO_PREV,
-  INDENT,
-  REMOVE,
-  REORDER,
-  TOGGLE,
-  UN_INDENT,
-  UPDATE,
-} from '../constants';
+import { CREATE, DROP, EDIT, EXPAND, FOLD, INDENT, REMOVE, REORDER, TOGGLE, UN_INDENT, UPDATE } from '../constants';
 import { Effect } from './state';
 
 const doNothing: Effect = { save: false, record: false };
@@ -59,19 +42,16 @@ const create = (tree: Tree, create: Create): EffectTree => {
   }
   map = map.set(item.id, item);
   map = map.set(parentId, { ...parent, children });
-  const mode: Mode = editMode(item.id);
-  return { ...saveAndRecord, tree: { ...tree, map }, mode };
+  return { ...saveAndRecord, tree: { ...tree, map } };
 };
 
 const handleRemove = (tree: Tree, remove: Remove): EffectTree => {
   let map = tree.map;
   const itemId = remove.id;
   const [item, parent] = getItemAndParent(map, itemId);
-  const prev = getPrevItem(map, item);
-  const mode = editMode(prev.id);
   const children = List<Id>(parent.children.filter(v => v !== item.id));
   map = map.set(parent.id, { ...parent, children });
-  return { ...saveAndRecord, tree: { ...tree, map }, mode };
+  return { ...saveAndRecord, tree: { ...tree, map } };
 };
 
 const indent = (tree: Tree, action: Indent): EffectTree => {
@@ -166,23 +146,6 @@ const toggle = (tree: Tree, action: Toggle | Expand | Fold): EffectTree => {
   return { ...doNothing, record: false, tree: { ...tree, map } };
 };
 
-const gotoNext = (tree: Tree, action: GotoNext): EffectTree => {
-  const item = getItem(tree.map, action.id);
-  const nextId = getNextItemId(tree.map, item);
-  if (nextId !== tree.root) {
-    return { ...doNothing, tree, mode: editMode(nextId) };
-  } else {
-    return { ...doNothing, tree };
-  }
-};
-
-const gotoPrev = (tree: Tree, action: GotoPrev): EffectTree => {
-  const item = getItem(tree.map, action.id);
-  const prev = getPrevItem(tree.map, item);
-  const mode = editMode(prev.id);
-  return { ...doNothing, tree, mode };
-};
-
 export const treeReducer = (tree: Tree, action: TreeAction): EffectTree => {
   switch (action.type) {
     case CREATE:
@@ -205,10 +168,6 @@ export const treeReducer = (tree: Tree, action: TreeAction): EffectTree => {
       return indent(tree, action);
     case UN_INDENT:
       return unIndent(tree, action);
-    case GOTO_NEXT:
-      return gotoNext(tree, action);
-    case GOTO_PREV:
-      return gotoPrev(tree, action);
     case DROP:
       return applyDrop(tree, action);
     // default:

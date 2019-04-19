@@ -3,7 +3,7 @@ import { Id, Item } from '../Item';
 import { Children } from './Children';
 import * as actions from '../actions';
 import { gotoNext } from '../actions';
-import { useDispatch } from './List';
+import { useDispatch, useView } from './List';
 import { Editor } from './Editor';
 import { Mode, normalMode } from '../state';
 import { EDIT_MODE } from '../constants';
@@ -31,12 +31,13 @@ const useAutoCreate = (dispatch: Dispatch, realRoot: Id, root: Item) => {
 const Root = ({ realRoot, root, mode }: Props) => {
   const dispatch = useDispatch();
   useAutoCreate(dispatch, realRoot, root);
+  const view = useView();
   const handleChange = (text: string) => {
     dispatch(actions.edit(root.id, text));
   };
   const editing = mode.type === EDIT_MODE && mode.id === root.id;
   const edit = () => {
-    dispatch(actions.focus(root.id));
+    dispatch(actions.focus(root.id, view.id));
   };
   const exitEdit = () => {
     dispatch(actions.switchMode(normalMode()));
@@ -46,7 +47,7 @@ const Root = ({ realRoot, root, mode }: Props) => {
     dispatch(actions.create(newItem));
   };
   const goNext = () => {
-    dispatch(gotoNext(root.id));
+    dispatch(gotoNext(root.id, view.id));
   };
 
   const editor = (

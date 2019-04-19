@@ -1,7 +1,18 @@
-import { Action, AddView } from '../actions';
+import { Action, AddView, GotoNext, GotoPrev } from '../actions';
 import { List } from 'immutable';
-import { mergeTree, NotFound, saveTreeState, Tree } from '../tree';
-import { ADD_VIEW, FOCUS, LOADED_STATE, PATCH, REDO, SET_VIEW, SWITCH_MODE, UNDO } from '../constants';
+import { getItem, getNextItemId, getPrevItem, mergeTree, NotFound, saveTreeState, Tree } from '../tree';
+import {
+  ADD_VIEW,
+  FOCUS,
+  GOTO_NEXT,
+  GOTO_PREV,
+  LOADED_STATE,
+  PATCH,
+  REDO,
+  SET_VIEW,
+  SWITCH_MODE,
+  UNDO,
+} from '../constants';
 import { treeReducer } from './tree';
 import { editMode, Mode, State, View, ViewList } from '../state';
 
@@ -11,7 +22,6 @@ const saveTimeout = 200;
 export interface Effect {
   save: boolean;
   record: boolean;
-  mode?: Mode;
 }
 
 let autoSaveTimer: Timeout | null = null;
@@ -32,6 +42,22 @@ function handleAddView(views: ViewList, { order, view }: AddView): ViewList {
     return views.push(view);
   }
 }
+
+const gotoNext = (tree: Tree, oldMode: Mode, action: GotoNext): Mode => {
+  const item = getItem(tree.map, action.id);
+  const nextId = getNextItemId(tree.map, item);
+  if (nextId !== tree.root) {
+    return editMode(nextId, action.view);
+  } else {
+    return oldMode;
+  }
+};
+
+const gotoPrev = (tree: Tree, action: GotoPrev): Mode => {
+  const item = getItem(tree.map, action.id);
+  const prev = getPrevItem(tree.map, item);
+  return editMode(prev.id, action.view);
+};
 
 export const reducer = (state: State | null, action: Action): State | null => {
   console.log(action);
@@ -87,18 +113,17 @@ export const reducer = (state: State | null, action: Action): State | null => {
       views = handleAddView(views, action);
       break;
     case FOCUS:
-      mode = editMode(action.target);
+      mode = editMode(action.target, action.view);
+      break;
+    case GOTO_NEXT:
+      mode = gotoNext(tree, mode, action);
+      break;
+    case GOTO_PREV:
+      mode = gotoPrev(tree, action);
       break;
     default:
-      if (!tree) {
-        break;
-      }
       try {
-        const treeResult = treeReducer(tree, action);
-        ({ tree, record, save } = treeResult);
-        if (treeResult.mode) {
-          mode = treeResult.mode;
-        }
+        ({ tree, record, save } = treeReducer(tree, action));
       } catch (err) {
         if (err instanceof NotFound) {
           console.warn(`item ${err.id} not found`);

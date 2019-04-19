@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { Id, Item } from '../Item';
 import ListNode from './ListNode';
 import { List } from 'immutable';
-import { useDispatch, useMode, useTree } from './List';
+import { useDispatch, useMode, useTree, useView } from './List';
 import { getItem, getUnloadItemId, loadItemState } from '../tree';
 import { EditMode } from '../state';
 import { EDIT_MODE } from '../constants';
@@ -41,10 +41,11 @@ const FoldLine = ({ id }: { id: Id }) => {
   );
 };
 
-const NodeList = ({ id, items, parentDragging }: { id: Id; items: List<Id>; parentDragging: boolean }) => {
+const NodeList = ({ items, parentDragging }: { id: Id; items: List<Id>; parentDragging: boolean }) => {
   const tree = useTree();
+  const view = useView();
   const mode = useMode();
-  const editing = mode.type === EDIT_MODE ? mode.id : null;
+  const editing = mode.type === EDIT_MODE && mode.view === view.id ? mode.id : null;
   const mapper = (id: string) => {
     const item = getItem(tree.map, id);
     return (
