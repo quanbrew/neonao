@@ -225,7 +225,7 @@ export interface AddView {
   order?: number;
 }
 
-export const addView = (view: View, order?: number) => ({ type: ADD_VIEW, view, order });
+export const addView = (view: View, order?: number): AddView => ({ type: ADD_VIEW, view, order });
 
 export interface Focus {
   type: typeof FOCUS;

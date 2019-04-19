@@ -2,13 +2,10 @@ import * as React from 'react';
 import { useContext, useEffect, useState } from 'react';
 import Root from './Root';
 import { getItem, patchTree, pathInMap, Tree } from '../tree';
-import { redo, undo } from '../actions';
 import { Breadcrumb } from './Breadcrumb';
 import { Dispatch } from '../App';
 import { Id, Item } from '../Item';
-import { UndoIcon } from '../icons/UndoIcon';
 import './List.scss';
-import { RedoIcon } from '../icons/RedoIcon';
 import { Mode, normalMode, View } from '../state';
 
 export const TreeContext: React.Context<Tree | null> = React.createContext(null);
@@ -68,11 +65,9 @@ interface Props {
   view: View;
   mode: Mode;
   dispatch: Dispatch;
-  emptyFuture: boolean;
-  emptyHistory: boolean;
 }
 
-export const List = ({ tree, mode, view, dispatch, emptyFuture, emptyHistory }: Props) => {
+export const List = ({ tree, mode, view, dispatch }: Props) => {
   const root = useRoot(dispatch, tree, view.root);
 
   if (root === NOT_FOUND) {
@@ -81,8 +76,6 @@ export const List = ({ tree, mode, view, dispatch, emptyFuture, emptyHistory }: 
     return <h1>Node Loading...</h1>;
   }
 
-  const handleUndo = () => dispatch(undo);
-  const handleRedo = () => dispatch(redo);
   return (
     <DispatchContext.Provider value={dispatch}>
       <ViewContext.Provider value={view}>
@@ -90,14 +83,6 @@ export const List = ({ tree, mode, view, dispatch, emptyFuture, emptyHistory }: 
           <TreeContext.Provider value={tree}>
             <div className="List">
               <Breadcrumb id={root.id} map={tree.map} />
-              <div className="toolbar">
-                <button className="undo" onClick={handleUndo} disabled={emptyHistory}>
-                  <UndoIcon />
-                </button>
-                <button className="redo" onClick={handleRedo} disabled={emptyFuture}>
-                  <RedoIcon />
-                </button>
-              </div>
               <Root realRoot={tree.root} root={root} mode={mode} />
             </div>
           </TreeContext.Provider>
