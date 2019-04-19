@@ -51,6 +51,7 @@ const handleRemove = (tree: Tree, remove: Remove): EffectTree => {
   const [item, parent] = getItemAndParent(map, itemId);
   const children = List<Id>(parent.children.filter(v => v !== item.id));
   map = map.set(parent.id, { ...parent, children });
+  map = map.set(item.id, { ...item, deleted: true });
   return { ...saveAndRecord, tree: { ...tree, map } };
 };
 

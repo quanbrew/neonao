@@ -133,8 +133,7 @@ export const reducer = (state: State | null, action: Action): State | null => {
         }
       }
   }
-
-  if (tree && tree !== prevTree) {
+  if (tree !== prevTree) {
     if (record && prevTree) {
       history = history.push(prevTree);
       future = List();
