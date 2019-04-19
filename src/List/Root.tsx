@@ -20,22 +20,13 @@ const empty = () => {
   // empty function
 };
 
-const useAutoCreate = (dispatch: Dispatch, realRoot: Id, root: Item) => {
-  useEffect(() => {
-    if (root.children.size === 0 && realRoot === root.id) {
-      dispatch(actions.create(Item.create('', root.id)));
-    }
-  }, [root]);
-};
-
 const Root = ({ realRoot, root, mode }: Props) => {
   const dispatch = useDispatch();
-  useAutoCreate(dispatch, realRoot, root);
   const view = useView();
   const handleChange = (text: string) => {
     dispatch(actions.edit(root.id, text));
   };
-  const editing = mode.type === EDIT_MODE && mode.id === root.id;
+  const editing = mode.type === EDIT_MODE && mode.id === root.id && view.id == mode.view;
   const edit = () => {
     dispatch(actions.focus(root.id, view.id));
   };

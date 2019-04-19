@@ -4,11 +4,13 @@ import List from './List';
 import { createView, loadState, State } from './state';
 import { reducer } from './reducers/state';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
-import { Action, addView, loadedState, redo, undo } from './actions';
+import { Action, addView, loadedState, redo, undo, create } from './actions';
 import './App.scss';
 import { UndoIcon } from './icons/UndoIcon';
 import { RedoIcon } from './icons/RedoIcon';
 import { PlusIcon } from './icons/PlusIcon';
+import { getItem } from './tree';
+import { Item } from './Item';
 
 export type Dispatch = React.Dispatch<Action>;
 
@@ -46,6 +48,10 @@ export const App = () => {
     return <p>Loading Tree...</p>;
   }
   const { tree } = state;
+  const root = getItem(tree.map, tree.root);
+  if (root.children.size === 0) {
+    dispatch(create(Item.create('', root.id)));
+  }
 
   const handleUndo = () => dispatch(undo);
   const handleRedo = () => dispatch(redo);
