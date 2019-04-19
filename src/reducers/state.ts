@@ -1,7 +1,7 @@
 import { Action, AddView } from '../actions';
 import { List } from 'immutable';
 import { mergeTree, NotFound, saveTreeState, Tree } from '../tree';
-import { ADD_VIEW, LOADED_STATE, PATCH, REDO, SET_VIEW, SWITCH_MODE, UNDO } from '../constants';
+import { ADD_VIEW, FOCUS, LOADED_STATE, PATCH, REDO, SET_VIEW, SWITCH_MODE, UNDO } from '../constants';
 import { treeReducer } from './tree';
 import { Mode, State, View, ViewList } from '../state';
 
@@ -33,18 +33,20 @@ function handleAddView(views: ViewList, { order, view }: AddView): ViewList {
   }
 }
 
-export const reducer = (state: State, action: Action): State => {
+export const reducer = (state: State | null, action: Action): State | null => {
   console.log(action);
+  if (action.type === LOADED_STATE) {
+    state = action.state;
+  } else if (state === null) {
+    return state;
+  }
   const prevTree = state.tree;
   let tree: Tree | null = prevTree;
   let { future, history, mode, views } = state;
-  let record;
-  let save;
+  let record = false;
+  let save = false;
   switch (action.type) {
     case UNDO:
-      if (!tree) {
-        break;
-      }
       const prev = history.last(null);
       if (prev) {
         future = future.push(tree);
@@ -68,33 +70,23 @@ export const reducer = (state: State, action: Action): State => {
       record = false;
       break;
     case LOADED_STATE:
-      tree = action.tree;
-      views = action.views;
-      save = false;
-      record = false;
       break;
     case PATCH:
       if (!tree) {
         break;
       }
       tree = mergeTree(tree, action.tree);
-      save = false;
-      record = false;
       break;
     case SWITCH_MODE:
       mode = action.mode;
-      record = false;
-      save = false;
       break;
     case SET_VIEW:
       views = handleSetView(views, action.view);
-      record = false;
-      save = false;
       break;
     case ADD_VIEW:
       views = handleAddView(views, action);
-      record = false;
-      save = false;
+      break;
+    case FOCUS:
       break;
     default:
       if (!tree) {

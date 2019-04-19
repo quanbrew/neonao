@@ -1,12 +1,13 @@
 import { Id, Item } from './Item';
 import { Tree } from './tree';
-import { DropPosition, Mode, View, ViewList } from './state';
+import { DropPosition, Mode, State, View } from './state';
 import {
   ADD_VIEW,
   CREATE,
   DROP,
   EDIT,
   EXPAND,
+  FOCUS,
   FOLD,
   GOTO_NEXT,
   GOTO_PREV,
@@ -17,7 +18,6 @@ import {
   REMOVE,
   REORDER,
   SET_VIEW,
-  START_LOAD,
   SWITCH_MODE,
   TOGGLE,
   UN_INDENT,
@@ -25,12 +25,11 @@ import {
   UPDATE,
 } from './constants';
 
-export type Action = TreeAction | LoadedState | Patch | SwitchMode | Undo | Redo | SetView | AddView;
+export type Action = TreeAction | LoadedState | Patch | SwitchMode | Undo | Redo | SetView | AddView | Focus;
 
 export type TreeAction =
   | Fold
   | Expand
-  | StartLoad
   | Reorder
   | Create
   | Update
@@ -42,12 +41,6 @@ export type TreeAction =
   | GotoNext
   | GotoPrev
   | Drop;
-
-export interface StartLoad {
-  type: typeof START_LOAD;
-}
-
-export const startLoad = (): StartLoad => ({ type: START_LOAD });
 
 export interface Remove {
   type: typeof REMOVE;
@@ -163,14 +156,12 @@ export const redo: Redo = { type: REDO };
 
 export interface LoadedState {
   type: typeof LOADED_STATE;
-  tree: Tree;
-  views: ViewList;
+  state: State;
 }
 
-export const loadedState = (tree: Tree, views: ViewList): LoadedState => ({
+export const loadedState = (state: State): LoadedState => ({
   type: LOADED_STATE,
-  tree,
-  views,
+  state,
 });
 
 export interface Patch {
@@ -235,3 +226,10 @@ export interface AddView {
 }
 
 export const addView = (view: View, order?: number) => ({ type: ADD_VIEW, view, order });
+
+export interface Focus {
+  type: typeof FOCUS;
+  target: Id;
+}
+
+export const focus = (target: Id): Focus => ({ type: FOCUS, target });

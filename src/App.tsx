@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { useEffect, useReducer } from 'react';
 import List from './List';
-import { initState } from './state';
+import { loadState, State } from './state';
 import { reducer } from './reducers/state';
 import { isRedoKey, isSaveKey, isUndoKey } from './keyboard';
-import { Action, redo, undo } from './actions';
+import { Action, loadedState, redo, undo } from './actions';
 import './App.scss';
-import { loadTree, Tree } from './tree';
 
 export type Dispatch = React.Dispatch<Action>;
 
@@ -28,22 +27,22 @@ const useHotKey = (dispatch: Dispatch) => {
   }, []);
 };
 
-export const useInit = (dispatch: Dispatch, tree: Tree | null) => {
+export const useInit = (dispatch: Dispatch, state: State | null) => {
   useEffect(() => {
-    if (tree === null) {
-      loadTree().then(dispatch);
+    if (state === null) {
+      loadState().then(state => dispatch(loadedState(state)));
     }
-  });
+  }, [state]);
 };
 
 export const App = () => {
-  const [state, dispatch] = useReducer(reducer, initState);
-  const { tree } = state;
-  useInit(dispatch, tree);
+  const [state, dispatch] = useReducer(reducer, null);
+  useInit(dispatch, state);
   useHotKey(dispatch);
-  if (!tree) {
+  if (!state) {
     return <p>Loading Tree...</p>;
   }
+  const { tree } = state;
 
   const lists = state.views.map(view => (
     <List

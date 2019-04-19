@@ -1,5 +1,5 @@
 import { List } from 'immutable';
-import { Tree } from './tree';
+import { createEmptyTree, loadTree, Tree } from './tree';
 import { DETAIL_MODE, DRAG_MODE, EDIT_MODE, NORMAL_MODE, SELECT_MODE } from './constants';
 import { Id } from './Item';
 
@@ -59,17 +59,25 @@ export const createView = (root: Id): View => {
 export type ViewList = List<View>;
 
 export interface State {
-  tree: Tree | null;
+  tree: Tree;
   history: List<Tree>;
   future: List<Tree>;
   mode: Mode;
   views: ViewList;
 }
 
-export const initState: State = {
-  tree: null,
-  history: List(),
-  future: List(),
-  mode: normalMode(),
-  views: List(),
+export const createEmptyState = (): State => {
+  const tree = createEmptyTree();
+  const view = createView(tree.root);
+  const mode = normalMode();
+  const future = List();
+  const history = List();
+  const views = List([view]);
+  return { tree, views, mode, future, history };
+};
+
+export const loadState = async (): Promise<State> => {
+  const tree = await loadTree();
+  const views = List([createView(tree.root)]);
+  return { ...createEmptyState(), tree, views };
 };

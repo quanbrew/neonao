@@ -211,7 +211,7 @@ export const treeReducer = (tree: Tree, action: TreeAction): EffectTree => {
       return gotoPrev(tree, action);
     case DROP:
       return applyDrop(tree, action);
-    default:
-      throw Error(`unimplemented action: ${action.type}`);
+    // default:
+    //   throw Error(`unimplemented action: ${action.type}`);
   }
 };

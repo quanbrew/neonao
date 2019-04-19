@@ -6,7 +6,6 @@ export const DRAG_MODE = 'DRAG_MODE';
 export const NORMAL_MODE = 'NORMAL_MODE';
 
 // Actions
-export const START_LOAD = 'START_LOAD';
 export const REMOVE = 'REMOVE';
 export const UPDATE = 'UPDATE';
 export const EDIT = 'EDIT';
@@ -28,3 +27,4 @@ export const GOTO_NEXT = 'GOTO_NEXT';
 export const GOTO_PREV = 'GOTO_PREV';
 export const SET_VIEW = 'SET_VIEW';
 export const ADD_VIEW = 'ADD_VIEW';
+export const FOCUS = 'FOCUS';
