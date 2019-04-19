@@ -5,7 +5,7 @@ import * as actions from '../actions';
 import { gotoNext } from '../actions';
 import { useDispatch } from './List';
 import { Editor } from './Editor';
-import { editMode, Mode, normalMode } from '../state';
+import { Mode, normalMode } from '../state';
 import { EDIT_MODE } from '../constants';
 import './Root.scss';
 import { Dispatch } from '../App';
@@ -36,7 +36,7 @@ const Root = ({ realRoot, root, mode }: Props) => {
   };
   const editing = mode.type === EDIT_MODE && mode.id === root.id;
   const edit = () => {
-    dispatch(actions.switchMode(editMode(root.id)));
+    dispatch(actions.focus(root.id));
   };
   const exitEdit = () => {
     dispatch(actions.switchMode(normalMode()));

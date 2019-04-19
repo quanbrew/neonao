@@ -1,7 +1,7 @@
 import React, { DragEventHandler, MouseEventHandler, useRef, useState } from 'react';
 
 import { Id, Item } from '../Item';
-import { dragMode, DropPosition, EditMode, editMode, normalMode } from '../state';
+import { dragMode, DropPosition, EditMode, normalMode } from '../state';
 import * as actions from '../actions';
 import './ListNode.scss';
 import { Children } from './Children';
@@ -191,7 +191,7 @@ const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): O
   };
   const edit = () => {
     if (!editing) {
-      dispatch(actions.switchMode(editMode(id)));
+      dispatch(actions.focus(id));
     }
   };
   const zoom = () => {

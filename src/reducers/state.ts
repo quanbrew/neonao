@@ -3,7 +3,7 @@ import { List } from 'immutable';
 import { mergeTree, NotFound, saveTreeState, Tree } from '../tree';
 import { ADD_VIEW, FOCUS, LOADED_STATE, PATCH, REDO, SET_VIEW, SWITCH_MODE, UNDO } from '../constants';
 import { treeReducer } from './tree';
-import { Mode, State, View, ViewList } from '../state';
+import { editMode, Mode, State, View, ViewList } from '../state';
 
 type Timeout = number;
 const saveTimeout = 200;
@@ -87,6 +87,7 @@ export const reducer = (state: State | null, action: Action): State | null => {
       views = handleAddView(views, action);
       break;
     case FOCUS:
+      mode = editMode(action.target);
       break;
     default:
       if (!tree) {
