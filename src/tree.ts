@@ -232,7 +232,7 @@ export const getPrevItem = (map: ItemMap, item: Item, parent?: Item): Item => {
   parent = parent || getItem(map, item.parent);
   const position = getItemPosition(item.id, parent);
   if (position === 0) {
-    return parent;
+    return parent.parent ? parent : item;
   } else {
     const prev = getItem(map, parent.children.get(position - 1, null));
     if (prev.expand && prev.children.size > 0) {
