@@ -32,6 +32,7 @@ const create = (tree: Tree, create: Create): EffectTree => {
 
   let map = tree.map;
   const parent = getItem(map, parentId);
+  parent.expand = true;
 
   let children: List<Id>;
   if (create.above) {
@@ -61,6 +62,8 @@ const indent = (tree: Tree, action: Indent): EffectTree => {
 
   // first item can't indent
   if (index < 1) return { ...doNothing, tree };
+
+  parent.expand = true;
 
   const nextParentId = parent.children.get(index - 1) || null;
   const nextParent = getItem(tree.map, nextParentId);
