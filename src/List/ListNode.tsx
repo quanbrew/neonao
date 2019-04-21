@@ -172,7 +172,7 @@ const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): O
   };
   const create = () => {
     let action;
-    if (item.children.size > 0) {
+    if (item.children.size > 0 && item.expand) {
       action = actions.create(Item.create('', id));
     } else {
       action = actions.create(Item.create('', parent), id);
