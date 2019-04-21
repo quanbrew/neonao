@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Operator } from './ListNode';
 import { isRedoKey, isToggleKey, isUndoKey, keyboard } from '../keyboard';
 import './Editor.scss';
+import { useAfterResize } from '../utils';
 
 interface Props extends Operator {
   onChange: (next: string) => void;
@@ -22,7 +23,7 @@ const useAutoFocus = (inputRef: React.RefObject<Input>, editing: boolean) => {
   }, [editing]);
 };
 
-const useAutoHeight = (text: string, inputRef: React.RefObject<Input>) => {
+const useAutoHeight = (text: string, inputRef: React.RefObject<Input>, width: number) => {
   const threshold = 4;
   const additionPx = 2;
 
@@ -30,12 +31,12 @@ const useAutoHeight = (text: string, inputRef: React.RefObject<Input>) => {
   useEffect(() => {
     const input = inputRef.current;
     if (input) {
-      const isContentReduce = text.length < prevText.current.length;
+      const isContentReduce = true;
       let oldHeightStyle = null;
       const height = input.clientHeight;
       if (isContentReduce) {
         oldHeightStyle = input.style.height;
-        input.style.height = '5px';
+        input.style.height = '0px';
       }
       const scrollHeight = input.scrollHeight;
       if (Math.abs(height - scrollHeight) > threshold) {
@@ -45,7 +46,7 @@ const useAutoHeight = (text: string, inputRef: React.RefObject<Input>) => {
       }
       prevText.current = text;
     }
-  }, [text]);
+  }, [width, text]);
 };
 
 export const Editor = ({
@@ -71,6 +72,8 @@ export const Editor = ({
 
   const [cache, setCache] = useState(source);
 
+  const { width } = useAfterResize();
+
   // synchronize source and cache
   useEffect(() => {
     if (source !== cache) {
@@ -82,7 +85,7 @@ export const Editor = ({
 
   useAutoFocus(inputRef, editing);
 
-  useAutoHeight(cache, inputRef);
+  useAutoHeight(cache, inputRef, width);
 
   const handleKeyDown: React.KeyboardEventHandler = e => {
     if (isUndoKey(e) || isRedoKey(e)) {
