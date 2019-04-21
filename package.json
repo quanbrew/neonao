@@ -10,6 +10,7 @@
   "dependencies": {
     "immutable": "~4.0.0-rc.12",
     "localforage": "^1.7.3",
+    "neonao_parsers": "^0.1.0",
     "normalize.css": "^8.0.1",
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
