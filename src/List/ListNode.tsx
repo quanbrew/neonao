@@ -8,6 +8,7 @@ import { Children } from './Children';
 import { useDispatch, useView } from './List';
 import { Editor } from './Editor';
 import { Dispatch } from '../App';
+import { useMarkdownParser } from '../parsers';
 
 const DRAGGING_CLASS = 'node-dragging';
 const DROP_DATA_TYPE = 'text/list-node-id';
@@ -216,6 +217,10 @@ export const ListNode = React.memo(({ item, parentDragging, editing }: Props) =>
   const dispatch = useDispatch();
   const onChange = (source: string) => dispatch(actions.edit(id, source));
   const operates = useOperate(dispatch, item, editing);
+  const parser = useMarkdownParser();
+  if (parser) {
+    console.log(parser(item.source));
+  }
 
   const dropRef = useRef<HTMLDivElement>(null);
   const { onDrop, onDragStart, onDragOver, onDragLeave, onDragEnd, isOver, dragging } = useDragAndDrop(
@@ -241,6 +246,13 @@ export const ListNode = React.memo(({ item, parentDragging, editing }: Props) =>
   } else {
     classNames.push('folded');
   }
+  let line;
+  if (parser === null || editing) {
+    line = <Editor onChange={onChange} source={source} editing={true} modified={modified} {...operates} />;
+  } else {
+    line = <p onClick={operates.edit}>{item.source}</p>;
+  }
+
   return (
     <div
       ref={dropRef}
@@ -250,7 +262,7 @@ export const ListNode = React.memo(({ item, parentDragging, editing }: Props) =>
       onDragLeave={onDragLeave}
     >
       <Bullet onDragStart={onDragStart} onDragEnd={onDragEnd} toggle={operates.toggle} />
-      <Editor onChange={onChange} source={source} editing={!!editing} modified={modified} {...operates} />
+      {line}
       <Children item={item} parentDragging={dragging} />
     </div>
   );

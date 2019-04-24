@@ -70,7 +70,6 @@ export const Editor = ({
   const cacheModified = useRef<number>(Date.now());
 
   const [cache, setCache] = useState(source);
-
   // synchronize source and cache
   useEffect(() => {
     if (source !== cache) {
