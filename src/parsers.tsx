@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 const parsers: Promise<typeof import('neonao_parsers')> = import(/* webpackPreload: true */ 'neonao_parsers');
 
-type MarkdownParser = typeof import('neonao_parsers').markdown;
+export type MarkdownParser = typeof import('neonao_parsers').markdown;
 
 let markdownParser: MarkdownParser | null = null;
 

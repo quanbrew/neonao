@@ -18,6 +18,7 @@
     "no-var-requires": false,
     "no-namespace": false,
     "no-console": false,
+    "jsx-curly-spacing": false,
     "jsx-wrap-multiline": false
   },
   "linterOptions": {
