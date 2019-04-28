@@ -135,6 +135,9 @@ const applyDrop = (tree: Tree, action: Drop): EffectTree => {
 const toggle = (tree: Tree, action: Toggle | Expand | Fold): EffectTree => {
   const item = getItem(tree.map, action.id);
   let expand = item.expand;
+  if (item.children.size === 0) {
+    return { ...doNothing, tree };
+  }
   switch (action.type) {
     case 'TOGGLE':
       expand = !expand;

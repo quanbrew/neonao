@@ -4,6 +4,10 @@ $toggle-line-color: $main-color;
 
 .ListNode {
   position: relative;
+  .Content,
+  .Editor {
+    margin-left: 2rem;
+  }
   .bullet {
     border-radius: 100%;
     left: 0.5rem;

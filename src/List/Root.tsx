@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Id, Item } from '../Item';
 import { Children } from './Children';
 import * as actions from '../actions';
@@ -8,7 +8,6 @@ import { Editor } from './Editor';
 import { Mode, normalMode } from '../state';
 import { EDIT_MODE } from '../constants';
 import './Root.scss';
-import { Dispatch } from '../App';
 
 interface Props {
   root: Item;
@@ -26,7 +25,7 @@ const Root = ({ realRoot, root, mode }: Props) => {
   const handleChange = (text: string) => {
     dispatch(actions.edit(root.id, text));
   };
-  const editing = mode.type === EDIT_MODE && mode.id === root.id && view.id == mode.view;
+  const editing = mode.type === EDIT_MODE && mode.id === root.id && view.id === mode.view;
   const edit = () => {
     dispatch(actions.focus(root.id, view.id));
   };
