@@ -115,6 +115,9 @@ export const Editor = ({
         gotoNext();
       }
     } else if (e.keyCode === keyboard.ENTER) {
+      if (e.shiftKey) {
+        return;
+      }
       e.preventDefault();
       if (e.metaKey) {
         zoom();

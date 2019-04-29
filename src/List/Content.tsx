@@ -2,20 +2,22 @@ import { MarkdownParser, useMarkdownParser } from '../parsers';
 import { Segment, Tag } from 'neonao_parsers';
 import React from 'react';
 
-const key = ([start, end]: [number, number]): string => `${start}:${end}"`;
+type Range = [number, number];
+
+const key = ([start, end]: Range): string => `${start}:${end}"`;
 
 interface Props {
   source: string;
   edit: () => void;
 }
 
-const Text = ({ text, range }: { text: string; range: [number, number] }) => {
+const Text = ({ text, range }: { text: string; range: Range }) => {
   return <span key={key(range)}>{text}</span>;
 };
 
 interface ContainerTagProps {
   children: React.ReactChildren;
-  range: [number, number];
+  range: Range;
   tag: Tag;
 }
 
@@ -31,12 +33,12 @@ const Default = ({ children }: ContainerTagProps) => {
   return <del>{children}</del>;
 };
 
-const Code = ({ children }: ContainerTagProps) => {
-  return <code>{children}</code>;
+const Code = ({ code }: { code: string; range: Range }) => {
+  return <code>{code}</code>;
 };
 
 const Link = ({ children, tag }: ContainerTagProps) => {
-  if (tag.name !== 'Link') {
+  if (tag.type !== 'Link') {
     throw Error();
   } else {
     return (
@@ -47,7 +49,7 @@ const Link = ({ children, tag }: ContainerTagProps) => {
   }
 };
 
-const Unsupported = ({  }: { range: [number, number] }) => {
+const Unsupported = ({  }: { range: Range }) => {
   return <del>[UNSUPPORTED]</del>;
 };
 const Paragraph = ({ children }: ContainerTagProps) => {
@@ -57,26 +59,24 @@ const Paragraph = ({ children }: ContainerTagProps) => {
 const containerTag = {
   Paragraph,
   Strong,
-  Code,
   Link,
   Emphasis,
 };
 
 export const render = (segments: Segment[]): JSX.Element | null => {
-  console.log([...segments]);
   const head = segments.pop();
   if (head === undefined) {
     return null;
-  } else if (head.event.kind === 'Start') {
+  } else if (head.event.type === 'Start') {
     // A loop consumes events until it meets the corresponding `End` event.
 
     const { tag } = head.event;
-    const { name } = tag;
-    const Renderer = containerTag.hasOwnProperty(name) ? containerTag[name] : Default;
+    const { type } = tag;
+    const Renderer = containerTag.hasOwnProperty(type) ? containerTag[type] : Default;
     const inner = [];
     while (segments.length !== 0) {
       const nextHead = segments[segments.length - 1];
-      if (nextHead.event.kind === 'End' && nextHead.event.tag.name === name) {
+      if (nextHead.event.type === 'End' && nextHead.event.tag.type === type) {
         segments.pop();
         return <Renderer key={key(head.range)} children={inner} range={head.range} tag={head.event.tag} />;
       }
@@ -86,30 +86,45 @@ export const render = (segments: Segment[]): JSX.Element | null => {
       }
     }
     throw Error('encounter a unbalanced tag');
-  } else if (head.event.kind === 'Text') {
+  } else if (head.event.type === 'Text') {
     return <Text key={key(head.range)} text={head.event.text} range={head.range} />;
-  } else if (head.event.kind === 'Unsupported') {
-    return <Unsupported range={head.range} />;
+  } else if (head.event.type === 'Code') {
+    return <Code key={key(head.range)} range={head.range} code={head.event.code} />;
+  } else if (head.event.type === 'SoftBreak') {
+    return null;
+  } else if (head.event.type === 'HardBreak') {
+    return <br key={key(head.range)} />;
+  } else if (head.event.type === 'End') {
+    throw Error('unexpected `End` tag');
   } else {
-    console.error(head.event);
-    throw Error('Unexpected tag');
+    return <Unsupported key={key(head.range)} range={head.range} />;
   }
 };
 
-const startRender = (parser: MarkdownParser | null, source: string): JSX.Element | null => {
+const startRender = (parser: MarkdownParser | null, source: string): JSX.Element[] => {
   if (parser === null) {
-    return <span>{source}</span>;
+    return [<span key="source">{source}</span>];
   } else {
     const parsed = parser(source);
-    return render(parsed.reverse());
+    console.groupCollapsed(source);
+    for (const element of parsed) {
+      console.log(element.event.type, element.event);
+    }
+    console.groupEnd();
+    const segments = parsed.reverse();
+    const elements = [];
+    while (segments.length !== 0) {
+      const rendered = render(segments);
+      if (rendered !== null) {
+        elements.push(rendered);
+      }
+    }
+    return elements;
   }
 };
 
 export const Content = ({ source, edit }: Props) => {
   const parser = useMarkdownParser();
-  if (parser) {
-    // console.log(parser(source));
-  }
   return (
     <div className="Content" onClick={edit}>
       {startRender(parser, source)}
