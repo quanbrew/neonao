@@ -1,19 +1,28 @@
 import { MarkdownParser, useMarkdownParser } from '../parsers';
 import { Segment, Tag } from 'neonao_parsers';
-import React from 'react';
+import React, { FocusEventHandler } from 'react';
 import './Content.scss';
 
 type Range = [number, number];
+
+type Edit = () => void;
 
 const key = ([start, end]: Range): string => `${start}:${end}"`;
 
 interface Props {
   source: string;
-  edit: () => void;
+  edit: Edit;
 }
 
-const Text = ({ text, range }: { text: string; range: Range }) => {
-  return <span key={key(range)}>{text}</span>;
+const Text = ({ text, range, edit }: { text: string; range: Range; edit: Edit }) => {
+  const textFocus: FocusEventHandler = () => {
+    edit();
+  };
+  return (
+    <span key={key(range)} onFocus={textFocus} contentEditable={true} suppressContentEditableWarning={true}>
+      {text}
+    </span>
+  );
 };
 
 interface ContainerTagProps {
@@ -64,7 +73,7 @@ const containerTag = {
   Emphasis,
 };
 
-export const render = (segments: Segment[]): JSX.Element | null => {
+export const render = (segments: Segment[], edit: Edit): JSX.Element | null => {
   const head = segments.pop();
   if (head === undefined) {
     return null;
@@ -81,14 +90,14 @@ export const render = (segments: Segment[]): JSX.Element | null => {
         segments.pop();
         return <Renderer key={key(head.range)} children={inner} range={head.range} tag={head.event.tag} />;
       }
-      const result = render(segments);
+      const result = render(segments, edit);
       if (result !== null) {
         inner.push(result);
       }
     }
     throw Error('encounter a unbalanced tag');
   } else if (head.event.type === 'Text') {
-    return <Text key={key(head.range)} text={head.event.text} range={head.range} />;
+    return <Text key={key(head.range)} text={head.event.text} range={head.range} edit={edit} />;
   } else if (head.event.type === 'Code') {
     return <Code key={key(head.range)} range={head.range} code={head.event.code} />;
   } else if (head.event.type === 'SoftBreak') {
@@ -102,7 +111,7 @@ export const render = (segments: Segment[]): JSX.Element | null => {
   }
 };
 
-const startRender = (parser: MarkdownParser | null, source: string): JSX.Element[] => {
+const startRender = (parser: MarkdownParser | null, source: string, edit: Edit): JSX.Element[] => {
   if (parser === null) {
     return [<span key="source">{source}</span>];
   } else {
@@ -115,7 +124,7 @@ const startRender = (parser: MarkdownParser | null, source: string): JSX.Element
     const segments = parsed.reverse();
     const elements = [];
     while (segments.length !== 0) {
-      const rendered = render(segments);
+      const rendered = render(segments, edit);
       if (rendered !== null) {
         elements.push(rendered);
       }
@@ -126,9 +135,5 @@ const startRender = (parser: MarkdownParser | null, source: string): JSX.Element
 
 export const Content = ({ source, edit }: Props) => {
   const parser = useMarkdownParser();
-  return (
-    <div className="Content" onClick={edit}>
-      {startRender(parser, source)}
-    </div>
-  );
+  return <div className="Content">{startRender(parser, source, edit)}</div>;
 };
