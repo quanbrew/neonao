@@ -1,6 +1,7 @@
 import { MarkdownParser, useMarkdownParser } from '../parsers';
 import { Segment, Tag } from 'neonao_parsers';
 import React from 'react';
+import './Content.scss';
 
 type Range = [number, number];
 

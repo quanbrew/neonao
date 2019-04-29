@@ -9,7 +9,6 @@ import { EditMode } from '../state';
 import { EDIT_MODE } from '../constants';
 import { Dispatch } from '../App';
 import './Children.scss';
-import { fold } from '../actions';
 
 interface Props {
   item: Item;
@@ -28,25 +27,12 @@ const useLoadChildren = (item: Item, dispatch: Dispatch): boolean => {
   return unloadItems.size === 0;
 };
 
-const FoldLine = ({ id }: { id: Id }) => {
-  const dispatch = useDispatch();
-  const handleClick: React.MouseEventHandler = e => {
-    e.preventDefault();
-    dispatch(fold(id));
-  };
-  return (
-    <a href="#" className="toggle-line" onClick={handleClick}>
-      <div className="line" />
-    </a>
-  );
-};
-
 const NodeList = ({ items, parentDragging }: { id: Id; items: List<Id>; parentDragging: boolean }) => {
   const tree = useTree();
   const view = useView();
   const mode = useMode();
   const editing = mode.type === EDIT_MODE && mode.view === view.id ? mode.id : null;
-  const mapper = (id: string) => {
+  const mapper = (id: string, index: number) => {
     const item = getItem(tree.map, id);
     return (
       <ListNode
@@ -54,6 +40,7 @@ const NodeList = ({ items, parentDragging }: { id: Id; items: List<Id>; parentDr
         item={item}
         parentDragging={parentDragging}
         editing={id === editing ? (mode as EditMode) : null}
+        last={index === items.size - 1}
       />
     );
   };

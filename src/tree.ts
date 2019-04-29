@@ -239,20 +239,23 @@ export const getPrevItem = (map: ItemMap, item: Item, parent?: Item): Item => {
   }
 };
 
-const getNextSibling = (map: ItemMap, item: Item): Id => {
+const getNextSibling = (map: ItemMap, item: Item, scope: Id): Id | null => {
+  if (item.id === scope) {
+    return null;
+  }
   const parent = getItem(map, item.parent);
   const position = getItemPosition(item.id, parent);
   const siblingId = parent.children.get(position + 1, null);
   if (siblingId) {
     return siblingId;
   } else if (parent.parent) {
-    return getNextSibling(map, parent);
+    return getNextSibling(map, parent, scope);
   } else {
-    return parent.id;
+    return null;
   }
 };
 
-export const getNextItemId = (map: ItemMap, item: Item): Id => {
+export const getNextItemId = (map: ItemMap, item: Item, scope: Id): Id => {
   const firstChild = item.children.first(null);
   if (item.expand && firstChild) {
     return firstChild;
@@ -263,10 +266,12 @@ export const getNextItemId = (map: ItemMap, item: Item): Id => {
   if (next) {
     return next;
   } else if (parent.parent) {
-    return getNextSibling(map, parent);
-  } else {
-    return item.id;
+    const nextSibling = getNextSibling(map, parent, scope);
+    if (nextSibling !== null) {
+      return nextSibling;
+    }
   }
+  return item.id;
 };
 
 export const getUnloadItemId = (map: ItemMap, idList: List<Id>): List<Id> => {

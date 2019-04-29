@@ -17,6 +17,7 @@ export interface Props {
   item: Item;
   editing: null | EditMode;
   parentDragging: boolean;
+  last: boolean;
 }
 
 interface DragAndDrop {
@@ -120,17 +121,6 @@ const Bullet = ({ onDragStart, onDragEnd, toggle }: BulletProps) => {
   );
 };
 
-// const FoldLine = ({ id }: { id: Id }) => {
-//   const dispatch = useDispatch();
-//   const handleClick: React.MouseEventHandler = e => {
-//     e.preventDefault();
-//     dispatch(fold(id));
-//   };
-//   return (
-//     <div className="toggle-line" onClick={handleClick}/>
-//   );
-// };
-
 export interface Operator {
   swapUp: () => void;
   swapDown: () => void;
@@ -162,7 +152,7 @@ const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): O
     }
   };
   const unIndent = () => {
-    if (parent) {
+    if (parent && parent !== view.root) {
       dispatch(actions.unIndent(id, parent));
     }
   };
@@ -212,7 +202,7 @@ const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): O
   return { swapUp, swapDown, unIndent, indent, remove, create, toggle, edit, gotoNext, gotoPrev, exitEdit, zoom };
 };
 
-export const ListNode = React.memo(({ item, parentDragging, editing }: Props) => {
+export const ListNode = React.memo(({ item, parentDragging, editing, last }: Props) => {
   const { id, children, source, modified } = item;
   const dispatch = useDispatch();
   const onChange = (source: string) => dispatch(actions.edit(id, source));
@@ -243,7 +233,7 @@ export const ListNode = React.memo(({ item, parentDragging, editing }: Props) =>
   }
   let line;
   if (editing) {
-    line = <Editor onChange={onChange} source={source} editing={true} modified={modified} {...operates} />;
+    line = <Editor last={last} onChange={onChange} source={source} editing={true} modified={modified} {...operates} />;
   } else {
     line = <Content source={source} edit={operates.edit} />;
   }

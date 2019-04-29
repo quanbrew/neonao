@@ -9,6 +9,7 @@ interface Props extends Operator {
   source: string;
   editing: boolean;
   modified: number;
+  last: boolean;
 }
 
 type Input = HTMLTextAreaElement;
@@ -66,6 +67,7 @@ export const Editor = ({
   gotoPrev,
   zoom,
   exitEdit,
+  last,
 }: Props) => {
   const submitTimer = useRef<number | null>(null);
   const cacheModified = useRef<number>(Date.now());
@@ -121,7 +123,7 @@ export const Editor = ({
       e.preventDefault();
       if (e.metaKey) {
         zoom();
-      } else if (/$\s*^/.test(cache)) {
+      } else if (last && /$\s*^/.test(cache)) {
         unIndent();
       } else {
         create();

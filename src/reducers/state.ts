@@ -43,14 +43,14 @@ function handleAddView(views: ViewList, { order, view }: AddView): ViewList {
   }
 }
 
-const gotoNext = (tree: Tree, oldMode: Mode, action: GotoNext): Mode => {
-  const item = getItem(tree.map, action.id);
-  const nextId = getNextItemId(tree.map, item);
-  if (nextId !== tree.root) {
-    return editMode(nextId, action.view);
-  } else {
-    return oldMode;
+const gotoNext = (tree: Tree, oldMode: Mode, action: GotoNext, views: List<View>): Mode => {
+  const view = views.find(view => view.id === action.view);
+  if (!view) {
+    throw Error('view not found');
   }
+  const item = getItem(tree.map, action.id);
+  const nextId = getNextItemId(tree.map, item, view.root);
+  return editMode(nextId, action.view);
 };
 
 const gotoPrev = (tree: Tree, action: GotoPrev): Mode => {
@@ -116,7 +116,7 @@ export const reducer = (state: State | null, action: Action): State | null => {
       mode = editMode(action.target, action.view);
       break;
     case GOTO_NEXT:
-      mode = gotoNext(tree, mode, action);
+      mode = gotoNext(tree, mode, action, views);
       break;
     case GOTO_PREV:
       mode = gotoPrev(tree, action);

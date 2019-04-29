@@ -35,6 +35,7 @@ const Root = ({ realRoot, root, mode }: Props) => {
   const create = () => {
     const newItem = Item.create('', root.id);
     dispatch(actions.create(newItem));
+    dispatch(actions.focus(newItem.id, view.id));
   };
   const goNext = () => {
     dispatch(gotoNext(root.id, view.id));
@@ -58,6 +59,7 @@ const Root = ({ realRoot, root, mode }: Props) => {
       gotoPrev={empty}
       exitEdit={exitEdit}
       zoom={empty}
+      last={root.children.size === 0}
     />
   );
 
