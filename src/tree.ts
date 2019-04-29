@@ -100,6 +100,7 @@ export interface ExportedItem {
 }
 
 export const pathInMap = (map: ItemMap, id: Id | null): boolean => {
+  // Is all parents of the item were loaded to map.
   while (id) {
     const item = map.get(id, null);
     if (!item) {
@@ -197,6 +198,22 @@ const resetItemParent = (map: ItemMap, id: Id, parent: Id): ItemMap => {
 };
 
 export const moveInto = (map: ItemMap, id: Id, parentId: Id, nextParentId: Id, order: number): ItemMap => {
+  // Before move
+  //
+  // * a <- next parent
+  // ** b [order: 0]
+  // ** c [order: 1]
+  // ** d [order: 2]
+  // ** e [order: 3]
+  //
+  // After move (order is 2)
+  // * a <- next parent
+  // ** b [order: 0]
+  // ** c [order: 1]
+  // ** _ [order: 2] <- NEW
+  // ** d [order: 3]
+  // ** e [order: 4]
+
   if (id === nextParentId || isChildrenOf(map, nextParentId, id) || order < 0) {
     console.warn('self-contained move');
     return map;
@@ -216,6 +233,11 @@ export const moveInto = (map: ItemMap, id: Id, parentId: Id, nextParentId: Id, o
 };
 
 export const getLastNode = (map: ItemMap, item: Item): Item => {
+  // * a <- item
+  // ** b
+  // *** c
+  // **** d
+  // ***** e <- last
   if (item.children.size === 0 || !item.expand) {
     return item;
   } else {
@@ -228,19 +250,40 @@ export const getPrevItem = (map: ItemMap, item: Item, parent?: Item): Item => {
   parent = parent || getItem(map, item.parent);
   const position = getItemPosition(item.id, parent);
   if (position === 0) {
+    // * a <- previous
+    // ** b <- current
     return parent.parent ? parent : item;
   } else {
     const prev = getItem(map, parent.children.get(position - 1, null));
     if (prev.expand && prev.children.size > 0) {
+      // * a
+      // ** b
+      // *** c
+      // **** d
+      // ***** e <- previous
+      // ** f <- current
       return getLastNode(map, prev);
     } else {
+      // * a
+      // ** b <- previous
+      // ** c <- current
       return prev;
     }
   }
 };
 
-const getNextSibling = (map: ItemMap, item: Item, scope: Id): Id | null => {
+const getParentSibling = (map: ItemMap, item: Item, scope: Id): Id | null => {
+  // * a <- scope <- 3 (found next sibling "d")
+  // ** b
+  // *** ...
+  // ** c <- parent <- 2 (there's no next sibling, recursion)
+  // *** d <- item <- 1 (there's no next sibling, recursion) <- START
+  // * d <- next sibling <- 4
   if (item.id === scope) {
+    // * a
+    // ** b <- scope <- current
+    // *** ...
+    // ** c <- out of scope
     return null;
   }
   const parent = getItem(map, item.parent);
@@ -249,7 +292,7 @@ const getNextSibling = (map: ItemMap, item: Item, scope: Id): Id | null => {
   if (siblingId) {
     return siblingId;
   } else if (parent.parent) {
-    return getNextSibling(map, parent, scope);
+    return getParentSibling(map, parent, scope);
   } else {
     return null;
   }
@@ -258,17 +301,35 @@ const getNextSibling = (map: ItemMap, item: Item, scope: Id): Id | null => {
 export const getNextItemId = (map: ItemMap, item: Item, scope: Id): Id => {
   const firstChild = item.children.first(null);
   if (item.expand && firstChild) {
+    // * a <- current
+    // ** b <- next
     return firstChild;
   }
   const parent = getItem(map, item.parent);
   const position = getItemPosition(item.id, parent);
   const next = parent.children.get(position + 1, null);
   if (next) {
+    // * a
+    // ** b <- current
+    // ** c <- next
     return next;
   } else if (parent.parent) {
-    const nextSibling = getNextSibling(map, parent, scope);
+    const nextSibling = getParentSibling(map, parent, scope);
     if (nextSibling !== null) {
+      // *** a <- scope
+      // **** b
+      // ***** c
+      // ****** d
+      // ******* e
+      // ******** f <- current
+      // ***** g <- next
       return nextSibling;
+    } else {
+      // *** a <- scope
+      // **** b
+      // ***** c <- current <- next
+      // * d
+      return item.id;
     }
   }
   return item.id;
@@ -279,6 +340,12 @@ export const getUnloadItemId = (map: ItemMap, idList: List<Id>): List<Id> => {
 };
 
 export const getPath = (map: ItemMap, id?: Id): List<Item> => {
+  // * a
+  // ** b
+  // ** c
+  // *** d
+  // **** e
+  // **** f <- path: [f, d, c, a]
   if (!id) {
     return List();
   } else {
