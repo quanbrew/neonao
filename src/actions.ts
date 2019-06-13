@@ -231,6 +231,14 @@ export interface Focus {
   type: typeof FOCUS;
   target: Id;
   view: ViewId;
+  anchor: number;
+  focus: number;
 }
 
-export const focus = (target: Id, view: ViewId): Focus => ({ type: FOCUS, target, view });
+export const focus = (target: Id, view: ViewId, focus: number, anchor?: number): Focus => ({
+  type: FOCUS,
+  target,
+  view,
+  focus,
+  anchor: anchor || focus,
+});

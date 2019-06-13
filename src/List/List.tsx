@@ -8,7 +8,7 @@ import { Id, Item } from '../Item';
 import './List.scss';
 import { Mode, normalMode, View } from '../state';
 
-export const TreeContext: React.Context<Tree | null> = React.createContext(null);
+export const TreeContext = React.createContext<Tree | null>(null);
 
 export const useTree = (): Tree => {
   const tree = useContext(TreeContext);
@@ -18,7 +18,7 @@ export const useTree = (): Tree => {
   return tree;
 };
 
-export const DispatchContext: React.Context<Dispatch> = React.createContext(() => {
+export const DispatchContext = React.createContext<Dispatch>(() => {
   throw Error('uninitiated dispatcher');
 });
 
@@ -26,11 +26,11 @@ export const useDispatch = (): Dispatch => {
   return useContext(DispatchContext);
 };
 
-const ModeContext: React.Context<Mode> = React.createContext(normalMode());
+const ModeContext = React.createContext<Mode>(normalMode());
 
 export const useMode = (): Mode => useContext(ModeContext);
 
-const ViewContext: React.Context<View | null> = React.createContext(null);
+const ViewContext = React.createContext<View | null>(null);
 
 export const useView = (): View => {
   const view = useContext(ViewContext);

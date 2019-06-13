@@ -137,11 +137,7 @@ export const Editor = ({
     }
   };
 
-  const onFocus: React.FocusEventHandler<Input> = () => {
-    if (!editing) {
-      edit();
-    }
-  };
+  const onFocus: React.FocusEventHandler<Input> = () => {};
 
   const onBlur: React.FocusEventHandler<Input> = () => {
     if (editing) {

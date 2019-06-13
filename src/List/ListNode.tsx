@@ -1,7 +1,7 @@
 import React, { DragEventHandler, MouseEventHandler, useRef, useState } from 'react';
 
 import { Id, Item } from '../Item';
-import { dragMode, DropPosition, EditMode, normalMode } from '../state';
+import { dragMode, DropPosition, EditMode, normalMode, ViewId } from '../state';
 import * as actions from '../actions';
 import './ListNode.scss';
 import { Children } from './Children';
@@ -12,6 +12,8 @@ import { Content } from './Content';
 
 const DRAGGING_CLASS = 'node-dragging';
 const DROP_DATA_TYPE = 'text/list-node-id';
+
+export type StartEdit = (selection: Selection) => void;
 
 export interface Props {
   item: Item;
@@ -129,12 +131,14 @@ export interface Operator {
   create: () => void;
   remove: () => void;
   toggle: () => void;
-  edit: () => void;
+  edit: (selection: Selection) => void;
   zoom: () => void;
   gotoNext: () => void;
   gotoPrev: () => void;
   exitEdit: () => void;
 }
+
+export const gotoNext = (dispatch: Dispatch, view: ViewId, start: Id) => () => dispatch(actions.gotoNext(start, view));
 
 const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): Operator => {
   const view = useView();
@@ -169,7 +173,7 @@ const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): O
       action = actions.create(Item.create('', parent), id);
     }
     dispatch(action);
-    dispatch(actions.focus(action.item.id, view.id));
+    dispatch(actions.focus(action.item.id, view.id, 0, 0));
   };
   const remove = () => {
     if (childCount === 0) {
@@ -182,30 +186,46 @@ const useOperate = (dispatch: Dispatch, item: Item, editing: EditMode | null): O
       dispatch(actions.toggle(id));
     }
   };
-  const edit = () => {
+  const edit = (selection?: Selection) => {
     if (!editing) {
-      dispatch(actions.focus(id, view.id));
+      const anchor = selection ? selection.anchorOffset : 0;
+      const focus = selection ? selection.focusOffset : 0;
+      dispatch(actions.focus(id, view.id, focus, anchor));
     }
   };
   const zoom = () => {
     dispatch(actions.setView({ ...view, root: id }));
   };
-  const gotoNext = () => {
-    dispatch(actions.gotoNext(id, view.id));
-  };
+
   const gotoPrev = () => {
     dispatch(actions.gotoPrev(id, view.id));
   };
   const exitEdit = () => {
     dispatch(actions.switchMode(normalMode()));
   };
-  return { swapUp, swapDown, unIndent, indent, remove, create, toggle, edit, gotoNext, gotoPrev, exitEdit, zoom };
+  return {
+    swapUp,
+    swapDown,
+    unIndent,
+    indent,
+    remove,
+    create,
+    toggle,
+    edit,
+    gotoNext: gotoNext(dispatch, view.id, id),
+    gotoPrev,
+    exitEdit,
+    zoom,
+  };
+};
+
+export const onChange = (dispatch: Dispatch, id: Id) => (source: string) => {
+  dispatch(actions.edit(id, source));
 };
 
 export const ListNode = React.memo(({ item, parentDragging, editing, last }: Props) => {
   const { id, children, source, modified } = item;
   const dispatch = useDispatch();
-  const onChange = (source: string) => dispatch(actions.edit(id, source));
   const operates = useOperate(dispatch, item, editing);
   const dropRef = useRef<HTMLDivElement>(null);
   const { onDrop, onDragStart, onDragOver, onDragLeave, onDragEnd, isOver, dragging } = useDragAndDrop(
@@ -233,7 +253,16 @@ export const ListNode = React.memo(({ item, parentDragging, editing, last }: Pro
   }
   let line;
   if (editing) {
-    line = <Editor last={last} onChange={onChange} source={source} editing={true} modified={modified} {...operates} />;
+    line = (
+      <Editor
+        last={last}
+        onChange={onChange(dispatch, id)}
+        source={source}
+        editing={true}
+        modified={modified}
+        {...operates}
+      />
+    );
   } else {
     line = <Content source={source} edit={operates.edit} />;
   }

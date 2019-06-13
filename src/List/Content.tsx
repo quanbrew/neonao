@@ -1,25 +1,27 @@
 import { MarkdownParser, useMarkdownParser } from '../parsers';
 import { Segment, Tag } from 'neonao_parsers';
-import React, { FocusEventHandler } from 'react';
+import React from 'react';
 import './Content.scss';
+import { StartEdit } from './ListNode';
 
 type Range = [number, number];
-
-type Edit = () => void;
 
 const key = ([start, end]: Range): string => `${start}:${end}"`;
 
 interface Props {
   source: string;
-  edit: Edit;
+  edit: StartEdit;
 }
 
-const Text = ({ text, range, edit }: { text: string; range: Range; edit: Edit }) => {
-  const textFocus: FocusEventHandler = () => {
-    edit();
+const Text = ({ text, range, edit }: { text: string; range: Range; edit: StartEdit }) => {
+  const textFocus = () => {
+    const selection = window.getSelection();
+    if (selection) {
+      edit(selection);
+    }
   };
   return (
-    <span key={key(range)} onFocus={textFocus} contentEditable={true} suppressContentEditableWarning={true}>
+    <span key={key(range)} onMouseUp={textFocus} contentEditable={true} suppressContentEditableWarning={true}>
       {text}
     </span>
   );
@@ -73,7 +75,7 @@ const containerTag = {
   Emphasis,
 };
 
-export const render = (segments: Segment[], edit: Edit): JSX.Element | null => {
+export const render = (segments: Segment[], edit: StartEdit): JSX.Element | null => {
   const head = segments.pop();
   if (head === undefined) {
     return null;
@@ -111,7 +113,7 @@ export const render = (segments: Segment[], edit: Edit): JSX.Element | null => {
   }
 };
 
-const startRender = (parser: MarkdownParser | null, source: string, edit: Edit): JSX.Element[] => {
+const startRender = (parser: MarkdownParser | null, source: string, edit: StartEdit): JSX.Element[] => {
   if (parser === null) {
     return [<span key="source">{source}</span>];
   } else {

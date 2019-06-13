@@ -8,6 +8,7 @@ import { Editor } from './Editor';
 import { Mode, normalMode } from '../state';
 import { EDIT_MODE } from '../constants';
 import './Root.scss';
+import { onChange } from './ListNode';
 
 interface Props {
   root: Item;
@@ -22,12 +23,11 @@ const empty = () => {
 const Root = ({ realRoot, root, mode }: Props) => {
   const dispatch = useDispatch();
   const view = useView();
-  const handleChange = (text: string) => {
-    dispatch(actions.edit(root.id, text));
-  };
   const editing = mode.type === EDIT_MODE && mode.id === root.id && view.id === mode.view;
-  const edit = () => {
-    dispatch(actions.focus(root.id, view.id));
+  const edit = (selection?: Selection) => {
+    const anchor = selection ? selection.anchorOffset : 0;
+    const focus = selection ? selection.focusOffset : 0;
+    dispatch(actions.focus(root.id, view.id, focus, anchor));
   };
   const exitEdit = () => {
     dispatch(actions.switchMode(normalMode()));
@@ -35,7 +35,7 @@ const Root = ({ realRoot, root, mode }: Props) => {
   const create = () => {
     const newItem = Item.create('', root.id);
     dispatch(actions.create(newItem));
-    dispatch(actions.focus(newItem.id, view.id));
+    dispatch(actions.focus(newItem.id, view.id, 0));
   };
   const goNext = () => {
     dispatch(gotoNext(root.id, view.id));
@@ -43,7 +43,7 @@ const Root = ({ realRoot, root, mode }: Props) => {
 
   const editor = (
     <Editor
-      onChange={handleChange}
+      onChange={onChange(dispatch, root.id)}
       source={root.source}
       editing={editing}
       modified={root.modified}
